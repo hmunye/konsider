@@ -1,5 +1,4 @@
-
-// Author1: James Onley
+// Author: James Onley
 // Date: May 28, 2024
 // Description: This code uses the Rust Rocket framework to implement a basic API with several endpoints. 
 

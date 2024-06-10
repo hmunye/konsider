@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: 30, 11%, 4%;
+  --background: 53, 100%, 98%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: 53, 100%, 98%;
+    --background: 30, 11%, 4%;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
