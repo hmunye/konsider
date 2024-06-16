@@ -1,1 +1,0 @@
-/home/neverquit/Documents/Learning\ Projects/Learning\ Rust/Konsider/prototype/konsider-API_and_DB/target/debug/konsider-api: /home/neverquit/Documents/Learning\ Projects/Learning\ Rust/Konsider/prototype/konsider-API_and_DB/src/main.rs
