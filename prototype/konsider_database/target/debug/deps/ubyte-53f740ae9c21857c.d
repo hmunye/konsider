@@ -1,0 +1,11 @@
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider_Database/target/debug/deps/libubyte-53f740ae9c21857c.rmeta: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/arithmetic.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/byte_unit.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/parse.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/ser_de.rs
+
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider_Database/target/debug/deps/libubyte-53f740ae9c21857c.rlib: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/arithmetic.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/byte_unit.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/parse.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/ser_de.rs
+
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider_Database/target/debug/deps/ubyte-53f740ae9c21857c.d: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/arithmetic.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/byte_unit.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/parse.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/ser_de.rs
+
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/lib.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/arithmetic.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/byte_unit.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/parse.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ubyte-0.10.4/src/ser_de.rs:

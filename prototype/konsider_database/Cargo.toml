@@ -1,0 +1,9 @@
+[package]
+name = "konsider_database"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rocket = "0.5.1"
+diesel = {version = "2.1.6", features = ["postgres"]}
+dotenvy = "0.15"

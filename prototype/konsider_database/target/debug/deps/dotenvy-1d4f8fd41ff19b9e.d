@@ -1,0 +1,11 @@
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider_Database/target/debug/deps/libdotenvy-1d4f8fd41ff19b9e.rmeta: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/errors.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/find.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/iter.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/parse.rs
+
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider_Database/target/debug/deps/libdotenvy-1d4f8fd41ff19b9e.rlib: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/errors.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/find.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/iter.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/parse.rs
+
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider_Database/target/debug/deps/dotenvy-1d4f8fd41ff19b9e.d: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/errors.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/find.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/iter.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/parse.rs
+
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/lib.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/errors.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/find.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/iter.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dotenvy-0.15.7/src/parse.rs:

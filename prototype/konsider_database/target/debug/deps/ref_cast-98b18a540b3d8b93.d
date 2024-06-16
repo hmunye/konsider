@@ -1,0 +1,10 @@
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider-api/target/debug/deps/libref_cast-98b18a540b3d8b93.rmeta: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/custom.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/layout.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/trivial.rs
+
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider-api/target/debug/deps/libref_cast-98b18a540b3d8b93.rlib: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/custom.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/layout.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/trivial.rs
+
+/home/neverquit/Documents/Learning Projects/Learning Rust/Konsider/prototype/konsider-api/target/debug/deps/ref_cast-98b18a540b3d8b93.d: /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/lib.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/custom.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/layout.rs /home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/trivial.rs
+
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/lib.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/custom.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/layout.rs:
+/home/neverquit/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ref-cast-1.0.23/src/trivial.rs:
