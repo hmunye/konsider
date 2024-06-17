@@ -1,4 +1,3 @@
-
 // Author1: James Onley
 // Date: May 28, 2024
 // Description: This code uses the Rust Rocket framework to implement a basic API with several endpoints. 
@@ -9,10 +8,7 @@ use rocket::tokio::time::{ sleep, Duration} ;
 use std::sync::atomic::AtomicUsize;
 use rocket::State;
 use std::sync::atomic::Ordering;
-use konsider_database::establish_connection;
 use konsider_database::*;
-use crate::models::Post;
-use diesel::*;
 
 #[get("/")]
 fn index() -> &'static str {
@@ -24,7 +20,7 @@ fn world() -> &'static str {
     let connection = &mut establish_connection();
     let title: &str = "Hello";
     let content: &str = "Hello World";
-    let post_string = create_post(connection, title, content);
+    create_post(connection, title, content);
     "success"
 }
  
@@ -60,7 +56,6 @@ fn rocket() -> _ {
         .manage(HitCount { count: AtomicUsize::new(0) })
         .mount("/", routes![index])
         .mount("/", routes![world])
-        
         .mount("/", routes![delay])
         .mount("/", routes![hello])
         .mount("/", routes![count])      

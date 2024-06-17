@@ -1,7 +1,6 @@
 use diesel::prelude::*;
 use dotenvy::dotenv;
 use std::env;
-use diesel::prelude::*;
 use diesel::pg::PgConnection;
 pub mod models;
 pub mod schema;
@@ -19,7 +18,7 @@ pub fn establish_connection() -> PgConnection {
 pub fn create_post(conn: &mut PgConnection, title: &str, body: &str) -> Post {
     use crate::schema::posts;
 
-    let new_post = NewPost { title, body };
+    let new_post: NewPost = NewPost { title, body };
     
     diesel::insert_into(posts::table)
         .values(&new_post)
