@@ -1,4 +1,4 @@
-import { QueryProvider } from "@/components/QueryProvider";
+import { QueryProvider } from "@/components/provider/QueryProvider";
 import { Toaster } from "@/components/ui/Toaster";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";

@@ -2,14 +2,16 @@
 
 import { CreatePostForm } from "@/components/ui/CreatePostForm";
 import Navbar from "@/components/ui/Navbar";
+import PostsView from "@/components/ui/PostsView";
 import ResponseTable from "@/components/ui/ResponseTable";
 import { useFetch } from "@/hooks/useFetch";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+const apiUrl = "http://127.0.0.1:8000/data";
+
 export default function Home() {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const apiUrl = "http://127.0.0.1:8000/data";
 
   const apiQuery = useQuery({
     queryKey: ["message"],
@@ -25,10 +27,10 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center px-10 py-5">
       <Navbar toggleModal={toggleModal} />
-      <div className="flex flex-col justify-center items-center gap-10 mt-16">
-        <h2 className="text-2xl uppercase font-bold">Response Details</h2>
+      <section className="flex flex-col justify-center items-center gap-10 mt-16">
+        <h2 className="text-2xl uppercase font-bold">Test Response Details</h2>
         <ResponseTable query={apiQuery} url={apiUrl} />
-      </div>
+      </section>
       {modalVisible && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
@@ -40,6 +42,9 @@ export default function Home() {
           </div>
         </div>
       )}
+      <section className="flex flex-col justify-center items-center gap-10 mt-32">
+        <PostsView />
+      </section>
     </main>
   );
 }

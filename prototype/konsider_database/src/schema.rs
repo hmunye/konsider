@@ -4,7 +4,7 @@ diesel::table! {
     posts (id) {
         id -> Int4,
         title -> Varchar,
-        body -> Text,
+        content -> Text,
         published -> Bool,
     }
 }

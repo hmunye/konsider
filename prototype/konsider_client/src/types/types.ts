@@ -16,3 +16,10 @@ export const createPostFormSchema = z.object({
     .min(1, { message: "Content is required" })
     .max(255, { message: "Content can not be longer than 255 characters" }),
 });
+
+export type Post = {
+  id: number;
+  title: string;
+  content: string;
+  published: boolean;
+};

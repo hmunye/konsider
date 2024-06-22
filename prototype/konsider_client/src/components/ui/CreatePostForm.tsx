@@ -15,11 +15,12 @@ import { useFetch } from "@/hooks/useFetch";
 import { createPostFormSchema } from "@/types/types";
 import { getCurrentTimeFormatted } from "@/utils/getCurrentTimeFormatted";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "./UseToast";
+
+const apiUrl = "http://127.0.0.1:8000/create-post";
 
 export function CreatePostForm({ toggleModal }: { toggleModal: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -33,20 +34,14 @@ export function CreatePostForm({ toggleModal }: { toggleModal: () => void }) {
     },
   });
 
-  async function onSubmit(postData: z.infer<typeof createPostFormSchema>) {
+  const onSubmit = async (postData: z.infer<typeof createPostFormSchema>) => {
     try {
       setIsSubmitting(true);
-      const apiUrl = "http://127.0.0.1:8000/data";
 
-      useQuery({
-        queryKey: ["title"],
-        queryFn: async () => {
-          return useFetch({
-            url: apiUrl,
-            method: "POST",
-            requestBody: postData,
-          });
-        },
+      useFetch({
+        url: apiUrl,
+        method: "POST",
+        requestBody: postData,
       });
 
       toast({
@@ -55,14 +50,14 @@ export function CreatePostForm({ toggleModal }: { toggleModal: () => void }) {
       });
     } catch (error) {
       toast({
-        title: "Post Creation Failed:",
-        description: getCurrentTimeFormatted(),
+        title: "Post Creation Failed: ",
+        description: `${error}`,
       });
     } finally {
       setIsSubmitting(false);
       toggleModal();
     }
-  }
+  };
 
   return (
     <Form {...form}>

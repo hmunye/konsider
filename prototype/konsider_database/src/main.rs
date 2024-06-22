@@ -1,62 +1,80 @@
-// Author1: James Onley
-// Date: May 28, 2024
-// Description: This code uses the Rust Rocket framework to implement a basic API with several endpoints. 
+#[macro_use]
+extern crate rocket;
 
+use konsider_database::models::Post;
+use konsider_database::{establish_connection, fetch_posts, insert_post};
+use rocket::http::Method;
+use rocket::serde::json::Json;
+use rocket_cors::{AllowedHeaders, AllowedOrigins, CorsOptions};
+use serde::{Deserialize, Serialize};
 
-#[macro_use] extern crate rocket;
-use rocket::tokio::time::{ sleep, Duration} ;
-use std::sync::atomic::AtomicUsize;
-use rocket::State;
-use std::sync::atomic::Ordering;
-use konsider_database::*;
+#[derive(Serialize, Deserialize)]
+struct PostRequest {
+    title: String,
+    content: String,
+}
+
+#[derive(Serialize)]
+struct ResponseData {
+    data: Vec<Post>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TestResponse {
+    message: String,
+}
 
 #[get("/")]
 fn index() -> &'static str {
     "Index: Hello, world!"
 }
 
-#[get("/world")]
-fn world() -> &'static str {
+#[get("/data")]
+fn json_test() -> Json<TestResponse> {
+    let data: TestResponse = TestResponse {
+        message: "Response From Rocket API".to_string(),
+    };
+    Json(data)
+}
+
+#[post("/create-post", data = "<data>")]
+fn create_post(data: Json<PostRequest>) -> &'static str {
     let connection = &mut establish_connection();
-    let title: &str = "Hello";
-    let content: &str = "Hello World";
-    create_post(connection, title, content);
+
+    insert_post(connection, &data.title, &data.content);
+
     "success"
 }
- 
 
-#[get("/delay/<seconds>")]
-async fn delay(seconds: u64) -> String {
-    sleep(Duration::from_secs( seconds )).await;
-    format!("Delay: Waited for {} seconds", seconds)
-}
+#[get("/posts")]
+fn get_posts() -> Json<ResponseData> {
+    let connection = &mut establish_connection();
 
-#[get("/hello/<name>/<age>/<cool>")]
-fn hello(name: &str, age: u8, cool: bool) -> String {
-    if cool {
-        format!("Hello: You're a cool {} year old, {}!", age, name)
-    } else {
-        format!("Hello: {}, we need to talk about your coolness.", name)
-    }
-}
+    let results = fetch_posts(connection);
 
-struct HitCount{
-    count: AtomicUsize
-}
-
-#[get("/count")]
-fn count(hit_count:&State<HitCount>) -> String {
-    let current_count = hit_count.count.load(Ordering::Relaxed);
-    format!("Count: Number of visits: {}", current_count)
+    Json(ResponseData { data: results })
 }
 
 #[launch]
 fn rocket() -> _ {
+    let allowed_origins: rocket_cors::AllOrSome<rocket_cors::Origins> = AllowedOrigins::all();
+    let cors: rocket_cors::Cors = CorsOptions {
+        allowed_origins,
+        allowed_methods: vec![Method::Get, Method::Post, Method::Options]
+            .into_iter()
+            .map(From::from)
+            .collect(),
+        allowed_headers: AllowedHeaders::all(),
+        allow_credentials: true,
+        ..Default::default()
+    }
+    .to_cors()
+    .expect("Failed to create CORS middleware");
+
     rocket::build()
-        .manage(HitCount { count: AtomicUsize::new(0) })
+        .attach(cors)
         .mount("/", routes![index])
-        .mount("/", routes![world])
-        .mount("/", routes![delay])
-        .mount("/", routes![hello])
-        .mount("/", routes![count])      
+        .mount("/", routes![json_test])
+        .mount("/", routes![create_post])
+        .mount("/", routes![get_posts])
 }
