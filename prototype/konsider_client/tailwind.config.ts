@@ -11,6 +11,9 @@ const config: Config = {
       colors: {
         foreground: "hsl(var(--foreground))",
         background: "hsl(var(--background))",
+        primary: "hsl(var(--primary))",
+        destructive: "hsl(var(--destructive))",
+        muted: "hsl(var(--muted))",
       },
     },
   },
