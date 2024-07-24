@@ -1,12 +1,15 @@
-use axum::{routing::{get, post}, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 
-mod health_check;
 mod create_post;
 mod get_posts;
+mod health_check;
 
-pub use health_check::*;
 pub use create_post::*;
 pub use get_posts::*;
+pub use health_check::*;
 
 use crate::http::AppState;
 

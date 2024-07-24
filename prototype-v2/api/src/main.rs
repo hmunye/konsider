@@ -22,7 +22,7 @@ async fn main() -> std::io::Result<()> {
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
         .expect("Failed to bind to address");
-    
+
     http::serve(listener, db)?.await.unwrap();
 
     Ok(())

@@ -6,7 +6,7 @@ use serde::Serialize;
 pub struct StatusResponse {
     message: String,
     time: String,
-    status: String 
+    status: String,
 }
 
 pub async fn health_check() -> Json<StatusResponse> {
@@ -16,6 +16,6 @@ pub async fn health_check() -> Json<StatusResponse> {
     Json(StatusResponse {
         message: String::from("Konsider API Health Check"),
         time: formatted_time,
-        status: StatusCode::OK.to_string()
+        status: StatusCode::OK.to_string(),
     })
 }
