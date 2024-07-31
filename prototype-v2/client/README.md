@@ -1,1 +1,0 @@
-# Konsider Client Prototype
