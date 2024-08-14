@@ -1,5 +1,6 @@
 # Misc
 /.vscode/
+.DS_Store
 
 # Compiled files
 *.o
