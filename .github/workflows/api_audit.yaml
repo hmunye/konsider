@@ -1,0 +1,19 @@
+name: API Security Audit
+on:
+  schedule:
+    # - cron: '0 0 * * *'  # runs daily at midnight
+    - cron: "0 0 * * 0" # runs every sunday at midnight
+  push:
+    paths:
+      - "prototype_v3/api/**/Cargo.toml"
+      - "prototype_v3/api/**/Cargo.lock"
+
+jobs:
+  security_audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@cargo-deny
+      - name: Scan for Vulnerabilities
+        working-directory: prototype_v3/api
+        run: cargo deny check advisories

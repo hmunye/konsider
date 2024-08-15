@@ -13,7 +13,5 @@ async fn health_check() -> impl IntoResponse {
 pub fn serve(tcp_listener: tokio::net::TcpListener) -> Server {
     let routes_all = Router::new().route("/health-check", get(health_check));
 
-    let server = axum::serve(tcp_listener, routes_all.into_make_service());
-
-    server
+    axum::serve(tcp_listener, routes_all.into_make_service())
 }
