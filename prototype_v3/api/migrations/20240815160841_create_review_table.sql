@@ -1,7 +1,7 @@
 -- Add migration script here
 CREATE TYPE review_status AS ENUM (
-    'UNDER_REVIEW',
-    'COMPLETE'
+    'UnderReview',
+    'Complete'
 );
 
 CREATE TABLE review (
@@ -30,7 +30,7 @@ CREATE TABLE review (
 
 -- Constraints
 ALTER TABLE review
-    ADD CONSTRAINT check_status CHECK (status IN ('UNDER_REVIEW', 'COMPLETE'));
+    ADD CONSTRAINT check_status CHECK (status IN ('UnderReview', 'Complete'));
 
 -- Ensure updated_at is always updated on modification
 CREATE OR REPLACE FUNCTION update_review_timestamp()

@@ -1,8 +1,10 @@
 use axum::routing::post;
 use axum::Router;
 
-use super::login_handler;
+use crate::web::server::AppState;
 
-pub fn auth_routes() -> Router {
-    Router::new().route("/login", post(login_handler))
+use super::login;
+
+pub fn auth_routes(state: AppState) -> Router {
+    Router::new().route("/login", post(login)).with_state(state)
 }

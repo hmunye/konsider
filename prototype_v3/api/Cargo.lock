@@ -284,7 +284,10 @@ checksum = "a21f936df1771bf62b77f047b726c4625ff2e8aa607c01ec06e5a05bd8463401"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
+ "serde",
+ "wasm-bindgen",
  "windows-targets 0.52.6",
 ]
 
@@ -923,6 +926,7 @@ name = "konsider_api"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "chrono",
  "clap",
  "dotenvy",
  "reqwest",
@@ -930,6 +934,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -2259,6 +2264,11 @@ name = "uuid"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81dfa00651efa65069b0b6b651f4aaa31ba9e3c3ce0137aaad053604ee7e0314"
+dependencies = [
+ "getrandom",
+ "rand",
+ "serde",
+]
 
 [[package]]
 name = "vcpkg"

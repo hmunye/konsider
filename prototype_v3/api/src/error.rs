@@ -7,6 +7,9 @@ pub type Result<T> = core::result::Result<T, Error>;
 #[derive(Clone, Debug, Serialize)]
 pub enum Error {
     LoginFail,
+    CreateUserFail,
+
+    DatabaseError(String),
 }
 
 impl core::fmt::Display for Error {

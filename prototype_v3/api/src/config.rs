@@ -42,4 +42,11 @@ impl Config {
             self.postgres_db
         )
     }
+
+    pub fn connection_string_without_db(&self) -> String {
+        format!(
+            "postgres://{}:{}@{}:{}",
+            self.postgres_user, self.postgres_password, self.postgres_host, self.postgres_port,
+        )
+    }
 }

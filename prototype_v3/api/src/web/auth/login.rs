@@ -1,9 +1,10 @@
-use axum::extract;
+use axum::extract::{self, State};
 use axum::http::StatusCode;
 use axum::response::Response;
 use serde::Deserialize;
 use serde_json::json;
 
+use crate::web::server::AppState;
 use crate::{Error, Result};
 
 #[derive(Debug, Deserialize)]
@@ -12,15 +13,33 @@ pub struct LoginPayload {
     password: String,
 }
 
-pub async fn login_handler(
+pub async fn login(
+    State(state): State<AppState>,
     extract::Json(payload): extract::Json<LoginPayload>,
 ) -> Result<Response<String>> {
-    // TODO: Implement Database Authentication
-    if payload.email != "test" || payload.password != "test" {
-        return Err(Error::LoginFail);
-    }
+    println!("->> {:<12} - api_login", "HANDLER");
 
-    // TODO: Get User ID
+    // Query to check for the user and get their password hash
+    let _user_id = match sqlx::query!(
+        r#"
+        SELECT id, password_hash
+        FROM "user"
+        WHERE email = $1
+        "#,
+        payload.email,
+    )
+    .fetch_one(&state.db_pool)
+    .await
+    {
+        Ok(row) => {
+            if verify_password(&payload.password, &row.password_hash) {
+                row.id
+            } else {
+                return Err(Error::LoginFail);
+            }
+        }
+        Err(err) => return Err(Error::DatabaseError(err.to_string())),
+    };
 
     // TODO: Set Cookie using User ID
 
@@ -36,4 +55,9 @@ pub async fn login_handler(
         .unwrap();
 
     Ok(response)
+}
+
+fn verify_password(provided_password: &str, stored_hash: &str) -> bool {
+    // TODO: Implement password verification
+    provided_password == stored_hash
 }
