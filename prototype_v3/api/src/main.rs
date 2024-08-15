@@ -1,10 +1,15 @@
-use api::web::server;
+use api::{web::server, Config};
 
 #[tokio::main]
 async fn main() {
-    let tcp_listener = tokio::net::TcpListener::bind("127.0.0.1:1234")
-        .await
-        .unwrap();
+    dotenvy::dotenv().ok();
+
+    let config = Config::default();
+
+    let tcp_listener =
+        tokio::net::TcpListener::bind(format!("{}:{}", config.server_host, config.server_port))
+            .await
+            .unwrap();
 
     println!(
         "->> {:<12} - {}",

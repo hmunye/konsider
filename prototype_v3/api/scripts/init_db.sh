@@ -53,7 +53,7 @@ DB_HOST="${POSTGRES_HOST:=127.0.0.1}"
 if [[ -z "${SKIP}" ]]
 then
     docker run \
-        --name konsider_db \
+        --name postgres \
         -e POSTGRES_USER=${DB_USER} \
         -e POSTGRES_PASSWORD=${DB_PASSWORD} \
         -e POSTGRES_DB=${DB_NAME} \

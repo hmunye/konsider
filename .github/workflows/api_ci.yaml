@@ -10,14 +10,39 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  SQLX_VERSION: 0.8.0
+  SQLX_FEATURES: "rustls,postgres"
 
 jobs:
   test:
     name: Testing
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+         - 5432:5432
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Install sqlx-cli
+        working-directory: prototype_v3/api
+        run:
+            cargo install sqlx-cli
+            --version=${{ env.SQLX_VERSION }}
+            --features ${{ env.SQLX_FEATURES }}
+            --no-default-features
+            --locked
+      - name: Install postgresql-client
+        working-directory: prototype_v3/api
+        run: sudo apt-get update && sudo apt-get install postgresql-client -y
+      - name: Migrate Database
+        working-directory: prototype_v3/api
+        run: SKIP=true ./scripts/init_db.sh
       - name: Run Tests
         working-directory: prototype_v3/api
         run: cargo test --all-features
@@ -37,6 +62,33 @@ jobs:
   clippy:
     name: Linting
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+         - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install sqlx-cli
+        working-directory: prototype_v3/api
+        run:
+            cargo install sqlx-cli
+            --version=${{ env.SQLX_VERSION }}
+            --features ${{ env.SQLX_FEATURES }}
+            --no-default-features
+            --locked
+      - name: Install postgresql-client
+        working-directory: prototype_v3/api
+        run: sudo apt-get update && sudo apt-get install postgresql-client -y
+      - name: Migrate Database
+        working-directory: prototype_v3/api
+        run: SKIP=true ./scripts/init_db.sh
+
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
