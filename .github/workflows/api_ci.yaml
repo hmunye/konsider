@@ -49,7 +49,7 @@ jobs:
 
       - name: Load Environment Variables
         working-directory: prototype_v3/api
-        run: source .env
+        run: source .env.example
 
       - name: Run Tests
         working-directory: prototype_v3/api
@@ -101,7 +101,7 @@ jobs:
 
       - name: Load Environment Variables
         working-directory: prototype_v3/api
-        run: source .env
+        run: source .env.example
 
       - name: Migrate Database
         working-directory: prototype_v3/api
