@@ -6,17 +6,11 @@ set -eo pipefail
 # is determined by the last non-zero status
 
 ENV_FILE=".env"
-TEST_ENV_FILE=".env.example"
 
 # Check if the file exists before sourcing
 if [ -f "$ENV_FILE" ]; then
 # Load environment variables from .env file
     source "$ENV_FILE"
-else
-    # If .env doesn't exist, try .env.example
-    if [ -f "$TEST_ENV_FILE" ]; then
-        source "$TEST_ENV_FILE"
-    fi
 fi
 
 if ! [ -x "$(command -v docker)" ]; then
