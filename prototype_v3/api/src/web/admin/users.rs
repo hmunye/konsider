@@ -12,7 +12,6 @@ pub async fn create_user(
 ) -> Result<Response<String>> {
     println!("->> {:<12} - create_user", "HANDLER");
 
-    // Validate Payload
     match payload.validate_new_user() {
         Ok(payload) => payload,
         Err(_) => return Err(Error::CreateUserFail),
@@ -21,7 +20,6 @@ pub async fn create_user(
     // TODO: Hash and salt password
     let password_hash = &payload.password;
 
-    // Query to insert the user into the database
     match sqlx::query!(
         r#"
         INSERT INTO "user" (name, email, password_hash, role)

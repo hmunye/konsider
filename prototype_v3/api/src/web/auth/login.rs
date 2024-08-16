@@ -19,7 +19,6 @@ pub async fn login(
 ) -> Result<Response<String>> {
     println!("->> {:<12} - api_login", "HANDLER");
 
-    // Query to check for the user and get their password hash
     let _user_id = match sqlx::query!(
         r#"
         SELECT id, password_hash
