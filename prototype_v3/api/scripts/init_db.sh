@@ -7,7 +7,6 @@ set -eo pipefail
 
 ENV_FILE=".env"
 
-# Check if the file exists before sourcing
 if [ -f "$ENV_FILE" ]; then
 # Load environment variables from .env file
     source "$ENV_FILE"
