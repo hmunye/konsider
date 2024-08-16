@@ -10,7 +10,6 @@ async fn login_returns_200_status() {
     let server = spawn_server().await;
     let url = format!("{}/auth/login", server.addr);
 
-    // Create User
     let user_role = UserRole::Reviewer;
 
     let _ = sqlx::query!(
@@ -27,7 +26,6 @@ async fn login_returns_200_status() {
     .await
     .unwrap();
 
-    // Send Request
     let body = json!({
         "email": "john@gmail.com",
         "password": "password123"
