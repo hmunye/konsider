@@ -12,6 +12,7 @@ env:
   CARGO_TERM_COLOR: always
   SQLX_VERSION: 0.8.0
   SQLX_FEATURES: "rustls,postgres"
+  DATABASE_URL: "postgres://postgres:password@localhost/postgres"
 
 jobs:
   test:
@@ -47,9 +48,9 @@ jobs:
         working-directory: prototype_v3/api
         run: SKIP=true ./scripts/init_db.sh
 
-      - name: Load Environment Variables
+      - name: Prepare SQL Queries
         working-directory: prototype_v3/api
-        run: source .env.example
+        run: cargo sqlx prepare
 
       - name: Run Tests
         working-directory: prototype_v3/api
@@ -99,13 +100,13 @@ jobs:
         working-directory: prototype_v3/api
         run: sudo apt-get update && sudo apt-get install postgresql-client -y
 
-      - name: Load Environment Variables
-        working-directory: prototype_v3/api
-        run: source .env.example
-
       - name: Migrate Database
         working-directory: prototype_v3/api
         run: SKIP=true ./scripts/init_db.sh
+
+      - name: Prepare SQL Queries
+        working-directory: prototype_v3/api
+        run: cargo sqlx prepare
 
       - name: Lint Code
         working-directory: prototype_v3/api
