@@ -2,17 +2,19 @@ use axum::extract::{self, State};
 use axum::http::StatusCode;
 use axum::response::Response;
 use serde_json::json;
+use tracing::Instrument;
 use uuid::Uuid;
 
 use crate::web::server::AppState;
 use crate::{Error, Result, User, UserRole};
 
 #[tracing::instrument(
-    name = "Creating New User",
+    name = "Creating New User", 
     skip(state, payload),
     fields(
-        user_name = %payload.name,
+        request_id = %Uuid::new_v4(),
         user_email = %payload.email,
+        user_name = %payload.name
     )
 )]
 pub async fn create_user(
@@ -27,15 +29,7 @@ pub async fn create_user(
     // TODO: Hash and salt password
     let password_hash = &payload.password;
 
-    let request_id = Uuid::new_v4();
-
-    tracing::info!(
-        "request-id {} - Adding '{}' '{}' as a new user",
-        request_id,
-        payload.email,
-        payload.name
-    );
-
+    let query_span = tracing::info_span!("Saving new user details in database",);
     match sqlx::query!(
         r#"
         INSERT INTO "user" (name, email, password_hash, role)
@@ -47,10 +41,16 @@ pub async fn create_user(
         payload.role as UserRole,
     )
     .execute(&state.db_pool)
+    .instrument(query_span)
     .await
     {
-        Ok(..) => (),
-        Err(err) => return Err(Error::DatabaseError(err.to_string())),
+        Ok(..) => {
+            tracing::info!("New user details have been saved",);
+        }
+        Err(err) => {
+            tracing::error!("Failed to execute query: {:?}", err);
+            return Err(Error::DatabaseError(err.to_string()));
+        }
     };
 
     let response = Response::builder()

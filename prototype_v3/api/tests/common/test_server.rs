@@ -1,7 +1,14 @@
-use api::web::server;
+use api::telemetry::init_subscriber;
 use api::Config;
+use api::{telemetry::get_subscriber, web::server};
+use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let subscriber = get_subscriber("test".into(), "info".into(), std::io::stdout);
+    init_subscriber(subscriber);
+});
 
 pub struct TestServer {
     pub addr: String,
@@ -10,6 +17,8 @@ pub struct TestServer {
 }
 
 pub async fn spawn_server() -> TestServer {
+    Lazy::force(&TRACING);
+
     dotenvy::dotenv().ok();
 
     let mut config = Config::default();

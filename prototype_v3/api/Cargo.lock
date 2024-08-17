@@ -915,6 +915,7 @@ dependencies = [
  "chrono",
  "clap",
  "dotenvy",
+ "once_cell",
  "reqwest",
  "serde",
  "serde_json",
