@@ -1,6 +1,7 @@
 pub mod config;
 pub mod error;
 pub mod model;
+pub mod telemetry;
 pub mod web;
 
 pub use config::Config;

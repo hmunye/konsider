@@ -1,9 +1,11 @@
-use axum::http::StatusCode;
+use axum::http::{Request, StatusCode};
 use axum::response::IntoResponse;
 use axum::routing::{get, IntoMakeService};
 use axum::serve::Serve;
 use axum::Router;
 use sqlx::PgPool;
+use tower_http::trace::TraceLayer;
+use tracing::Level;
 
 use super::admin::admin_routes;
 use super::auth::auth_routes;
@@ -15,8 +17,8 @@ pub struct AppState {
     pub db_pool: PgPool,
 }
 
+#[tracing::instrument(name = "Health Check")]
 async fn health_check() -> impl IntoResponse {
-    println!("->> {:<12} - health_check", "HANDLER");
     (StatusCode::OK, "status: ok")
 }
 
@@ -26,7 +28,21 @@ pub fn serve(tcp_listener: tokio::net::TcpListener, db_pool: PgPool) -> Server {
     let routes_all = Router::new()
         .route("/health-check", get(health_check))
         .nest("/auth", auth_routes(state.clone()))
-        .nest("/admin", admin_routes(state.clone()));
+        .nest("/admin", admin_routes(state.clone()))
+        .layer(
+            TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
+                let request_id = uuid::Uuid::new_v4().to_string();
+
+                tracing::span!(
+                    Level::DEBUG,
+                    "request",
+                    %request_id,
+                    method = ?request.method(),
+                    uri = %request.uri(),
+                    version = ?request.version(),
+                )
+            }),
+        );
 
     axum::serve(tcp_listener, routes_all.into_make_service())
 }

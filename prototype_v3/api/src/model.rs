@@ -22,7 +22,7 @@ pub enum UserRole {
 }
 
 impl User {
-    pub fn validate_new_user(&self) -> Result<()> {
+    pub fn parse(&self) -> Result<()> {
         if self.name.is_empty() || self.name.len() > 50 {
             return Err(Error::CreateUserFail);
         }

@@ -40,7 +40,7 @@ pub async fn spawn_server() -> TestServer {
 }
 
 // Create a new database for each test with a unique name for better test isolation
-pub async fn config_database(config: &Config) -> PgPool {
+async fn config_database(config: &Config) -> PgPool {
     let mut db_connection = PgConnection::connect(&config.connection_string_without_db())
         .await
         .unwrap();

@@ -13,12 +13,17 @@ pub struct LoginPayload {
     password: String,
 }
 
+#[tracing::instrument(
+    name = "User Login",
+    skip(state, payload),
+    fields(
+        user_email = %payload.email,
+    )
+)]
 pub async fn login(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<LoginPayload>,
 ) -> Result<Response<String>> {
-    println!("->> {:<12} - api_login", "HANDLER");
-
     let _user_id = match sqlx::query!(
         r#"
         SELECT id, password_hash
