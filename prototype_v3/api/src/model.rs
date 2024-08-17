@@ -31,7 +31,6 @@ impl User {
             return Err(Error::CreateUserFail);
         }
 
-        // Validates password before it is hashed
         if self.password.is_empty() || self.password.len() < 8 {
             return Err(Error::CreateUserFail);
         }

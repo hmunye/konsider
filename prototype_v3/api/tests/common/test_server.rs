@@ -1,5 +1,4 @@
 use api::web::server;
-
 use api::Config;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
