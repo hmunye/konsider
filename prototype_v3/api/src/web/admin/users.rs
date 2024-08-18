@@ -2,14 +2,13 @@ use axum::extract::{self, State};
 use axum::http::StatusCode;
 use axum::response::Response;
 use serde_json::json;
-use tracing::Instrument;
 use uuid::Uuid;
 
 use crate::web::server::AppState;
 use crate::{Error, Result, User, UserRole};
 
 #[tracing::instrument(
-    name = "Creating New User", 
+    name = "Creating new user", 
     skip(state, payload),
     fields(
         request_id = %Uuid::new_v4(),
@@ -21,6 +20,7 @@ pub async fn create_user(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<User>,
 ) -> Result<Response<String>> {
+    // Validate User
     match payload.parse() {
         Ok(payload) => payload,
         Err(_) => return Err(Error::CreateUserFail),
@@ -29,29 +29,7 @@ pub async fn create_user(
     // TODO: Hash and salt password
     let password_hash = &payload.password;
 
-    let query_span = tracing::info_span!("Saving new user details in database",);
-    match sqlx::query!(
-        r#"
-        INSERT INTO "user" (name, email, password_hash, role)
-        VALUES ($1, $2, $3, $4)
-        "#,
-        payload.name,
-        payload.email,
-        password_hash,
-        payload.role as UserRole,
-    )
-    .execute(&state.db_pool)
-    .instrument(query_span)
-    .await
-    {
-        Ok(..) => {
-            tracing::info!("New user details have been saved",);
-        }
-        Err(err) => {
-            tracing::error!("Failed to execute query: {:?}", err);
-            return Err(Error::DatabaseError(err.to_string()));
-        }
-    };
+    insert_user(&state, &payload, password_hash.to_string()).await?;
 
     let response = Response::builder()
         .status(StatusCode::OK)
@@ -65,4 +43,30 @@ pub async fn create_user(
         .unwrap();
 
     Ok(response)
+}
+
+#[tracing::instrument(name = "Inserting user in DB", skip(state, payload, password_hash))]
+async fn insert_user(state: &AppState, payload: &User, password_hash: String) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        INSERT INTO "user" (name, email, password_hash, role)
+        VALUES ($1, $2, $3, $4)
+        "#,
+        payload.name,
+        payload.email,
+        password_hash,
+        payload.role.clone() as UserRole,
+    )
+    .execute(&state.db_pool)
+    .await
+    {
+        Ok(..) => {
+            tracing::info!("New user details have been saved",);
+            Ok(())
+        }
+        Err(err) => {
+            tracing::error!("Failed to execute query: {:?}", err);
+            Err(Error::DatabaseError(err.to_string()))
+        }
+    }
 }

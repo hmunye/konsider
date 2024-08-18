@@ -14,7 +14,7 @@ pub struct User {
     pub role: UserRole,
 }
 
-#[derive(Debug, Deserialize, Serialize, sqlx::Type)]
+#[derive(Clone, Debug, Deserialize, Serialize, sqlx::Type)]
 #[sqlx(type_name = "user_role")]
 pub enum UserRole {
     Reviewer,
