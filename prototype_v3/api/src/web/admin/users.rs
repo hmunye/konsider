@@ -2,7 +2,6 @@ use axum::extract::{self, State};
 use axum::http::StatusCode;
 use axum::response::Response;
 use serde_json::json;
-use uuid::Uuid;
 
 use crate::web::server::AppState;
 use crate::{Error, Result, User, UserRole};
@@ -11,7 +10,6 @@ use crate::{Error, Result, User, UserRole};
     name = "Creating new user", 
     skip(state, payload),
     fields(
-        request_id = %Uuid::new_v4(),
         user_email = %payload.email,
         user_name = %payload.name
     )
@@ -23,7 +21,10 @@ pub async fn create_user(
     // Validate User
     match payload.parse() {
         Ok(payload) => payload,
-        Err(_) => return Err(Error::CreateUserFail),
+        Err(_) => {
+            tracing::error!("New user details are invalid");
+            return Err(Error::CreateUserFail)
+        },
     };
 
     // TODO: Hash and salt password

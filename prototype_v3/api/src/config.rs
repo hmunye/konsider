@@ -1,4 +1,5 @@
 use clap::Parser;
+use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
 
 #[derive(Parser, Deserialize)]
@@ -7,7 +8,7 @@ pub struct Config {
     pub postgres_user: String,
 
     #[clap(long, env)]
-    pub postgres_password: String,
+    pub postgres_password: Secret<String>,
 
     #[clap(long, env)]
     pub postgres_db: String,
@@ -32,21 +33,24 @@ impl Default for Config {
 }
 
 impl Config {
-    pub fn connection_string(&self) -> String {
-        format!(
+    pub fn connection_string(&self) -> Secret<String> {
+        Secret::new(format!(
             "postgres://{}:{}@{}:{}/{}",
             self.postgres_user,
-            self.postgres_password,
+            self.postgres_password.expose_secret(),
             self.postgres_host,
             self.postgres_port,
             self.postgres_db
-        )
+        ))
     }
 
-    pub fn connection_string_without_db(&self) -> String {
-        format!(
+    pub fn connection_string_without_db(&self) -> Secret<String> {
+        Secret::new(format!(
             "postgres://{}:{}@{}:{}",
-            self.postgres_user, self.postgres_password, self.postgres_host, self.postgres_port,
-        )
+            self.postgres_user,
+            self.postgres_password.expose_secret(),
+            self.postgres_host,
+            self.postgres_port,
+        ))
     }
 }

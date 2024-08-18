@@ -2,6 +2,7 @@ use api::telemetry::init_subscriber;
 use api::Config;
 use api::{telemetry::get_subscriber, web::server};
 use once_cell::sync::Lazy;
+use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 
@@ -50,9 +51,10 @@ pub async fn spawn_server() -> TestServer {
 
 // Create a new database for each test with a unique name for better test isolation
 async fn config_database(config: &Config) -> PgPool {
-    let mut db_connection = PgConnection::connect(&config.connection_string_without_db())
-        .await
-        .unwrap();
+    let mut db_connection =
+        PgConnection::connect(&config.connection_string_without_db().expose_secret())
+            .await
+            .unwrap();
 
     db_connection
         .execute(format!(r#"CREATE DATABASE "{}";"#, config.postgres_db).as_str())
@@ -60,7 +62,9 @@ async fn config_database(config: &Config) -> PgPool {
         .unwrap();
 
     // Run Migrations
-    let db_pool = PgPool::connect(&config.connection_string()).await.unwrap();
+    let db_pool = PgPool::connect(&config.connection_string().expose_secret())
+        .await
+        .unwrap();
 
     sqlx::migrate!("./migrations").run(&db_pool).await.unwrap();
 

@@ -2,6 +2,7 @@ mod common;
 
 use api::Config;
 use common::spawn_server;
+use secrecy::ExposeSecret;
 use sqlx::PgPool;
 
 #[tokio::test]
@@ -12,10 +13,10 @@ async fn health_check_test() {
 
     let config = Config::default();
 
-    let connection_string = config.connection_string();
-
     // Make sure we can connect to the db
-    let _ = PgPool::connect(&connection_string).await.unwrap();
+    let _ = PgPool::connect(&config.connection_string().expose_secret())
+        .await
+        .unwrap();
 
     let response = client
         .get(&url)

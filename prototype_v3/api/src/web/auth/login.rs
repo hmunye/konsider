@@ -24,7 +24,6 @@ pub struct UserDetails {
     name = "User login attempt", 
     skip(state, payload),
     fields(
-        request_id = %Uuid::new_v4(),
         user_email = %payload.email
     )
 )]
