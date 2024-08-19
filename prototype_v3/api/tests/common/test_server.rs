@@ -1,11 +1,16 @@
-use api::telemetry::init_subscriber;
-use api::Config;
-use api::{telemetry::get_subscriber, web::server};
+use std::env;
+use std::path::Path;
+
+use api::telemetry::{get_subscriber, init_subscriber};
+use api::web::server;
+use api::{Config, Environment};
+
 use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 
+// Ensure it is only initialized once
 static TRACING: Lazy<()> = Lazy::new(|| {
     let subscriber = get_subscriber("test".into(), "info".into(), std::io::stdout);
     init_subscriber(subscriber);
@@ -13,14 +18,25 @@ static TRACING: Lazy<()> = Lazy::new(|| {
 
 pub struct TestServer {
     pub addr: String,
-    #[allow(dead_code)]
     pub db_pool: PgPool,
 }
 
 pub async fn spawn_server() -> TestServer {
     Lazy::force(&TRACING);
 
-    dotenvy::dotenv().ok();
+    // Detect the running environment. Defaults to local if not provided
+    let environment: Environment = env::var("ENVIRONMENT")
+        .unwrap_or_else(|_| "local".into())
+        .try_into()
+        .unwrap();
+
+    let env_file = match environment.as_str() {
+        "production" => ".env.production",
+        _ => ".env.local",
+    };
+
+    // Load the specified .env file
+    let _ = dotenvy::from_path(Path::new(env_file));
 
     let mut config = Config::default();
 

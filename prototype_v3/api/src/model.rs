@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::{Error, Result};
 
 //----------------------------------------------------------------------
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct User {
     pub name: String,
 
@@ -14,7 +14,7 @@ pub struct User {
     pub role: UserRole,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, sqlx::Type)]
+#[derive(Clone, Debug, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "user_role")]
 pub enum UserRole {
     Reviewer,

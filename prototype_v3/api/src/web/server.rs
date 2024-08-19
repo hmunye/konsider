@@ -33,6 +33,7 @@ pub fn serve(tcp_listener: tokio::net::TcpListener, db_pool: PgPool) -> Server {
             TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
                 let request_id = uuid::Uuid::new_v4().to_string();
 
+                // Will be included with every request
                 tracing::span!(
                     Level::DEBUG,
                     "request",

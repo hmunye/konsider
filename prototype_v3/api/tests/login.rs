@@ -2,6 +2,7 @@ mod common;
 
 use api::UserRole;
 use common::spawn_server;
+
 use serde_json::json;
 
 #[tokio::test]
@@ -12,6 +13,7 @@ async fn login_returns_200_status() {
 
     let user_role = UserRole::Reviewer;
 
+    // Create user to test against
     let _ = sqlx::query!(
         r#"
         INSERT INTO "user" (name, email, password_hash, role)
@@ -26,11 +28,13 @@ async fn login_returns_200_status() {
     .await
     .unwrap();
 
+    // Payload
     let body = json!({
         "email": "john@gmail.com",
         "password": "password123"
     });
 
+    // Request
     let response = client
         .post(&url)
         .header("Content-Type", "application/json")
@@ -49,11 +53,13 @@ async fn login_returns_500_status() {
     let server = spawn_server().await;
     let url = format!("{}/auth/login", server.addr);
 
+    // Payload (User should not exist in db)
     let body = json!({
         "email": "test",
         "password": "test"
     });
 
+    // Request
     let response = client
         .post(&url)
         .header("Content-Type", "application/json")

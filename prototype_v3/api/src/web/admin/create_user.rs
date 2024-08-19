@@ -8,23 +8,24 @@ use crate::{Error, Result, User, UserRole};
 
 #[tracing::instrument(
     name = "Creating new user", 
+    // Won't include in logs
     skip(state, payload),
     fields(
         user_email = %payload.email,
         user_name = %payload.name
     )
 )]
-pub async fn create_user(
+pub async fn api_create_user(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<User>,
 ) -> Result<Response<String>> {
-    // Validate User
+    // Validate payload
     match payload.parse() {
         Ok(payload) => payload,
         Err(_) => {
             tracing::error!("New user details are invalid");
-            return Err(Error::CreateUserFail)
-        },
+            return Err(Error::CreateUserFail);
+        }
     };
 
     // TODO: Hash and salt password

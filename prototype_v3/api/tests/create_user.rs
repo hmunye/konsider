@@ -1,6 +1,7 @@
 mod common;
 
 use common::spawn_server;
+
 use serde_json::json;
 
 #[tokio::test]
@@ -11,6 +12,7 @@ async fn create_user_returns_200_status() {
 
     let email: String = String::from("john@gmail.com");
 
+    // Payload
     let body = json!({
         "name": "John",
         "email": email,
@@ -18,6 +20,7 @@ async fn create_user_returns_200_status() {
         "role": "Reviewer"
     });
 
+    // Request
     let response = client
         .post(&url)
         .header("Content-Type", "application/json")
@@ -26,6 +29,7 @@ async fn create_user_returns_200_status() {
         .await
         .expect("Failed to execute request.");
 
+    // Check if user has been created
     let _ = sqlx::query!(
         r#"
         SELECT id
@@ -43,11 +47,13 @@ async fn create_user_returns_200_status() {
 }
 
 #[tokio::test]
+// Returns 422 because the payload can't be deserialized into the 'User' struct
 async fn create_user_returns_422_status() {
     let client = reqwest::Client::new();
     let server = spawn_server().await;
     let url = format!("{}/admin/create-user", server.addr);
 
+    // Payloads where the user should not be created
     let test_cases = vec![
         (
             json!({
@@ -83,6 +89,7 @@ async fn create_user_returns_422_status() {
         ),
     ];
 
+    // Requests
     for (invalid_body, error_message) in test_cases {
         let response = client
             .post(&url)
@@ -106,6 +113,7 @@ async fn create_user_returns_500_status() {
     let server = spawn_server().await;
     let url = format!("{}/admin/create-user", server.addr);
 
+    // Payloads where the user should not be created
     let test_cases = vec![
         (
             json!({
@@ -146,6 +154,7 @@ async fn create_user_returns_500_status() {
         //        ),
     ];
 
+    // Requests
     for (invalid_body, error_message) in test_cases {
         let response = client
             .post(&url)

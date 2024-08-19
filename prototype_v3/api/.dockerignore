@@ -1,0 +1,8 @@
+docker/
+migrations/
+scripts/
+target/
+tests/
+.env
+.env.example
+.env.local

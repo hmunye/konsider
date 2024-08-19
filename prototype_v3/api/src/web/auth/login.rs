@@ -22,6 +22,7 @@ pub struct UserDetails {
 
 #[tracing::instrument(
     name = "User login attempt", 
+    // Won't include in logs
     skip(state, payload),
     fields(
         user_email = %payload.email
@@ -31,12 +32,12 @@ pub async fn api_login(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<LoginPayload>,
 ) -> Result<Response<String>> {
-    let _user_details = login_user(&state, &payload).await?;
+    let user_details = login_user(&state, &payload).await?;
 
-    verify_password(&payload.password, &_user_details.password_hash)?;
+    verify_password(&payload.password, &user_details.password_hash)?;
 
     // TODO: Set Cookie using User ID
-    let _user_id = _user_details.user_id;
+    let _user_id = user_details.user_id;
 
     let response = Response::builder()
         .status(StatusCode::OK)

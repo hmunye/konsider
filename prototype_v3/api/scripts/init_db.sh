@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-set -x # Enable debugging
-set -eo pipefail 
+# set -x # Enable debugging
+# set -eo pipefail 
 # ^ Ensures the script exits immediately if any command fails (-e) and that the exit status of a pipeline 
 # is determined by the last non-zero status
 

@@ -4,6 +4,6 @@ pub mod model;
 pub mod telemetry;
 pub mod web;
 
-pub use config::Config;
+pub use config::{Config, Environment};
 pub use error::{Error, Result};
 pub use model::{Requester, Review, Software, User, UserRole};
