@@ -18,6 +18,7 @@ static TRACING: Lazy<()> = Lazy::new(|| {
 
 pub struct TestServer {
     pub addr: String,
+    #[allow(dead_code)]
     pub db_pool: PgPool,
 }
 

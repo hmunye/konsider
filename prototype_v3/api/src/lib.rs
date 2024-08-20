@@ -1,6 +1,6 @@
 pub mod config;
-pub mod error;
 pub mod model;
+pub mod error;
 pub mod telemetry;
 pub mod web;
 
