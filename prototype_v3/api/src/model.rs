@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{Error, Result};
 
@@ -23,19 +24,56 @@ pub enum UserRole {
 
 impl User {
     pub fn parse(&self) -> Result<()> {
-        if self.name.is_empty() || self.name.len() > 50 {
-            return Err(Error::CreateUserFail);
+        if Self::validate_name(&self.name)
+            || Self::validate_email(&self.email)
+            || Self::validate_password(&self.password)
+        {
+            Err(Error::CreateUserFail)
+        } else {
+            Ok(())
         }
+    }
 
-        if self.email.is_empty() || self.email.len() > 50 {
-            return Err(Error::CreateUserFail);
-        }
+    fn validate_name(name: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$'];
 
-        if self.password.is_empty() || self.password.len() < 8 {
-            return Err(Error::CreateUserFail);
-        }
+        let name_is_empty_or_whitespace = name.trim().is_empty();
 
-        Ok(())
+        // A grapheme is defined by the Unicode standard as a "user-perceived"
+        // character: `å` is a single grapheme, but it is composed of two characters
+        // (`a` and `̊`)
+        //
+        // `graphemes` returns an iterator over the graphemes in the input
+        // `true` specifies that we want to use the extended grapheme definition set
+        let name_too_long = name.graphemes(true).count() > 256;
+        let name_contains_forbidden_chars = name.chars().any(|c| forbidden_chars.contains(&c));
+
+        name_is_empty_or_whitespace || name_too_long || name_contains_forbidden_chars
+    }
+
+    fn validate_email(email: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$'];
+
+        let email_is_empty_or_whitespace = email.trim().is_empty();
+        let email_too_long = email.graphemes(true).count() > 256;
+        let email_contains_forbidden_chars = email.chars().any(|s| forbidden_chars.contains(&s));
+
+        email_is_empty_or_whitespace || email_too_long || email_contains_forbidden_chars
+    }
+
+    fn validate_password(password: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$'];
+
+        let password_is_empty_or_whitespace = password.trim().is_empty();
+        let password_too_long = password.graphemes(true).count() > 256;
+        let password_too_short = password.graphemes(true).count() < 8;
+        let password_contains_forbidden_chars =
+            password.chars().any(|s| forbidden_chars.contains(&s));
+
+        password_is_empty_or_whitespace
+            || password_too_long
+            || password_too_short
+            || password_contains_forbidden_chars
     }
 }
 //----------------------------------------------------------------------
@@ -101,3 +139,64 @@ pub enum ReviewStatus {
     Complete,
 }
 //----------------------------------------------------------------------
+// Unit Tests
+
+#[cfg(test)]
+mod tests {
+    use crate::model::User;
+
+    // Returns true is field is invalid, false if valid
+
+    #[test]
+    fn a_256_grapheme_field_is_vaild() {
+        let value = "a".repeat(256);
+        assert_eq!(User::validate_name(&value), false);
+        assert_eq!(User::validate_email(&value), false);
+        assert_eq!(User::validate_password(&value), false);
+    }
+
+    #[test]
+    fn a_257_grapheme_field_is_invaild() {
+        let value = "a".repeat(257);
+        assert_eq!(User::validate_name(&value), true);
+        assert_eq!(User::validate_email(&value), true);
+        assert_eq!(User::validate_password(&value), true);
+    }
+
+    #[test]
+    fn whitespace_only_is_rejected() {
+        let value = " ".to_string();
+        assert_eq!(User::validate_name(&value), true);
+        assert_eq!(User::validate_email(&value), true);
+        assert_eq!(User::validate_password(&value), true);
+    }
+
+    #[test]
+    fn empty_string_is_rejected() {
+        let value = "".to_string();
+        assert_eq!(User::validate_name(&value), true);
+        assert_eq!(User::validate_email(&value), true);
+        assert_eq!(User::validate_password(&value), true);
+    }
+
+    #[test]
+    fn forbidden_characters_are_rejected() {
+        for value in &['/', '(', ')', '"', '<', '>', '\\', '{', '}'] {
+            let value = value.to_string();
+            assert_eq!(User::validate_name(&value), true);
+            assert_eq!(User::validate_email(&value), true);
+            assert_eq!(User::validate_password(&value), true);
+        }
+    }
+
+    #[test]
+    fn valid_field_return_false() {
+        let name = "John".to_string();
+        let email = "john@gmail.com".to_string();
+        let password = "password@123".to_string();
+
+        assert_eq!(User::validate_name(&name), false);
+        assert_eq!(User::validate_email(&email), false);
+        assert_eq!(User::validate_password(&password), false);
+    }
+}

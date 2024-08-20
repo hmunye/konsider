@@ -107,6 +107,7 @@ async fn create_user_returns_422_status() {
     }
 }
 
+// TODO: Change to 400 status (Bad Request)
 #[tokio::test]
 async fn create_user_returns_500_status() {
     let client = reqwest::Client::new();
@@ -141,6 +142,15 @@ async fn create_user_returns_500_status() {
                 "role": "Reviewer",
             }),
             "empty password",
+        ),
+        (
+            json!({
+                "name": "John",
+                "email": "//$(test@gmail.com)",
+                "password": "",
+                "role": "Reviewer",
+            }),
+            "malformed email",
         ),
         // Would return a 422 status because role is from the UserRole enum
         //        (

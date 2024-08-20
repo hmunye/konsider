@@ -1,3 +1,7 @@
+// TODO: Add middleware that limits the size of request bodies by default
+// Reject any input over 4 GiB,
+// or any input that could _encode_ to a string longer than 4 GiB
+
 use axum::http::{Request, StatusCode};
 use axum::response::IntoResponse;
 use axum::routing::{get, IntoMakeService};

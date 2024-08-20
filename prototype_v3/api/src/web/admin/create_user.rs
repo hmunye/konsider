@@ -20,13 +20,10 @@ pub async fn api_create_user(
     extract::Json(payload): extract::Json<User>,
 ) -> Result<Response<String>> {
     // Validate payload
-    match payload.parse() {
-        Ok(payload) => payload,
-        Err(_) => {
-            tracing::error!("New user details are invalid");
-            return Err(Error::CreateUserFail);
-        }
-    };
+    payload.parse().map_err(|err| {
+        tracing::error!("New user details are invalid");
+        err
+    })?;
 
     // TODO: Hash and salt password
     let password_hash = &payload.password;
