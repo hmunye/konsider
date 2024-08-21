@@ -1,8 +1,8 @@
 use std::env;
 use std::path::Path;
 
+use api::server::{get_db_pool, Application};
 use api::telemetry::{get_subscriber, init_subscriber};
-use api::web::server;
 use api::{Config, Environment};
 
 use once_cell::sync::Lazy;
@@ -18,8 +18,27 @@ static TRACING: Lazy<()> = Lazy::new(|| {
 
 pub struct TestServer {
     pub addr: String,
-    #[allow(dead_code)]
     pub db_pool: PgPool,
+}
+
+impl TestServer {
+    pub async fn get_request(&self, url: &String) -> reqwest::Response {
+        reqwest::Client::new()
+            .get(url)
+            .send()
+            .await
+            .expect("Failed to execute request")
+    }
+
+    pub async fn post_request(&self, url: &String, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(url)
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request")
+    }
 }
 
 pub async fn spawn_server() -> TestServer {
@@ -39,31 +58,36 @@ pub async fn spawn_server() -> TestServer {
     // Load the specified .env file
     let _ = dotenvy::from_path(Path::new(env_file));
 
-    let mut config = Config::default();
+    let config = {
+        let mut config = Config::default();
 
-    // Create unique database name
-    config.postgres_db = Uuid::new_v4().to_string();
+        // Use a different database for each test case
+        config.postgres_db = Uuid::new_v4().to_string();
 
-    // Using port '0' will trigger the OS to scan for an available port
-    // This allows the server to continue running on port 8000 while each test is executed using
-    // a different port. Avoids port conflicts
-    let addr = format!("{}:0", config.server_host);
+        // Using port '0' will trigger the OS to scan for an available port
+        // This allows the server to continue running on port 8000 while each test is executed using
+        // a different port. Avoids port conflicts
+        config.server_port = 0;
 
-    let db_pool = config_database(&config).await;
+        config
+    };
 
-    let tcp_listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    config_database(&config).await;
 
-    let port = tcp_listener.local_addr().unwrap().port();
+    let application = Application::build(config.clone())
+        .await
+        .expect("Failed to build application");
 
-    let server = server::serve(tcp_listener, db_pool.clone());
+    let addr = format!("http://{}:{}", application.host(), application.port());
 
     // Spawns a new asynchronous task
     // Used to start a new task that starts a new instance of the server
-    tokio::spawn(async move { server.await.unwrap() });
+    tokio::spawn(async move { application.run_server().await });
 
-    let addr = format!("http://{}:{}", config.server_host, port);
-
-    TestServer { addr, db_pool }
+    TestServer {
+        addr,
+        db_pool: get_db_pool(&config),
+    }
 }
 
 // Create a new database for each test with a unique name for better test isolation

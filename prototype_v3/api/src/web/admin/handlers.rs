@@ -1,7 +1,7 @@
 use axum::routing::post;
 use axum::Router;
 
-use crate::web::server::AppState;
+use crate::server::AppState;
 
 use super::api_create_user;
 

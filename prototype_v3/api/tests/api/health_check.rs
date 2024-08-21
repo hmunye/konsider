@@ -1,14 +1,12 @@
-mod common;
-
 use api::Config;
-use common::spawn_server;
+
+use crate::common::spawn_server;
 
 use secrecy::ExposeSecret;
 use sqlx::PgPool;
 
 #[tokio::test]
 async fn health_check_test() {
-    let client = reqwest::Client::new();
     let server = spawn_server().await;
     let url = format!("{}/health-check", server.addr);
 
@@ -20,11 +18,7 @@ async fn health_check_test() {
         .unwrap();
 
     // Request
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to execute request.");
+    let response = server.get_request(&url).await;
 
     assert_eq!(200, response.status().as_u16());
     assert_eq!(Some(10), response.content_length());

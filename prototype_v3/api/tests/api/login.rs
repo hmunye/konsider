@@ -1,13 +1,11 @@
-mod common;
-
 use api::UserRole;
-use common::spawn_server;
+
+use crate::common::spawn_server;
 
 use serde_json::json;
 
 #[tokio::test]
 async fn login_returns_200_status() {
-    let client = reqwest::Client::new();
     let server = spawn_server().await;
     let url = format!("{}/auth/login", server.addr);
 
@@ -35,13 +33,7 @@ async fn login_returns_200_status() {
     });
 
     // Request
-    let response = client
-        .post(&url)
-        .header("Content-Type", "application/json")
-        .body(body.to_string())
-        .send()
-        .await
-        .expect("Failed to execute request.");
+    let response = server.post_request(&url, body.to_string()).await;
 
     assert_eq!(200, response.status().as_u16());
     assert_eq!(Some(16), response.content_length());
@@ -49,7 +41,6 @@ async fn login_returns_200_status() {
 
 #[tokio::test]
 async fn login_returns_500_status() {
-    let client = reqwest::Client::new();
     let server = spawn_server().await;
     let url = format!("{}/auth/login", server.addr);
 
@@ -60,13 +51,7 @@ async fn login_returns_500_status() {
     });
 
     // Request
-    let response = client
-        .post(&url)
-        .header("Content-Type", "application/json")
-        .body(body.to_string())
-        .send()
-        .await
-        .expect("Failed to execute request.");
+    let response = server.post_request(&url, body.to_string()).await;
 
     assert_eq!(500, response.status().as_u16());
 }

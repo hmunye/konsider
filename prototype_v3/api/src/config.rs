@@ -1,7 +1,7 @@
 use clap::Parser;
 use secrecy::{ExposeSecret, Secret};
 
-#[derive(Parser)]
+#[derive(Clone, Parser)]
 pub struct Config {
     #[clap(long, env)]
     pub postgres_user: String,

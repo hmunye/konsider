@@ -3,7 +3,7 @@ use axum::http::StatusCode;
 use axum::response::Response;
 use serde_json::json;
 
-use crate::web::server::AppState;
+use crate::server::AppState;
 use crate::{Error, Result, User, UserRole};
 
 #[tracing::instrument(

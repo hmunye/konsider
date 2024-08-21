@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::web::server::AppState;
+use crate::server::AppState;
 use crate::{Error, Result};
 
 #[derive(Debug, Deserialize)]
