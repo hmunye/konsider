@@ -2,8 +2,7 @@ use axum::routing::post;
 use axum::Router;
 
 use crate::server::AppState;
-
-use super::api_login;
+use crate::web::auth::api_login;
 
 pub fn auth_routes(state: AppState) -> Router {
     Router::new()

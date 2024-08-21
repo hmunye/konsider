@@ -1,6 +1,6 @@
-use crate::common::spawn_server;
-
 use serde_json::json;
+
+use crate::common::spawn_server;
 
 #[tokio::test]
 async fn create_user_returns_200_status() {

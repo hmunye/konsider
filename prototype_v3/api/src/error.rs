@@ -1,6 +1,6 @@
-use serde::Serialize;
-use axum::response::{IntoResponse, Response};
 use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use serde::Serialize;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -44,7 +44,7 @@ impl IntoResponse for Error {
     }
 }
 
-// Todo: Complete these for all sqlx type errors
+// TODO: Complete these for all sqlx type errors
 impl From<sqlx::Error> for Error {
     fn from(err: sqlx::Error) -> Self {
         Self::InsertUserFail(err.to_string())

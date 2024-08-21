@@ -1,8 +1,8 @@
+use serde_json::json;
+
 use api::UserRole;
 
 use crate::common::spawn_server;
-
-use serde_json::json;
 
 #[tokio::test]
 async fn login_returns_200_status() {

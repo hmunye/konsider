@@ -1,14 +1,14 @@
 use std::env;
 use std::path::Path;
 
-use api::server::{get_db_pool, Application};
-use api::telemetry::{get_subscriber, init_subscriber};
-use api::{Config, Environment};
-
 use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
+
+use api::server::{get_db_pool, Application};
+use api::telemetry::{get_subscriber, init_subscriber};
+use api::{Config, Environment};
 
 // Ensure it is only initialized once
 static TRACING: Lazy<()> = Lazy::new(|| {

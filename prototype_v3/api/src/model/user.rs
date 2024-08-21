@@ -52,6 +52,7 @@ impl User {
     }
 
     fn validate_email(email: &String) -> bool {
+        // Validates email based on HTML5 spec
         ValidateEmail::validate_email(&email)
     }
 
