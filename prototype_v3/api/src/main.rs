@@ -8,7 +8,7 @@ use api::{Config, Environment};
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     // std::io::sink will not output logs
-    let subscriber = get_subscriber("konsider_api".into(), "info".into(), std::io::stdout);
+    let subscriber = get_subscriber("konsider_api".into(), "debug".into(), std::io::stdout);
     init_subscriber(subscriber);
 
     // Detect the running environment. Defaults to local if not provided
@@ -30,6 +30,12 @@ async fn main() -> Result<(), std::io::Error> {
     let application = Application::build(config.clone())
         .await
         .expect("Failed to build application");
+
+    tracing::info!(
+        "->> {:<12} - {}",
+        "LISTENING",
+        format!("{}:{}", &application.host(), &application.port())
+    );
 
     application.run_server().await?;
 

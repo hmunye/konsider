@@ -28,7 +28,7 @@ impl User {
             || !Self::validate_email(&self.email)
             || !Self::validate_password(&self.password)
         {
-            Err(Error::CreateUserFail)
+            Err(Error::UserValidationError)
         } else {
             Ok(())
         }

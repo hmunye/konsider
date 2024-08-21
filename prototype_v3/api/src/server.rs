@@ -2,18 +2,22 @@
 // Reject any input over 4 GiB,
 // or any input that could _encode_ to a string longer than 4 GiB
 
-use axum::http::Request;
+use axum::http::{Request, StatusCode};
+use axum::response::{IntoResponse, Response};
 use axum::routing::{get, IntoMakeService};
 use axum::serve::Serve;
-use axum::Router;
+use axum::{Json, Router};
 use secrecy::ExposeSecret;
+use serde_json::json;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
+use uuid::Uuid;
 
+use crate::error::ClientError;
 use crate::web::{admin_routes, auth_routes, health_check};
-use crate::Config;
+use crate::{Config, Error};
 
 type Server = Serve<IntoMakeService<Router>, Router>;
 
@@ -51,12 +55,6 @@ impl Application {
     }
 
     pub async fn run_server(self) -> Result<(), std::io::Error> {
-        tracing::info!(
-            "->> {:<12} - {}",
-            "LISTENING",
-            format!("{}:{}", self.host, self.port)
-        );
-
         self.server.await
     }
 }
@@ -87,9 +85,10 @@ pub fn serve(
         .route("/health-check", get(health_check))
         .nest("/auth", auth_routes(state.clone()))
         .nest("/admin", admin_routes(state.clone()))
+        .layer(axum::middleware::map_response(main_response_mapper))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
-                let request_id = uuid::Uuid::new_v4().to_string();
+                let request_id = Uuid::new_v4().to_string();
 
                 // Will be included with every request
                 tracing::span!(
@@ -104,4 +103,39 @@ pub fn serve(
         );
 
     Ok(axum::serve(tcp_listener, routes_all.into_make_service()))
+}
+
+// Modify responses before they are sent to the client
+async fn main_response_mapper(res: Response) -> Response {
+    let status_code = res.status();
+
+    // Handle any 422 status codes with custom response, minimizing information disclosure
+    // Ex. Request is missing a field for specific struct
+    if status_code == StatusCode::UNPROCESSABLE_ENTITY {
+        let client_error_body = json!({
+            "error": ClientError::INVALID_PARAMS
+        });
+
+        // Build new response
+        return (StatusCode::BAD_REQUEST, Json(client_error_body)).into_response();
+    }
+
+    // Get the response error
+    let service_error = res.extensions().get::<Error>();
+    let client_status_error = service_error.map(|se| se.client_status_and_error());
+
+    // If there is a client error, build the new reponse
+    let error_response = client_status_error
+        .as_ref()
+        .map(|(status_code, client_error)| {
+            let client_error_body = json!({
+                "error": client_error,
+            });
+
+            // Build new response
+            (*status_code, Json(client_error_body)).into_response()
+        });
+
+    println!();
+    error_response.unwrap_or(res)
 }

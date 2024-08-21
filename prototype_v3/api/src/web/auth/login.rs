@@ -1,8 +1,6 @@
 use axum::extract::{self, State};
 use axum::http::StatusCode;
-use axum::response::Response;
 use serde::Deserialize;
-use serde_json::json;
 use uuid::Uuid;
 
 use crate::server::AppState;
@@ -31,30 +29,19 @@ pub struct UserDetails {
 pub async fn api_login(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<LoginPayload>,
-) -> Result<Response<String>> {
-    let user_details = login_user(&state, &payload).await?;
+) -> Result<StatusCode> {
+    let user_details = fetch_user(&state, &payload).await?;
 
     verify_password(&payload.password, &user_details.password_hash)?;
 
     // TODO: Set Cookie using User ID
     let _user_id = user_details.user_id;
 
-    let response = Response::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "application/json")
-        .body(
-            json!({
-                "success": true,
-            })
-            .to_string(),
-        )
-        .unwrap();
-
-    Ok(response)
+    Ok(StatusCode::OK)
 }
 
-#[tracing::instrument(name = "Logging in user", skip(state, payload))]
-async fn login_user(state: &AppState, payload: &LoginPayload) -> Result<UserDetails> {
+#[tracing::instrument(name = "Fetching user details", skip(state, payload))]
+async fn fetch_user(state: &AppState, payload: &LoginPayload) -> Result<UserDetails> {
     let (user_id, password_hash) = match sqlx::query!(
         r#"
         SELECT id, password_hash
@@ -68,8 +55,8 @@ async fn login_user(state: &AppState, payload: &LoginPayload) -> Result<UserDeta
     {
         Ok(row) => (row.id, row.password_hash),
         Err(err) => {
-            tracing::error!("Failed to execute query: {:?}", err);
-            return Err(Error::DatabaseError(err.to_string()));
+            tracing::error!("failed to execute query: {:?}", err);
+            return Err(Error::FetchUserFailEmailNotFound(err.to_string()));
         }
     };
 
@@ -82,6 +69,7 @@ async fn login_user(state: &AppState, payload: &LoginPayload) -> Result<UserDeta
 fn verify_password(provided_password: &str, stored_hash: &str) -> Result<()> {
     // TODO: Implement password verification
     if provided_password == stored_hash {
+        tracing::info!("user login successful");
         Ok(())
     } else {
         Err(Error::LoginFail)

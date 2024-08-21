@@ -7,6 +7,7 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{EnvFilter, Registry};
 
 // Register subscriber
+//
 // Sink refers to where logs should be written to
 pub fn get_subscriber<Sink>(
     name: String,

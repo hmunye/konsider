@@ -36,11 +36,10 @@ async fn login_returns_200_status() {
     let response = server.post_request(&url, body.to_string()).await;
 
     assert_eq!(200, response.status().as_u16());
-    assert_eq!(Some(16), response.content_length());
 }
 
 #[tokio::test]
-async fn login_returns_500_status() {
+async fn login_returns_401_status() {
     let server = spawn_server().await;
     let url = format!("{}/auth/login", server.addr);
 
@@ -53,5 +52,5 @@ async fn login_returns_500_status() {
     // Request
     let response = server.post_request(&url, body.to_string()).await;
 
-    assert_eq!(500, response.status().as_u16());
+    assert_eq!(401, response.status().as_u16());
 }

@@ -34,7 +34,6 @@ async fn create_user_returns_200_status() {
     .unwrap();
 
     assert_eq!(200, response.status().as_u16());
-    assert_eq!(Some(16), response.content_length());
 }
 
 #[tokio::test]
@@ -91,9 +90,8 @@ async fn create_user_returns_422_status() {
     }
 }
 
-// TODO: Change to 400 status (Bad Request)
 #[tokio::test]
-async fn create_user_returns_500_status() {
+async fn create_user_returns_400_status() {
     let server = spawn_server().await;
     let url = format!("{}/admin/create-user", server.addr);
 
@@ -152,8 +150,8 @@ async fn create_user_returns_500_status() {
         let response = server.post_request(&url, invalid_body.to_string()).await;
 
         (
-            assert_eq!(500, response.status().as_u16()),
-            "API did not fail with a 500 status when the payload was {}",
+            assert_eq!(400, response.status().as_u16()),
+            "API did not fail with a 400 status when the payload was {}",
             error_message,
         );
     }
