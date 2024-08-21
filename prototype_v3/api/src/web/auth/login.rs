@@ -42,7 +42,7 @@ pub async fn api_login(
 
 #[tracing::instrument(name = "Fetching user details", skip(state, payload))]
 async fn fetch_user(state: &AppState, payload: &LoginPayload) -> Result<UserDetails> {
-    let (user_id, password_hash) = match sqlx::query!(
+    let result = sqlx::query!(
         r#"
         SELECT id, password_hash
         FROM "user"
@@ -51,18 +51,12 @@ async fn fetch_user(state: &AppState, payload: &LoginPayload) -> Result<UserDeta
         payload.email,
     )
     .fetch_one(&state.db_pool)
-    .await
-    {
-        Ok(row) => (row.id, row.password_hash),
-        Err(err) => {
-            tracing::error!("failed to execute query: {:?}", err);
-            return Err(Error::FetchUserFailEmailNotFound(err.to_string()));
-        }
-    };
+    .await?;
+
 
     Ok(UserDetails {
-        user_id,
-        password_hash,
+        user_id: result.id,
+        password_hash: result.password_hash
     })
 }
 

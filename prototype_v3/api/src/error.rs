@@ -10,6 +10,7 @@ pub enum Error {
     UserValidationError,
     InsertUserFail(String),
     FetchUserFailEmailNotFound(String),
+    DatabaseError(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -33,6 +34,22 @@ impl std::error::Error for Error {
     }
 }
 
+impl From<sqlx::Error> for Error {
+    fn from(err: sqlx::Error) -> Self {
+        match err {
+            sqlx::Error::RowNotFound => Error::FetchUserFailEmailNotFound(err.to_string()),
+            sqlx::Error::Database(err) => {
+                if err.is_unique_violation() {
+                    Error::InsertUserFail(err.to_string())
+                } else {
+                    Error::UserValidationError
+                }
+            }
+            _ => Error::DatabaseError(err.to_string()),
+        }
+    }
+}
+
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let mut response = StatusCode::INTERNAL_SERVER_ERROR.into_response();
@@ -41,13 +58,6 @@ impl IntoResponse for Error {
         response.extensions_mut().insert(self);
 
         response
-    }
-}
-
-// TODO: Complete these for all sqlx type errors
-impl From<sqlx::Error> for Error {
-    fn from(err: sqlx::Error) -> Self {
-        Self::InsertUserFail(err.to_string())
     }
 }
 
