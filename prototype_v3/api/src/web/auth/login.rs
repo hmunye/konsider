@@ -53,10 +53,9 @@ async fn fetch_user(state: &AppState, payload: &LoginPayload) -> Result<UserDeta
     .fetch_one(&state.db_pool)
     .await?;
 
-
     Ok(UserDetails {
         user_id: result.id,
-        password_hash: result.password_hash
+        password_hash: result.password_hash,
     })
 }
 

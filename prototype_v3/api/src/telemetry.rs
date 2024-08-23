@@ -21,7 +21,7 @@ where
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
 
     // Skip optional fields
-    let skipped_fields = vec![""];
+    let skipped_fields = vec!["line", "file", "target"];
 
     let formatting_layer = BunyanFormattingLayer::new(name, sink)
         .skip_fields(skipped_fields.into_iter())

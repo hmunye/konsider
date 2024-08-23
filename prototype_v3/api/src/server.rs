@@ -11,6 +11,7 @@ use secrecy::ExposeSecret;
 use serde_json::json;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
 use uuid::Uuid;
@@ -86,6 +87,10 @@ pub fn serve(
         .nest("/auth", auth_routes(state.clone()))
         .nest("/admin", admin_routes(state.clone()))
         .layer(axum::middleware::map_response(main_response_mapper))
+        .layer(TraceLayer::new(
+            // By default the trace layer only classifies 5xx errors as failures
+            StatusInRangeAsFailures::new(400..=599).into_make_classifier(),
+        ))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
                 let request_id = Uuid::new_v4().to_string();
