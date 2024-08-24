@@ -12,7 +12,8 @@ use api::{Config, Environment};
 
 // Ensure it is only initialized once
 static TRACING: Lazy<()> = Lazy::new(|| {
-    let subscriber = get_subscriber("test".into(), "info".into(), std::io::stdout);
+    // Using std::io::sink will not output logs
+    let subscriber = get_subscriber("test".into(), "info".into(), std::io::sink);
     init_subscriber(subscriber);
 });
 

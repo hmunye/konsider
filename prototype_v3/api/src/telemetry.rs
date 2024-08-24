@@ -35,6 +35,7 @@ where
 
 // Register subscriber as global default
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
+    // Redirects all log events to the subscriber
     LogTracer::init().unwrap();
     set_global_default(subscriber).unwrap();
 }

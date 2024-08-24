@@ -1,4 +1,5 @@
 docker/
+logs/
 migrations/
 scripts/
 target/

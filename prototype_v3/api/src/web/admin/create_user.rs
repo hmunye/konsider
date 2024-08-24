@@ -2,11 +2,11 @@ use axum::extract::{self, State};
 use axum::http::StatusCode;
 
 use crate::server::AppState;
-use crate::{Result, User, UserRole};
+use crate::{Error, Result, User, UserRole};
 
 #[tracing::instrument(
-    name = "Creating new user", 
-    // Won't include in logs
+    name = "creating new user", 
+    // Any values in 'skip' won't be included in logs
     skip(state, payload),
     fields(
         user_email = %payload.email,
@@ -16,11 +16,8 @@ pub async fn api_create_user(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<User>,
 ) -> Result<StatusCode> {
-    // Validate payload
-    payload.parse().map_err(|err| {
-        tracing::error!("new user details are invalid");
-        err
-    })?;
+    // Validate payload from request
+    payload.parse()?;
 
     // TODO: Hash and salt password
     let password_hash = &payload.password;
@@ -30,7 +27,7 @@ pub async fn api_create_user(
     Ok(StatusCode::OK)
 }
 
-#[tracing::instrument(name = "Inserting user in db", skip(state, payload, password_hash))]
+#[tracing::instrument(name = "inserting user in db", skip(state, payload, password_hash))]
 async fn insert_user(state: &AppState, payload: &User, password_hash: String) -> Result<()> {
     sqlx::query!(
         r#"
@@ -43,7 +40,8 @@ async fn insert_user(state: &AppState, payload: &User, password_hash: String) ->
         payload.role.clone() as UserRole,
     )
     .execute(&state.db_pool)
-    .await?;
+    .await
+    .map_err(|err| Error::InsertUserError(err.to_string()))?;
 
     Ok(())
 }

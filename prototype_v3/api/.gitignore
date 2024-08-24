@@ -1,4 +1,4 @@
+/logs
 /target
 .env.local
 .env.production
-/logs

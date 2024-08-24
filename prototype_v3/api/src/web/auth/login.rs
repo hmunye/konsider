@@ -12,15 +12,9 @@ pub struct LoginPayload {
     password: String,
 }
 
-#[derive(Debug)]
-pub struct UserDetails {
-    user_id: Uuid,
-    password_hash: String,
-}
-
 #[tracing::instrument(
-    name = "User login attempt", 
-    // Won't include in logs
+    name = "user login attempt", 
+    // Any values in 'skip' won't be included in logs
     skip(state, payload),
     fields(
         user_email = %payload.email
@@ -40,7 +34,13 @@ pub async fn api_login(
     Ok(StatusCode::OK)
 }
 
-#[tracing::instrument(name = "Fetching user details", skip(state, payload))]
+#[derive(Debug)]
+pub struct UserDetails {
+    user_id: Uuid,
+    password_hash: String,
+}
+
+#[tracing::instrument(name = "fetching user details", skip(state, payload))]
 async fn fetch_user(state: &AppState, payload: &LoginPayload) -> Result<UserDetails> {
     let result = sqlx::query!(
         r#"
@@ -51,7 +51,8 @@ async fn fetch_user(state: &AppState, payload: &LoginPayload) -> Result<UserDeta
         payload.email,
     )
     .fetch_one(&state.db_pool)
-    .await?;
+    .await
+    .map_err(|err| Error::FetchUserError(err.to_string()))?;
 
     Ok(UserDetails {
         user_id: result.id,
@@ -62,9 +63,10 @@ async fn fetch_user(state: &AppState, payload: &LoginPayload) -> Result<UserDeta
 fn verify_password(provided_password: &str, stored_hash: &str) -> Result<()> {
     // TODO: Implement password verification
     if provided_password == stored_hash {
-        tracing::info!("user login successful");
         Ok(())
     } else {
-        Err(Error::LoginFail)
+        Err(Error::LoginError(
+            "password does not match stored hash".to_string(),
+        ))
     }
 }

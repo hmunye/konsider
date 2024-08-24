@@ -1,24 +1,21 @@
 // TODO: Add middleware that limits the size of request bodies by default
-// Reject any input over 4 GiB,
-// or any input that could _encode_ to a string longer than 4 GiB
+// Reject any input over 4 GiB or any input that could _encode_ to a string longer than 4 GiB
 
-use axum::http::{Request, StatusCode};
-use axum::response::{IntoResponse, Response};
+use axum::http::Request;
 use axum::routing::{get, IntoMakeService};
 use axum::serve::Serve;
-use axum::{Json, Router};
+use axum::Router;
 use secrecy::ExposeSecret;
-use serde_json::json;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use tower::ServiceBuilder;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
 use uuid::Uuid;
 
-use crate::error::ClientError;
-use crate::web::{admin_routes, auth_routes, health_check};
-use crate::{Config, Error};
+use crate::web::{admin_routes, auth_routes, health_check, main_response_mapper};
+use crate::Config;
 
 type Server = Serve<IntoMakeService<Router>, Router>;
 
@@ -87,60 +84,29 @@ pub fn serve(
         .nest("/auth", auth_routes(state.clone()))
         .nest("/admin", admin_routes(state.clone()))
         .layer(axum::middleware::map_response(main_response_mapper))
-        .layer(TraceLayer::new(
-            // By default the trace layer only classifies 5xx errors as failures
-            StatusInRangeAsFailures::new(400..=599).into_make_classifier(),
-        ))
         .layer(
-            TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
-                let request_id = Uuid::new_v4().to_string();
-
-                // Will be included with every request
-                tracing::span!(
-                    Level::DEBUG,
-                    "request",
-                    %request_id,
-                    method = ?request.method(),
-                    uri = %request.uri(),
-                    version = ?request.version(),
+            ServiceBuilder::new().layer(
+                TraceLayer::new(
+                    // By default, the 'new_for_http' method for TraceLayer only
+                    // classifies 5xx errors as failures
+                    // Any error with status from 400 to 599 is classified as an error
+                    StatusInRangeAsFailures::new(400..=599).into_make_classifier(),
                 )
-            }),
+                .make_span_with(|request: &Request<_>| {
+                    let request_id = Uuid::new_v4().to_string();
+
+                    // Will be included with every request log
+                    tracing::span!(
+                        Level::INFO,
+                        "request",
+                        %request_id,
+                        method = ?request.method(),
+                        uri = %request.uri(),
+                        version = ?request.version(),
+                    )
+                }),
+            ),
         );
 
     Ok(axum::serve(tcp_listener, routes_all.into_make_service()))
-}
-
-// Modify responses before they are sent to the client
-async fn main_response_mapper(res: Response) -> Response {
-    let status_code = res.status();
-
-    // Handle any 422 status codes with custom response, minimizing information disclosure
-    // Ex. Request is missing a field for specific struct
-    if status_code == StatusCode::UNPROCESSABLE_ENTITY {
-        let client_error_body = json!({
-            "error": ClientError::INVALID_PARAMS
-        });
-
-        // Build new response
-        return (StatusCode::BAD_REQUEST, Json(client_error_body)).into_response();
-    }
-
-    // Get the response error
-    let service_error = res.extensions().get::<Error>();
-    let client_status_error = service_error.map(|se| se.client_status_and_error());
-
-    // If there is a client error, build the new reponse
-    let error_response = client_status_error
-        .as_ref()
-        .map(|(status_code, client_error)| {
-            let client_error_body = json!({
-                "error": client_error,
-            });
-
-            // Build new response
-            (*status_code, Json(client_error_body)).into_response()
-        });
-
-    println!();
-    error_response.unwrap_or(res)
 }

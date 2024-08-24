@@ -7,11 +7,8 @@ use crate::{Error, Result};
 #[derive(Debug, Deserialize)]
 pub struct User {
     pub name: String,
-
     pub email: String,
-
     pub password: String,
-
     pub role: UserRole,
 }
 
@@ -24,14 +21,27 @@ pub enum UserRole {
 
 impl User {
     pub fn parse(&self) -> Result<()> {
-        if !Self::validate_name(&self.name)
-            || !Self::validate_email(&self.email)
-            || !Self::validate_password(&self.password)
-        {
-            Err(Error::UserValidationError)
-        } else {
-            Ok(())
+        if !Self::validate_name(&self.name) {
+            return Err(Error::UserValidationError(format!(
+                "'{}' is an invaild name",
+                &self.name
+            )));
         }
+
+        if !Self::validate_email(&self.email) {
+            return Err(Error::UserValidationError(format!(
+                "'{}' is an invaild email",
+                &self.email
+            )));
+        }
+
+        if !Self::validate_password(&self.password) {
+            return Err(Error::UserValidationError(
+                "invaild password provided".to_string(),
+            ));
+        }
+
+        Ok(())
     }
 
     fn validate_name(name: &String) -> bool {
