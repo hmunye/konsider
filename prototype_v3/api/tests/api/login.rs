@@ -1,35 +1,17 @@
 use serde_json::json;
 
-use api::UserRole;
-
 use crate::common::spawn_server;
 
+// ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
 async fn login_returns_200_status() {
     let server = spawn_server().await;
     let url = format!("{}/auth/login", server.addr);
 
-    let user_role = UserRole::Reviewer;
-
-    // Create user to test against
-    let _ = sqlx::query!(
-        r#"
-        INSERT INTO "user" (name, email, password_hash, role)
-        VALUES ($1, $2, $3, $4)
-        "#,
-        "John",
-        "john@gmail.com",
-        "password123",
-        user_role as UserRole,
-    )
-    .execute(&server.db_pool)
-    .await
-    .unwrap();
-
     // Payload
     let body = json!({
-        "email": "john@gmail.com",
-        "password": "password123"
+        "email": server.test_user.email,
+        "password": server.test_user.password
     });
 
     // Request
@@ -37,7 +19,7 @@ async fn login_returns_200_status() {
 
     assert_eq!(200, response.status().as_u16());
 }
-
+// ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
 async fn login_returns_401_status() {
     let server = spawn_server().await;

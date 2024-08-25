@@ -5,6 +5,7 @@ use api::server::Application;
 use api::telemetry::{get_subscriber, init_subscriber};
 use api::{Config, Environment};
 
+// ---------------------------------------------------------------------------------------------------------------
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     // This creates an hourly rotating file appender that writes to /logs/konsider_api.YYYY-MM-DD-HH

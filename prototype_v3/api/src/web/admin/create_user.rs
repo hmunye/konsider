@@ -1,9 +1,13 @@
+use argon2::password_hash::SaltString;
+use argon2::{Argon2, PasswordHasher};
 use axum::extract::{self, State};
 use axum::http::StatusCode;
+use secrecy::ExposeSecret;
 
 use crate::server::AppState;
 use crate::{Error, Result, User, UserRole};
 
+// ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(
     name = "creating new user", 
     // Any values in 'skip' won't be included in logs
@@ -16,17 +20,16 @@ pub async fn api_create_user(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<User>,
 ) -> Result<StatusCode> {
-    // Validate payload from request
+    // Validate request payload
     payload.parse()?;
 
-    // TODO: Hash and salt password
-    let password_hash = &payload.password;
+    let password_hash = hash_and_salt_password(payload.password.expose_secret())?;
 
-    insert_user(&state, &payload, password_hash.to_string()).await?;
+    insert_user(&state, &payload, password_hash).await?;
 
     Ok(StatusCode::OK)
 }
-
+// ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "inserting user in db", skip(state, payload, password_hash))]
 async fn insert_user(state: &AppState, payload: &User, password_hash: String) -> Result<()> {
     sqlx::query!(
@@ -44,4 +47,15 @@ async fn insert_user(state: &AppState, payload: &User, password_hash: String) ->
     .map_err(|err| Error::InsertUserError(err.to_string()))?;
 
     Ok(())
+}
+// ---------------------------------------------------------------------------------------------------------------
+fn hash_and_salt_password(password: &String) -> Result<String> {
+    let salt = SaltString::generate(&mut rand::thread_rng());
+
+    let password_hash = Argon2::default()
+        .hash_password(password.as_bytes(), &salt)
+        .map_err(|err| Error::UnexpectedError(err.to_string()))?
+        .to_string();
+
+    Ok(password_hash)
 }

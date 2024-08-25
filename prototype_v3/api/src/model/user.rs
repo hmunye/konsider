@@ -1,3 +1,4 @@
+use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
 use unicode_segmentation::UnicodeSegmentation;
 use validator::ValidateEmail;
@@ -8,7 +9,7 @@ use crate::{Error, Result};
 pub struct User {
     pub name: String,
     pub email: String,
-    pub password: String,
+    pub password: Secret<String>,
     pub role: UserRole,
 }
 
@@ -35,7 +36,7 @@ impl User {
             )));
         }
 
-        if !Self::validate_password(&self.password) {
+        if !Self::validate_password(self.password.expose_secret()) {
             return Err(Error::UserValidationError(
                 "invaild password provided".to_string(),
             ));

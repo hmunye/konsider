@@ -1,6 +1,8 @@
 use std::env;
 use std::path::Path;
 
+use argon2::password_hash::SaltString;
+use argon2::{Algorithm, Argon2, Params, PasswordHasher, Version};
 use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
@@ -8,7 +10,7 @@ use uuid::Uuid;
 
 use api::server::{get_db_pool, Application};
 use api::telemetry::{get_subscriber, init_subscriber};
-use api::{Config, Environment};
+use api::{Config, Environment, UserRole};
 
 // Ensure it is only initialized once
 static TRACING: Lazy<()> = Lazy::new(|| {
@@ -17,9 +19,11 @@ static TRACING: Lazy<()> = Lazy::new(|| {
     init_subscriber(subscriber);
 });
 
+// ---------------------------------------------------------------------------------------------------------------
 pub struct TestServer {
     pub addr: String,
     pub db_pool: PgPool,
+    pub test_user: TestUser,
 }
 
 impl TestServer {
@@ -41,7 +45,56 @@ impl TestServer {
             .expect("Failed to execute request")
     }
 }
+// ---------------------------------------------------------------------------------------------------------------
+// TODO: Remove allow dead code
+#[allow(dead_code)]
+pub struct TestUser {
+    pub name: String,
+    pub email: String,
+    pub password: String,
+    pub role: UserRole,
+}
 
+impl TestUser {
+    pub fn new() -> Self {
+        let user_role = UserRole::Reviewer;
+
+        Self {
+            name: Uuid::new_v4().to_string(),
+            email: format!("{}@test.com", Uuid::new_v4().to_string()),
+            password: Uuid::new_v4().to_string(),
+            role: user_role as UserRole,
+        }
+    }
+
+    async fn store(&self, db_pool: &PgPool) {
+        let salt = SaltString::generate(&mut rand::thread_rng());
+
+        let password_hash = Argon2::new(
+            Algorithm::Argon2id,
+            Version::V0x13,
+            Params::new(15000, 2, 1, None).unwrap(),
+        )
+        .hash_password(self.password.as_bytes(), &salt)
+        .unwrap()
+        .to_string();
+
+        sqlx::query!(
+            r#"
+            INSERT INTO "user" (name, email, password_hash, role)
+            VALUES ($1, $2, $3, $4)
+            "#,
+            Uuid::new_v4().to_string(),
+            self.email,
+            password_hash,
+            self.role.clone() as UserRole
+        )
+        .execute(db_pool)
+        .await
+        .expect("Failed to store test user in database");
+    }
+}
+// ---------------------------------------------------------------------------------------------------------------
 pub async fn spawn_server() -> TestServer {
     Lazy::force(&TRACING);
 
@@ -85,12 +138,16 @@ pub async fn spawn_server() -> TestServer {
     // Used to start a new task that starts a new instance of the server
     tokio::spawn(async move { application.run_server().await });
 
-    TestServer {
+    let test_server = TestServer {
         addr,
         db_pool: get_db_pool(&config),
-    }
-}
+        test_user: TestUser::new(),
+    };
 
+    test_server.test_user.store(&test_server.db_pool).await;
+    test_server
+}
+// ---------------------------------------------------------------------------------------------------------------
 // Create a new database for each test with a unique name for better test isolation
 async fn config_database(config: &Config) -> PgPool {
     let mut db_connection =

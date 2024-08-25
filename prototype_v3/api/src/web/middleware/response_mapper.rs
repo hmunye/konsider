@@ -5,6 +5,7 @@ use serde_json::json;
 use crate::error::ClientError;
 use crate::Error;
 
+// ---------------------------------------------------------------------------------------------------------------
 // Modify responses before they are sent to the client
 pub async fn main_response_mapper(res: Response) -> Response {
     let status_code = res.status();
@@ -13,6 +14,8 @@ pub async fn main_response_mapper(res: Response) -> Response {
     // Ex. If payload to create user is missing 'role', it cannot properly desearialize it,
     // resulting in a 422 UNPROCESSABLE ENTITY status
     if status_code == StatusCode::UNPROCESSABLE_ENTITY {
+        tracing::error!(error = "user role is invalid", "[ERROR OCCURRED]");
+
         let client_error_body = json!({
             "error": ClientError::INVALID_PARAMS
         });

@@ -1,3 +1,4 @@
+use tokio::task::JoinHandle;
 use tracing::subscriber::set_global_default;
 use tracing::Subscriber;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
@@ -6,9 +7,8 @@ use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{EnvFilter, Registry};
 
-// Register subscriber
-//
-// Sink refers to where logs should be written to
+// ---------------------------------------------------------------------------------------------------------------
+// Register subscriber. Sink refers to where logs should be written to
 pub fn get_subscriber<Sink>(
     name: String,
     env_filter: String,
@@ -32,10 +32,19 @@ where
         .with(JsonStorageLayer)
         .with(formatting_layer)
 }
-
+// ---------------------------------------------------------------------------------------------------------------
 // Register subscriber as global default
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
     // Redirects all log events to the subscriber
     LogTracer::init().unwrap();
     set_global_default(subscriber).unwrap();
+}
+// ---------------------------------------------------------------------------------------------------------------
+pub fn spawn_blocking_with_tracing<F, R>(f: F) -> JoinHandle<R>
+where
+    F: FnOnce() -> R + Send + 'static,
+    R: Send + 'static,
+{
+    let current_span = tracing::Span::current();
+    tokio::task::spawn_blocking(move || current_span.in_scope(f))
 }

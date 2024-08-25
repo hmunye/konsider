@@ -4,6 +4,7 @@ use axum::Router;
 use crate::server::AppState;
 use crate::web::admin::api_create_user;
 
+// ---------------------------------------------------------------------------------------------------------------
 pub fn admin_routes(state: AppState) -> Router {
     Router::new()
         .route("/create-user", post(api_create_user))

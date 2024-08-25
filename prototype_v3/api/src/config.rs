@@ -1,6 +1,7 @@
 use clap::Parser;
 use secrecy::{ExposeSecret, Secret};
 
+// ---------------------------------------------------------------------------------------------------------------
 #[derive(Clone, Parser)]
 pub struct Config {
     #[clap(long, env)]
@@ -54,6 +55,7 @@ impl Config {
     }
 }
 
+// ---------------------------------------------------------------------------------------------------------------
 pub enum Environment {
     Local,
     Production,

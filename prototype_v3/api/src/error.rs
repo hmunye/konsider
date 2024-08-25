@@ -6,6 +6,7 @@ use serde::Serialize;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
+// ---------------------------------------------------------------------------------------------------------------
 #[derive(Clone, Debug, Serialize)]
 pub enum Error {
     LoginError(String),
@@ -15,6 +16,17 @@ pub enum Error {
     InsertUserError(String),
 
     DatabaseError(String),
+
+    UnexpectedError(String),
+}
+
+#[derive(Debug, Serialize)]
+#[allow(non_camel_case_types)]
+pub enum ClientError {
+    INVALID_CREDENTIALS,
+    NO_AUTH,
+    INVALID_PARAMS,
+    SERVICE_ERROR,
 }
 
 impl std::fmt::Display for Error {
@@ -32,9 +44,14 @@ impl std::fmt::Display for Error {
                 msg
             ),
             Error::FetchUserError(msg) => {
-                write!(fmt, "email not found during login attempt: {}", msg)
+                write!(
+                    fmt,
+                    "database error occured while attempting to fetch user: {}",
+                    msg
+                )
             }
             Error::DatabaseError(msg) => write!(fmt, "database error occured: {}", msg),
+            Error::UnexpectedError(msg) => write!(fmt, "unexpected error occured: {}", msg),
         }
     }
 }
@@ -71,13 +88,4 @@ impl Error {
             ),
         }
     }
-}
-
-#[derive(Debug, Serialize)]
-#[allow(non_camel_case_types)]
-pub enum ClientError {
-    INVALID_CREDENTIALS,
-    NO_AUTH,
-    INVALID_PARAMS,
-    SERVICE_ERROR,
 }

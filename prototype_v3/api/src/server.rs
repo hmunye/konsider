@@ -19,6 +19,7 @@ use crate::Config;
 
 type Server = Serve<IntoMakeService<Router>, Router>;
 
+// ---------------------------------------------------------------------------------------------------------------
 pub struct Application {
     port: u16,
     host: String,
@@ -57,6 +58,7 @@ impl Application {
     }
 }
 
+// ---------------------------------------------------------------------------------------------------------------
 pub fn get_db_pool(config: &Config) -> PgPool {
     PgPoolOptions::new()
         // The amount of time the pool will wait to aquire a connection
@@ -67,7 +69,7 @@ pub fn get_db_pool(config: &Config) -> PgPool {
         .connect_lazy(config.connection_string().expose_secret())
         .expect("Failed to create connection pool")
 }
-
+// ---------------------------------------------------------------------------------------------------------------
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: PgPool,

@@ -2,6 +2,7 @@ use serde_json::json;
 
 use crate::common::spawn_server;
 
+// ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
 async fn create_user_returns_200_status() {
     let server = spawn_server().await;
@@ -35,7 +36,7 @@ async fn create_user_returns_200_status() {
 
     assert_eq!(200, response.status().as_u16());
 }
-
+// ---------------------------------------------------------------------------------------------------------------
 //#[tokio::test]
 //// Returns 422 because the payload can't be deserialized into the 'User' struct
 //async fn create_user_returns_422_status() {
@@ -89,7 +90,7 @@ async fn create_user_returns_200_status() {
 //        );
 //    }
 //}
-
+// ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
 async fn create_user_returns_400_status() {
     let server = spawn_server().await;

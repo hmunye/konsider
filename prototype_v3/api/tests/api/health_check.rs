@@ -1,5 +1,6 @@
 use crate::common::spawn_server;
 
+// ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
 async fn health_check_test() {
     let server = spawn_server().await;
