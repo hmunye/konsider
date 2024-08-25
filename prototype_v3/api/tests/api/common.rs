@@ -24,11 +24,12 @@ pub struct TestServer {
     pub addr: String,
     pub db_pool: PgPool,
     pub test_user: TestUser,
+    pub api_client: reqwest::Client,
 }
 
 impl TestServer {
     pub async fn get_request(&self, url: &String) -> reqwest::Response {
-        reqwest::Client::new()
+        self.api_client
             .get(url)
             .send()
             .await
@@ -36,7 +37,7 @@ impl TestServer {
     }
 
     pub async fn post_request(&self, url: &String, body: String) -> reqwest::Response {
-        reqwest::Client::new()
+        self.api_client
             .post(url)
             .header("Content-Type", "application/json")
             .body(body)
@@ -138,10 +139,18 @@ pub async fn spawn_server() -> TestServer {
     // Used to start a new task that starts a new instance of the server
     tokio::spawn(async move { application.run_server().await });
 
+    // Use the same instance of client for each test so there is access to cookies
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .cookie_store(true)
+        .build()
+        .unwrap();
+
     let test_server = TestServer {
         addr,
         db_pool: get_db_pool(&config),
         test_user: TestUser::new(),
+        api_client: client,
     };
 
     test_server.test_user.store(&test_server.db_pool).await;

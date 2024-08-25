@@ -20,6 +20,9 @@ pub struct Config {
     pub postgres_host: String,
 
     #[clap(long, env)]
+    pub redis_uri: Secret<String>,
+
+    #[clap(long, env)]
     pub server_host: String,
 
     #[clap(long, env)]
@@ -54,7 +57,6 @@ impl Config {
         ))
     }
 }
-
 // ---------------------------------------------------------------------------------------------------------------
 pub enum Environment {
     Local,

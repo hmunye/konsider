@@ -5,17 +5,20 @@ use axum::http::Request;
 use axum::routing::{get, IntoMakeService};
 use axum::serve::Serve;
 use axum::Router;
-use secrecy::ExposeSecret;
+use secrecy::{ExposeSecret, Secret};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use time::Duration;
 use tower::ServiceBuilder;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::trace::TraceLayer;
+use tower_sessions::{Expiry, SessionManagerLayer};
+use tower_sessions_redis_store::{fred::prelude::*, RedisStore};
 use tracing::Level;
 use uuid::Uuid;
 
 use crate::web::{admin_routes, auth_routes, health_check, main_response_mapper};
-use crate::Config;
+use crate::{Config, Error};
 
 type Server = Serve<IntoMakeService<Router>, Router>;
 
@@ -27,7 +30,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(config: Config) -> Result<Self, std::io::Error> {
+    pub async fn build(config: Config) -> Result<Self, Error> {
         let db_pool = get_db_pool(&config);
 
         let addr = format!("{}:{}", config.server_host, config.server_port);
@@ -40,7 +43,7 @@ impl Application {
 
         let port = tcp_listener.local_addr().unwrap().port();
 
-        let server = serve(tcp_listener, db_pool)?;
+        let server = serve(tcp_listener, db_pool, config.redis_uri).await?;
 
         Ok(Self { port, host, server })
     }
@@ -60,6 +63,7 @@ impl Application {
 
 // ---------------------------------------------------------------------------------------------------------------
 pub fn get_db_pool(config: &Config) -> PgPool {
+    // Using PgPool allow concurrency by borrowing a PgConncection from the pool for executing queries
     PgPoolOptions::new()
         // The amount of time the pool will wait to aquire a connection
         .acquire_timeout(std::time::Duration::from_secs(10))
@@ -69,23 +73,51 @@ pub fn get_db_pool(config: &Config) -> PgPool {
         .connect_lazy(config.connection_string().expose_secret())
         .expect("Failed to create connection pool")
 }
+
+pub async fn get_redis_pool(redis_uri: Secret<String>) -> Result<RedisPool, Error> {
+    let redis_config = RedisConfig::from_url(redis_uri.expose_secret())
+        .map_err(|err| Error::UnexpectedError(err.to_string()))?;
+
+    let pool = RedisPool::new(redis_config, None, None, None, 6)
+        .map_err(|err| Error::UnexpectedError(err.to_string()))?;
+
+    pool.connect();
+
+    pool.wait_for_connect()
+        .await
+        .map_err(|err| Error::UnexpectedError(err.to_string()))?;
+
+    Ok(pool)
+}
 // ---------------------------------------------------------------------------------------------------------------
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: PgPool,
 }
 
-pub fn serve(
+pub async fn serve(
     tcp_listener: tokio::net::TcpListener,
     db_pool: PgPool,
-) -> Result<Server, std::io::Error> {
+    redis_uri: Secret<String>,
+) -> Result<Server, Error> {
     let state = AppState { db_pool };
+
+    let pool = get_redis_pool(redis_uri)
+        .await
+        .map_err(|err| Error::UnexpectedError(err.to_string()))?;
+
+    let session_store = RedisStore::new(pool);
+
+    let session_layer = SessionManagerLayer::new(session_store)
+        .with_secure(false)
+        .with_expiry(Expiry::OnInactivity(Duration::minutes(15)));
 
     let routes_all = Router::new()
         .route("/health-check", get(health_check))
         .nest("/auth", auth_routes(state.clone()))
         .nest("/admin", admin_routes(state.clone()))
         .layer(axum::middleware::map_response(main_response_mapper))
+        .layer(session_layer)
         .layer(
             ServiceBuilder::new().layer(
                 TraceLayer::new(

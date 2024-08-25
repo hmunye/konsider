@@ -13,13 +13,15 @@ use crate::{Error, Result, User, UserRole};
     // Any values in 'skip' won't be included in logs
     skip(state, payload),
     fields(
-        user_email = %payload.email,
+        user_email = tracing::field::Empty,
     )
 )]
 pub async fn api_create_user(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<User>,
 ) -> Result<StatusCode> {
+    tracing::Span::current().record("user_email", tracing::field::display(&payload.email));
+
     // Validate request payload
     payload.parse()?;
 
