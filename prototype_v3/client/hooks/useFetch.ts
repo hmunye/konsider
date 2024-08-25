@@ -1,12 +1,12 @@
 import { FetchParams } from "@/types/types";
 
-class HttpError extends Error {
+export class HttpError extends Error {
     constructor(public response: Response) {
         super(`HTTP Error ${response.status}`);
     }
 }
 
-async function useFetch(params: FetchParams): Promise<any> {
+export async function useFetch(params: FetchParams): Promise<any> {
     const { url, method, requestBody } = params;
 
     const fetchData: RequestInit = {
@@ -39,8 +39,19 @@ async function useFetch(params: FetchParams): Promise<any> {
             throw new Error("fetch call timed-out")
         }
 
-        if (err instanceof HttpError)
+        if (err instanceof HttpError) {
+            if (err.response.status === 400) {
+                console.log("BAD_REQUEST")
+            }
+
+            if (err.response.status === 401) {
+                console.log("UNAUTHORIZED")
+            }
+
+            if (err.response.status === 500) {
+                console.log("SERVER_ERROR")
+            }
+
+        }
     }
 }
-
-export { useFetch };
