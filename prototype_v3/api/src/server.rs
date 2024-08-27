@@ -73,7 +73,7 @@ pub fn get_db_pool(config: &Config) -> PgPool {
         .connect_lazy(config.connection_string().expose_secret())
         .expect("Failed to create connection pool")
 }
-
+// ---------------------------------------------------------------------------------------------------------------
 pub async fn get_redis_pool(redis_uri: Secret<String>) -> Result<RedisPool, Error> {
     let redis_config = RedisConfig::from_url(redis_uri.expose_secret())
         .map_err(|err| Error::UnexpectedError(err.to_string()))?;

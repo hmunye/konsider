@@ -1,5 +1,5 @@
 use secrecy::{ExposeSecret, Secret};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use unicode_segmentation::UnicodeSegmentation;
 use validator::ValidateEmail;
 
@@ -13,7 +13,7 @@ pub struct User {
     pub role: UserRole,
 }
 
-#[derive(Clone, Debug, Deserialize, sqlx::Type)]
+#[derive(Clone, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "user_role")]
 pub enum UserRole {
     Reviewer,

@@ -13,7 +13,7 @@ use crate::{Error, Result};
 #[tracing::instrument(
     name = "user login attempt", 
     // Any values in 'skip' won't be included in logs
-    skip(state, payload),
+    skip(state, session, payload),
     fields(
         user_email = tracing::field::Empty
     )
@@ -28,7 +28,7 @@ pub async fn api_login(
 
     match validate_credentials(&state, payload).await {
         Ok(user_id) => {
-            // Rotating session token prevents session fixation attacks
+            // Rotating session id prevents session fixation attacks
             session
                 .cycle_id()
                 .await

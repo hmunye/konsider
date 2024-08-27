@@ -15,6 +15,6 @@ docker run \
     --name "redis" \
     -p "6379:6379" \
     -d \
-    redis:6
+    redis
 
->&2 echo "Redis is up"
+>&2 echo "Redis is up and ready"

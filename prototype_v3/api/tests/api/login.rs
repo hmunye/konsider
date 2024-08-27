@@ -8,7 +8,7 @@ async fn login_returns_200_status() {
     let server = spawn_server().await;
     let url = format!("{}/auth/login", server.addr);
 
-    // Payload
+    // Payload (Uses test user credentials)
     let body = json!({
         "email": server.test_user.email,
         "password": server.test_user.password

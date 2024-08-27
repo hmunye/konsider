@@ -18,6 +18,8 @@ pub enum Error {
     DatabaseError(String),
 
     UnexpectedError(String),
+
+    NoAuthTokenProvided,
 }
 
 #[derive(Debug, Serialize)]
@@ -52,6 +54,7 @@ impl std::fmt::Display for Error {
             }
             Error::DatabaseError(msg) => write!(fmt, "database error occured: {}", msg),
             Error::UnexpectedError(msg) => write!(fmt, "unexpected error occured: {}", msg),
+            Error::NoAuthTokenProvided => write!(fmt, "no auth token provided"),
         }
     }
 }
@@ -78,6 +81,8 @@ impl Error {
             Self::LoginError(..) | Self::FetchUserError(..) => {
                 (StatusCode::UNAUTHORIZED, ClientError::INVALID_CREDENTIALS)
             }
+
+            Self::NoAuthTokenProvided => (StatusCode::UNAUTHORIZED, ClientError::NO_AUTH),
 
             Self::UserValidationError(..) => (StatusCode::BAD_REQUEST, ClientError::INVALID_PARAMS),
 
