@@ -5,7 +5,7 @@ use axum::http::StatusCode;
 use secrecy::ExposeSecret;
 
 use crate::server::AppState;
-use crate::{ServerError, User, UserRole};
+use crate::{Error, Result, User, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(
@@ -19,13 +19,13 @@ use crate::{ServerError, User, UserRole};
 pub async fn api_create_user(
     State(state): State<AppState>,
     extract::Json(payload): extract::Json<User>,
-) -> Result<StatusCode, ServerError> {
+) -> Result<StatusCode> {
     tracing::Span::current().record("user_email", tracing::field::display(&payload.email));
 
     // Validate request payload
     payload.parse()?;
 
-    let password_hash = hash_and_salt_password(payload.password.expose_secret())?;
+    let password_hash = compute_password_hash(payload.password.expose_secret())?;
 
     insert_user(&state, &payload, password_hash).await?;
 
@@ -33,11 +33,7 @@ pub async fn api_create_user(
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "inserting user in db", skip(state, payload, password_hash))]
-async fn insert_user(
-    state: &AppState,
-    payload: &User,
-    password_hash: String,
-) -> Result<(), ServerError> {
+async fn insert_user(state: &AppState, payload: &User, password_hash: String) -> Result<()> {
     sqlx::query!(
         r#"
         INSERT INTO "user" (name, email, password_hash, role)
@@ -50,17 +46,27 @@ async fn insert_user(
     )
     .execute(&state.db_pool)
     .await
-    .map_err(|err| ServerError::InsertUserError(err.to_string()))?;
+    .map_err(|err| {
+        Error::UnexpectedError(
+            std::sync::Arc::new(err),
+            "Failed to insert user into database".into(),
+        )
+    })?;
 
     Ok(())
 }
 // ---------------------------------------------------------------------------------------------------------------
-fn hash_and_salt_password(password: &String) -> Result<String, ServerError> {
+fn compute_password_hash(password: &String) -> Result<String> {
     let salt = SaltString::generate(&mut rand::thread_rng());
 
     let password_hash = Argon2::default()
         .hash_password(password.as_bytes(), &salt)
-        .map_err(|err| ServerError::UnexpectedError(err.to_string()))?
+        .map_err(|err| {
+            Error::UnexpectedError(
+                std::sync::Arc::new(err),
+                "Failed to compute password hash".into(),
+            )
+        })?
         .to_string();
 
     Ok(password_hash)

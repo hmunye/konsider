@@ -1,7 +1,7 @@
 use axum::http::StatusCode;
 
 use crate::model::TypedSession;
-use crate::ServerError;
+use crate::{Error, Result};
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(
@@ -9,19 +9,11 @@ use crate::ServerError;
     // Any values in 'skip' won't be included in logs
     skip(session),
 )]
-pub async fn api_logout(session: TypedSession) -> Result<StatusCode, ServerError> {
-    if session
-        .get_user_id()
-        .await
-        .map_err(|err| ServerError::UnexpectedError(err.to_string()))?
-        .is_none()
-    {
-        return Err(ServerError::NoAuthProvided)?;
+pub async fn api_logout(session: TypedSession) -> Result<StatusCode> {
+    if session.get_user_id().await?.is_none() {
+        return Err(Error::NoAuthProvidedError)?;
     } else {
-        match session.log_out_user().await {
-            Ok(..) => (),
-            Err(err) => return Err(ServerError::LogoutError(err.to_string()))?,
-        };
+        session.log_out_user().await?;
     };
 
     Ok(StatusCode::OK)

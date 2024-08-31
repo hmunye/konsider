@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use unicode_segmentation::UnicodeSegmentation;
 use validator::ValidateEmail;
 
-use crate::ServerError;
+use crate::{Error, Result};
 
 #[derive(Debug, Deserialize)]
 pub struct User {
@@ -21,24 +21,24 @@ pub enum UserRole {
 }
 
 impl User {
-    pub fn parse(&self) -> Result<(), ServerError> {
+    pub fn parse(&self) -> Result<()> {
         if !Self::validate_name(&self.name) {
-            return Err(ServerError::UserValidationError(format!(
+            return Err(Error::UserValidationError(format!(
                 "'{}' is an invaild name",
                 &self.name
             )));
         }
 
         if !Self::validate_email(&self.email) {
-            return Err(ServerError::UserValidationError(format!(
+            return Err(Error::UserValidationError(format!(
                 "'{}' is an invaild email",
                 &self.email
             )));
         }
 
         if !Self::validate_password(self.password.expose_secret()) {
-            return Err(ServerError::UserValidationError(
-                "invaild password provided".to_string(),
+            return Err(Error::UserValidationError(
+                "invaild password provided".into(),
             ));
         }
 

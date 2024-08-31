@@ -24,7 +24,7 @@ async fn main() -> Result<(), std::io::Error> {
     let environment: Environment = env::var("ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())
         .try_into()
-        .unwrap();
+        .expect("Failed to convert ENVIRONMENT env variable");
 
     let env_file = match environment.as_str() {
         "production" => ".env.production",

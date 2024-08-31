@@ -2,25 +2,33 @@
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+
+pub type Result<T> = std::result::Result<T, Error>;
 
 // ---------------------------------------------------------------------------------------------------------------
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub enum ServerError {
-    LoginError(String),
-    LogoutError(String),
+#[derive(Clone, Debug, thiserror::Error)]
+pub enum Error {
+    #[error("{0}")]
+    EmailNotFoundError(String),
 
-    FetchUserError(String),
+    #[error("{0}")]
+    InvalidPasswordError(String),
+
+    #[error("validation error occured while parsing user payload: {0}")]
     UserValidationError(String),
-    InsertUserError(String),
 
-    DatabaseError(String),
+    #[error("{1}")]
+    UnexpectedError(
+        #[source] std::sync::Arc<dyn std::error::Error + Send + Sync>,
+        String,
+    ),
 
-    UnexpectedError(String),
+    #[error("no auth token provided")]
+    NoAuthProvidedError,
 
-    NoAuthProvided,
-
-    InvalidRole,
+    #[error("role is not vaild for the requested endpoint")]
+    InvalidRoleError,
 }
 
 #[derive(Debug, Serialize)]
@@ -33,40 +41,8 @@ pub enum ClientError {
     SERVICE_ERROR,
 }
 
-impl std::fmt::Display for ServerError {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            ServerError::LoginError(msg) => write!(fmt, "login failed: {}", msg),
-            ServerError::LogoutError(msg) => write!(fmt, "logout failed: {}", msg),
-            ServerError::UserValidationError(msg) => write!(
-                fmt,
-                "user validation error occured while parsing payload: {}",
-                msg
-            ),
-            ServerError::InsertUserError(msg) => write!(
-                fmt,
-                "database error occured while trying to insert user: {}",
-                msg
-            ),
-            ServerError::FetchUserError(msg) => {
-                write!(
-                    fmt,
-                    "database error occured while attempting to fetch user: {}",
-                    msg
-                )
-            }
-            ServerError::DatabaseError(msg) => write!(fmt, "database error occured: {}", msg),
-            ServerError::UnexpectedError(msg) => write!(fmt, "unexpected error occured: {}", msg),
-            ServerError::NoAuthProvided => write!(fmt, "no auth token provided"),
-            ServerError::InvalidRole => write!(fmt, "role is not vaild for the requested endpoint"),
-        }
-    }
-}
-
-impl std::error::Error for ServerError {}
-
 // Used for 'main_response_mapper' middleware
-impl IntoResponse for ServerError {
+impl IntoResponse for Error {
     fn into_response(self) -> Response {
         // Just a placeholder response
         let mut response = StatusCode::INTERNAL_SERVER_ERROR.into_response();
@@ -79,16 +55,16 @@ impl IntoResponse for ServerError {
 }
 
 // Converting server errors to client errors
-impl ServerError {
+impl Error {
     pub fn client_status_and_error(&self) -> (StatusCode, ClientError) {
         match self {
-            Self::LoginError(..) | Self::FetchUserError(..) => {
+            Self::EmailNotFoundError(..) | Self::InvalidPasswordError(..) => {
                 (StatusCode::UNAUTHORIZED, ClientError::INVALID_CREDENTIALS)
             }
 
-            Self::NoAuthProvided => (StatusCode::UNAUTHORIZED, ClientError::NO_AUTH),
+            Self::NoAuthProvidedError => (StatusCode::UNAUTHORIZED, ClientError::NO_AUTH),
 
-            Self::InvalidRole => (StatusCode::FORBIDDEN, ClientError::INVALID_PERMISSIONS),
+            Self::InvalidRoleError => (StatusCode::FORBIDDEN, ClientError::INVALID_PERMISSIONS),
 
             Self::UserValidationError(..) => (StatusCode::BAD_REQUEST, ClientError::INVALID_PARAMS),
 

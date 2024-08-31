@@ -26,7 +26,7 @@ where
 
     let formatting_layer = BunyanFormattingLayer::new(name, sink)
         .skip_fields(skipped_fields.into_iter())
-        .unwrap();
+        .expect("Failed to create tracing formatting layer");
 
     Registry::default()
         .with(env_filter)
@@ -37,8 +37,8 @@ where
 // Register subscriber as global default
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
     // Redirects all log events to the subscriber
-    LogTracer::init().unwrap();
-    set_global_default(subscriber).unwrap();
+    LogTracer::init().expect("Failed to initialize LogTracer");
+    set_global_default(subscriber).expect("Failed to register subscriber as global default");
 }
 // ---------------------------------------------------------------------------------------------------------------
 pub fn spawn_blocking_with_tracing<F, R>(f: F) -> JoinHandle<R>

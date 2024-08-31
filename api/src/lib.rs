@@ -6,5 +6,5 @@ pub mod telemetry;
 pub mod web;
 
 pub use config::{Config, Environment};
-pub use error::{ClientError, ServerError};
+pub use error::{ClientError, Error, Result};
 pub use model::{Requester, Review, Software, User, UserRole};

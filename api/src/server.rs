@@ -1,8 +1,6 @@
 // TODO: Add middleware that limits the size of request bodies by default
 // Reject any input over 4 GiB or any input that could _encode_ to a string longer than 4 GiB
 
-use std::net::SocketAddr;
-
 use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
 use axum::extract::ConnectInfo;
 use axum::http::Request;
@@ -26,7 +24,7 @@ use uuid::Uuid;
 use crate::web::{
     admin_routes, auth_routes, health_check, main_response_mapper, reject_non_admin_users,
 };
-use crate::{Config, ServerError};
+use crate::Config;
 
 type Server = Serve<
     IntoMakeServiceWithConnectInfo<Router, std::net::SocketAddr>,
@@ -41,7 +39,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(config: Config) -> Result<Self, ServerError> {
+    pub async fn build(config: Config) -> crate::Result<Self> {
         let db_pool = get_db_pool(&config);
 
         let redis_pool = get_redis_pool(&config.redis_uri).await;
@@ -56,7 +54,10 @@ impl Application {
 
         let host = config.server_host;
 
-        let port = tcp_listener.local_addr().unwrap().port();
+        let port = tcp_listener
+            .local_addr()
+            .expect("Failed to get local address from tcp listener")
+            .port();
 
         let server = serve(tcp_listener, db_pool, session_store).await?;
 
@@ -95,7 +96,7 @@ pub fn get_db_pool(config: &Config) -> PgPool {
 // ---------------------------------------------------------------------------------------------------------------
 pub async fn get_redis_pool(redis_uri: &Secret<String>) -> RedisPool {
     let redis_config = RedisConfig::from_url(redis_uri.expose_secret())
-        .expect("Failed to get redis config from redis uri");
+        .expect("Failed to get redis config from uri");
 
     let redis_pool =
         RedisPool::new(redis_config, None, None, None, 6).expect("Failed to create redis pool");
@@ -119,7 +120,7 @@ pub async fn serve(
     tcp_listener: tokio::net::TcpListener,
     db_pool: PgPool,
     session_store: RedisStore<RedisPool>,
-) -> Result<Server, ServerError> {
+) -> crate::Result<Server> {
     let state = AppState { db_pool };
 
     // User ID will be stored into the session state on login and will be retrieved
@@ -165,8 +166,9 @@ pub async fn serve(
                 .make_span_with(|request: &Request<_>| {
                     let request_id = Uuid::new_v4().to_string();
 
-                    let client_ip = if let Some(client_connection) =
-                        request.extensions().get::<ConnectInfo<SocketAddr>>()
+                    let client_ip = if let Some(client_connection) = request
+                        .extensions()
+                        .get::<ConnectInfo<std::net::SocketAddr>>()
                     {
                         Ok(client_connection.ip())
                     } else {

@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::server::AppState;
 use crate::telemetry::spawn_blocking_with_tracing;
-use crate::ServerError;
+use crate::{Error, Result};
 
 // ---------------------------------------------------------------------------------------------------------------
 #[derive(Debug, Deserialize)]
@@ -15,10 +15,7 @@ pub struct Credentials {
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "validating credentials", skip(state, payload))]
-pub async fn validate_credentials(
-    state: &AppState,
-    payload: Credentials,
-) -> Result<Uuid, ServerError> {
+pub async fn validate_credentials(state: &AppState, payload: Credentials) -> Result<Uuid> {
     // When attempting to validate credentails, passing an incorrect email and password takes
     // and order of magnitude less of time then with a correct email and incorrect password
     //
@@ -34,9 +31,8 @@ pub async fn validate_credentials(
             .to_string(),
     );
 
-    if let Some((stored_user_id, stored_password_hash)) = get_credentials(state, &payload.email)
-        .await
-        .map_err(|err| ServerError::DatabaseError(err.to_string()))?
+    if let Some((stored_user_id, stored_password_hash)) =
+        get_credentials(state, &payload.email).await?
     {
         user_id = Some(stored_user_id);
         expected_password_hash = stored_password_hash;
@@ -48,16 +44,23 @@ pub async fn validate_credentials(
         verify_password_hash(expected_password_hash, payload.password)
     })
     .await
-    .map_err(|err| ServerError::LoginError(err.to_string()))??;
+    .map_err(|err| {
+        Error::UnexpectedError(
+            std::sync::Arc::new(err),
+            "Failed to spawn blocking thread for password hashing".into(),
+        )
+    })??;
 
-    user_id.ok_or_else(|| ServerError::FetchUserError("email not found".to_string()))
+    user_id.ok_or_else(|| {
+        Error::EmailNotFoundError("Failed to find email associated with user".into())
+    })
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "getting stored credentials", skip(state, email))]
 async fn get_credentials(
     state: &AppState,
     email: &str,
-) -> Result<Option<(uuid::Uuid, Secret<String>)>, ServerError> {
+) -> Result<Option<(uuid::Uuid, Secret<String>)>> {
     let row = sqlx::query!(
         r#"
         SELECT id, password_hash
@@ -68,7 +71,12 @@ async fn get_credentials(
     )
     .fetch_optional(&state.db_pool)
     .await
-    .map_err(|err| ServerError::DatabaseError(err.to_string()))?
+    .map_err(|err| {
+        Error::UnexpectedError(
+            std::sync::Arc::new(err),
+            "Failed to get stored user credentials".into(),
+        )
+    })?
     .map(|row| (row.id, Secret::new(row.password_hash)));
 
     Ok(row)
@@ -81,14 +89,21 @@ async fn get_credentials(
 fn verify_password_hash(
     expected_password_hash: Secret<String>,
     password_candidate: Secret<String>,
-) -> Result<(), ServerError> {
+) -> Result<()> {
     let expected_password_hash = PasswordHash::new(expected_password_hash.expose_secret())
-        .map_err(|err| ServerError::UnexpectedError(err.to_string()))?;
+        .map_err(|err| {
+            Error::UnexpectedError(
+                std::sync::Arc::new(err),
+                "Failed to parse password hash".into(),
+            )
+        })?;
 
     Argon2::default()
         .verify_password(
             password_candidate.expose_secret().as_bytes(),
             &expected_password_hash,
         )
-        .map_err(|err| ServerError::LoginError(err.to_string()))
+        .map_err(|err| Error::InvalidPasswordError(err.to_string()))?;
+
+    Ok(())
 }
