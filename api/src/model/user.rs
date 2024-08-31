@@ -13,7 +13,7 @@ pub struct User {
     pub role: UserRole,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, sqlx::Type)]
+#[derive(Clone, Debug, Deserialize, Serialize, sqlx::Type)]
 #[sqlx(type_name = "user_role")]
 pub enum UserRole {
     Reviewer,
@@ -56,30 +56,37 @@ impl User {
         //
         // `graphemes` returns an iterator over the graphemes in the input
         // `true` specifies that we want to use the extended grapheme definition set
-        let name_too_long = name.graphemes(true).count() > 256;
+        let name_too_long = name.graphemes(true).count() > 128;
         let name_contains_forbidden_chars = name.chars().any(|c| forbidden_chars.contains(&c));
 
         !(name_is_empty_or_whitespace || name_too_long || name_contains_forbidden_chars)
     }
 
     fn validate_email(email: &String) -> bool {
-        // Validates email based on HTML5 spec
-        ValidateEmail::validate_email(&email)
+        let split = email.split("@").nth(1);
+
+        // `ValidateEmail` validates email based on HTML5 spec
+        split.is_some_and(|str| !str.is_empty()) && ValidateEmail::validate_email(&email)
     }
 
-    // TODO: Update password validation
     fn validate_password(password: &String) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$'];
 
+        // TODO: Make sure multiple spaces are handled (Replace  multiple spaces with single space)
+        //
+        // TODO: Possibly check password against breached passwords such as the top 1,000 or 10,000
+        // most common passwords
         let password_is_empty_or_whitespace = password.trim().is_empty();
-        let password_too_long = password.graphemes(true).count() > 256;
-        let password_too_short = password.graphemes(true).count() < 8;
+
+        let password_too_short = password.graphemes(true).count() < 12;
+        let password_too_long = password.graphemes(true).count() > 128;
+
         let password_contains_forbidden_chars =
             password.chars().any(|s| forbidden_chars.contains(&s));
 
         !(password_is_empty_or_whitespace
-            || password_too_long
             || password_too_short
+            || password_too_long
             || password_contains_forbidden_chars)
     }
 }
@@ -93,31 +100,31 @@ mod name_tests {
     // Returns true is field is vaild, false if invalid
 
     #[test]
-    fn a_256_grapheme_name_is_vaild() {
-        let name = "a".repeat(256);
+    fn a_128_grapheme_name_is_vaild() {
+        let name = "a".repeat(128);
         assert_eq!(User::validate_name(&name), true);
     }
 
     #[test]
-    fn a_257_grapheme_name_is_invaild() {
-        let name = "a".repeat(257);
+    fn a_129_grapheme_name_is_invaild() {
+        let name = "a".repeat(129);
         assert_eq!(User::validate_name(&name), false);
     }
 
     #[test]
-    fn whitespace_only_name_is_rejected() {
+    fn whitespace_only_name_is_invalid() {
         let name = " ".to_string();
         assert_eq!(User::validate_name(&name), false);
     }
 
     #[test]
-    fn empty_name_is_rejected() {
+    fn empty_name_is_invalid() {
         let name = "".to_string();
         assert_eq!(User::validate_name(&name), false);
     }
 
     #[test]
-    fn forbidden_characters_in_name_are_rejected() {
+    fn forbidden_characters_in_name_are_invalid() {
         for chars in &['/', '(', ')', '"', '<', '>', '\\', '{', '}'] {
             let name = chars.to_string();
             assert_eq!(User::validate_name(&name), false);
@@ -159,6 +166,12 @@ mod email_tests {
     }
 
     #[test]
+    fn email_missing_domain_is_rejected() {
+        let email = "test@".to_string();
+        assert_eq!(User::validate_email(&email), false);
+    }
+
+    #[test]
     fn vaild_email_is_accepted() {
         let email = SafeEmail().fake();
         assert_eq!(User::validate_email(&email), true)
@@ -167,5 +180,57 @@ mod email_tests {
 
 #[cfg(test)]
 mod password_tests {
+    use crate::model::User;
+
     // Returns true is field is vaild, false if invalid
+
+    #[test]
+    fn a_12_grapheme_password_is_vaild() {
+        let password = "a".repeat(12);
+        assert_eq!(User::validate_password(&password), true);
+    }
+
+    #[test]
+    fn a_11_grapheme_password_is_invaild() {
+        let password = "a".repeat(11);
+        assert_eq!(User::validate_password(&password), false);
+    }
+
+    #[test]
+    fn a_128_grapheme_password_is_vaild() {
+        let password = "a".repeat(128);
+        assert_eq!(User::validate_password(&password), true);
+    }
+
+    #[test]
+    fn a_129_grapheme_password_is_invaild() {
+        let password = "a".repeat(129);
+        assert_eq!(User::validate_password(&password), false);
+    }
+
+    #[test]
+    fn whitespace_only_password_is_rejected() {
+        let password = " ".to_string();
+        assert_eq!(User::validate_password(&password), false);
+    }
+
+    #[test]
+    fn empty_password_is_rejected() {
+        let password = "".to_string();
+        assert_eq!(User::validate_password(&password), false);
+    }
+
+    #[test]
+    fn forbidden_characters_in_password_are_rejected() {
+        for chars in &['/', '(', ')', '"', '<', '>', '\\', '{', '}'] {
+            let password = chars.to_string();
+            assert_eq!(User::validate_password(&password), false);
+        }
+    }
+
+    #[test]
+    fn valid_password_is_accepted() {
+        let password = "pdsfbhb#2kjL".to_string();
+        assert_eq!(User::validate_password(&password), true);
+    }
 }

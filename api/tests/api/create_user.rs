@@ -33,7 +33,7 @@ async fn create_user_returns_200_status() {
     let body = json!({
         "name": "John",
         "email": &email,
-        "password": "password123",
+        "password": "password1234",
         "role": "Reviewer"
     });
 
@@ -41,6 +41,8 @@ async fn create_user_returns_200_status() {
     let create_user_response = server
         .post_create_user(&url, body.to_string(), &session_id.unwrap())
         .await;
+
+    assert_eq!(200, create_user_response.status().as_u16());
 
     // 3. Check for user in database
     let row = sqlx::query!(
@@ -54,9 +56,7 @@ async fn create_user_returns_200_status() {
     .fetch_one(&server.db_pool)
     .await;
 
-    assert!(!row.is_err());
-
-    assert_eq!(200, create_user_response.status().as_u16());
+    assert!(row.is_ok());
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
