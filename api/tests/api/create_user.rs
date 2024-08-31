@@ -42,7 +42,7 @@ async fn create_user_returns_200_status() {
         .post_create_user(&url, body.to_string(), &session_id.unwrap())
         .await;
 
-    // 3. Check for user in database 
+    // 3. Check for user in database
     let row = sqlx::query!(
         r#"
         SELECT id
@@ -97,7 +97,7 @@ async fn create_user_invalid_role_is_rejected() {
         .post_create_user(&url, body.to_string(), &session_id.unwrap())
         .await;
 
-    // 3. Check for user in database 
+    // 3. Check for user in database
     let row = sqlx::query!(
         r#"
         SELECT id
