@@ -14,7 +14,7 @@ pub struct Credentials {
     pub password: Secret<String>,
 }
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "validate credentials", skip(state, payload))]
+#[tracing::instrument(name = "validating credentials", skip(state, payload))]
 pub async fn validate_credentials(
     state: &AppState,
     payload: Credentials,
@@ -75,7 +75,7 @@ async fn get_credentials(
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(
-    name = "verify password hash",
+    name = "verifying password hash",
     skip(expected_password_hash, password_candidate)
 )]
 fn verify_password_hash(

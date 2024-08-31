@@ -4,32 +4,23 @@ use axum::extract::{self, State};
 use axum::http::StatusCode;
 use secrecy::ExposeSecret;
 
-use crate::model::TypedSession;
 use crate::server::AppState;
 use crate::{ServerError, User, UserRole};
-
-use super::check_if_admin;
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(
     name = "creating new user", 
     // Any values in 'skip' won't be included in logs
-    skip(state, session, payload),
+    skip(state, payload),
     fields(
         user_email = tracing::field::Empty,
     )
 )]
 pub async fn api_create_user(
     State(state): State<AppState>,
-    session: TypedSession,
     extract::Json(payload): extract::Json<User>,
 ) -> Result<StatusCode, ServerError> {
     tracing::Span::current().record("user_email", tracing::field::display(&payload.email));
-
-    match check_if_admin(&state, &session).await {
-        Ok(..) => (),
-        Err(err) => return Err(err),
-    };
 
     // Validate request payload
     payload.parse()?;

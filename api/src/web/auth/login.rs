@@ -12,7 +12,7 @@ use crate::ServerError;
     // Any values in 'skip' won't be included in logs
     skip(state, session, payload),
     fields(
-        user_email = tracing::field::Empty
+        user_email = %payload.email
     )
 )]
 pub async fn api_login(
@@ -20,8 +20,6 @@ pub async fn api_login(
     session: TypedSession,
     extract::Json(payload): extract::Json<Credentials>,
 ) -> Result<StatusCode, ServerError> {
-    tracing::Span::current().record("user_email", tracing::field::display(&payload.email));
-
     match validate_credentials(&state, payload).await {
         Ok(user_id) => {
             // Rotating session id prevents session fixation attacks

@@ -118,10 +118,25 @@ async fn create_user_invalid_role_is_rejected() {
 #[tokio::test]
 async fn create_user_missing_fields_are_rejected() {
     let server = spawn_server().await;
+    let login_url = format!("{}/auth/login", server.addr);
     let url = format!("{}/admin/create-user", server.addr);
 
-    // Cookies not necessary because payload is not able to be deserialized before getting to next
-    // steps
+    // Payload (Uses 'Admin' test user credentials)
+    let body = json!({
+        "email": server.test_users[1].email,
+        "password": server.test_users[1].password
+    });
+
+    // 1. Login Request
+    let login_response = server.post_request(&login_url, body.to_string()).await;
+    assert_eq!(200, login_response.status().as_u16());
+
+    // TODO: Find out how to correctly preserve cookies without manual extraction
+    let session_id = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
 
     // Payloads where the user should not be created
     let test_cases = vec![
@@ -161,7 +176,9 @@ async fn create_user_missing_fields_are_rejected() {
 
     // 1. Create User Requests
     for (invalid_body, error_message) in test_cases {
-        let response = server.post_request(&url, invalid_body.to_string()).await;
+        let response = server
+            .post_create_user(&url, invalid_body.to_string(), &session_id.unwrap())
+            .await;
 
         (
             assert_eq!(400, response.status().as_u16()),

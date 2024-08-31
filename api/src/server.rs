@@ -1,8 +1,13 @@
 // TODO: Add middleware that limits the size of request bodies by default
 // Reject any input over 4 GiB or any input that could _encode_ to a string longer than 4 GiB
 
+use std::net::SocketAddr;
+
+use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
+use axum::extract::ConnectInfo;
 use axum::http::Request;
-use axum::routing::{get, IntoMakeService};
+use axum::middleware::AddExtension;
+use axum::routing::get;
 use axum::serve::Serve;
 use axum::Router;
 use secrecy::{ExposeSecret, Secret};
@@ -18,10 +23,15 @@ use tower_sessions_redis_store::{fred::prelude::*, RedisStore};
 use tracing::Level;
 use uuid::Uuid;
 
-use crate::web::{admin_routes, auth_routes, health_check, main_response_mapper};
+use crate::web::{
+    admin_routes, auth_routes, health_check, main_response_mapper, reject_non_admin_users,
+};
 use crate::{Config, ServerError};
 
-type Server = Serve<IntoMakeService<Router>, Router>;
+type Server = Serve<
+    IntoMakeServiceWithConnectInfo<Router, std::net::SocketAddr>,
+    AddExtension<Router, ConnectInfo<std::net::SocketAddr>>,
+>;
 
 // ---------------------------------------------------------------------------------------------------------------
 pub struct Application {
@@ -131,8 +141,17 @@ pub async fn serve(
 
     let routes_all = Router::new()
         .route("/health-check", get(health_check))
-        .nest("/auth", auth_routes(state.clone()))
-        .nest("/admin", admin_routes(state.clone()))
+        .nest(
+            "/auth",
+            auth_routes(state.clone()), //.route_layer(axum::middleware::from_fn(reject_unauthorized_users)),
+        )
+        .nest(
+            "/admin",
+            admin_routes(state.clone()).route_layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                reject_non_admin_users,
+            )),
+        )
         .layer(axum::middleware::map_response(main_response_mapper))
         .layer(session_layer)
         .layer(
@@ -146,11 +165,26 @@ pub async fn serve(
                 .make_span_with(|request: &Request<_>| {
                     let request_id = Uuid::new_v4().to_string();
 
+                    let client_ip = if let Some(client_connection) =
+                        request.extensions().get::<ConnectInfo<SocketAddr>>()
+                    {
+                        Ok(client_connection.ip())
+                    } else {
+                        Err("N/A".to_string())
+                    };
+
                     // Will be included with every request log
                     tracing::span!(
                         Level::INFO,
                         "request",
                         %request_id,
+                        client_ip = {
+                            if client_ip.is_ok() {
+                                client_ip.unwrap().to_string()
+                            } else {
+                                format!("{:?}", client_ip)
+                            }
+                        },
                         method = ?request.method(),
                         uri = %request.uri(),
                         version = ?request.version(),
@@ -159,5 +193,8 @@ pub async fn serve(
             ),
         );
 
-    Ok(axum::serve(tcp_listener, routes_all.into_make_service()))
+    Ok(axum::serve(
+        tcp_listener,
+        routes_all.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    ))
 }

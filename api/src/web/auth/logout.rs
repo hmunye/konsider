@@ -5,7 +5,7 @@ use crate::ServerError;
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(
-    name = "user logout", 
+    name = "logging out user", 
     // Any values in 'skip' won't be included in logs
     skip(session),
 )]
