@@ -3,10 +3,10 @@ name: API CI
 on:
   push:
     paths:
-      - "prototype_v3/api/**"
+      - "api/**"
   pull_request:
     paths:
-      - "prototype_v3/api/**"
+      - "api/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -46,7 +46,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install sqlx-cli
-        working-directory: prototype_v3/api
+        working-directory: api
         run:
             cargo install sqlx-cli
             --version=${{ env.SQLX_VERSION }}
@@ -55,15 +55,15 @@ jobs:
             --locked
 
       - name: Install postgresql-client
-        working-directory: prototype_v3/api
+        working-directory: api
         run: sudo apt-get update && sudo apt-get install postgresql-client -y
 
       - name: Migrate Database
-        working-directory: prototype_v3/api
+        working-directory: api
         run: SKIP=true ./scripts/init_db.sh
 
       - name: Run Tests
-        working-directory: prototype_v3/api
+        working-directory: api
         run: cargo test --all-features
 
   fmt:
@@ -76,7 +76,7 @@ jobs:
           components: rustfmt
 
       - name: Enforce Formatting
-        working-directory: prototype_v3/api
+        working-directory: api
         run: cargo fmt --all -- --check
 
   clippy:
@@ -98,7 +98,7 @@ jobs:
           components: clippy
 
       - name: Install sqlx-cli
-        working-directory: prototype_v3/api
+        working-directory: api
         run:
             cargo install sqlx-cli
             --version=${{ env.SQLX_VERSION }}
@@ -107,13 +107,13 @@ jobs:
             --locked
 
       - name: Install postgresql-client
-        working-directory: prototype_v3/api
+        working-directory: api
         run: sudo apt-get update && sudo apt-get install postgresql-client -y
 
       - name: Migrate Database
-        working-directory: prototype_v3/api
+        working-directory: api
         run: SKIP=true ./scripts/init_db.sh
 
       - name: Lint Code
-        working-directory: prototype_v3/api
+        working-directory: api
         run: cargo clippy -- -D warnings
