@@ -36,7 +36,7 @@ pub async fn api_create_user(
 async fn insert_user(state: &AppState, payload: &User, password_hash: String) -> Result<()> {
     sqlx::query!(
         r#"
-        INSERT INTO "user" (name, email, password_hash, role)
+        INSERT INTO users (name, email, password_hash, role)
         VALUES ($1, $2, $3, $4)
         "#,
         payload.name,

@@ -29,6 +29,9 @@ pub enum Error {
 
     #[error("role is not vaild for the requested endpoint")]
     InvalidRoleError,
+
+    #[error("")]
+    IdempotencyError,
 }
 
 #[derive(Debug, Serialize)]

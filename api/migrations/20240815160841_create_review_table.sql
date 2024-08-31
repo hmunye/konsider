@@ -25,7 +25,7 @@ CREATE TABLE review (
     PRIMARY KEY (software_name, request_id, reviewer_email),
     FOREIGN KEY (software_name) REFERENCES software(name) ON DELETE RESTRICT,
     FOREIGN KEY (request_id) REFERENCES requester(request_id) ON DELETE RESTRICT,
-    FOREIGN KEY (reviewer_email) REFERENCES "user"(email) ON DELETE RESTRICT
+    FOREIGN KEY (reviewer_email) REFERENCES users(email) ON DELETE RESTRICT
 );
 
 -- Constraints

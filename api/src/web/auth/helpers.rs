@@ -64,7 +64,7 @@ async fn get_credentials(
     let row = sqlx::query!(
         r#"
         SELECT id, password_hash
-        FROM "user"
+        FROM users
         WHERE email = $1
         "#,
         email,

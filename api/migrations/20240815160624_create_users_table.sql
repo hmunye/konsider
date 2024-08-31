@@ -6,7 +6,7 @@ CREATE TYPE user_role AS ENUM (
     'Admin'
 );
 
-CREATE TABLE "user" (
+CREATE TABLE users (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name TEXT NOT NULL, -- Full name
     email TEXT NOT NULL UNIQUE, -- Brockport email
@@ -17,7 +17,7 @@ CREATE TABLE "user" (
 );
 
 -- Constraints
-ALTER TABLE "user"
+ALTER TABLE users
     ADD CONSTRAINT check_name_length CHECK (length(name) > 0 AND length(name) <= 256),
     ADD CONSTRAINT check_email_length CHECK (length(email) > 0 AND length(email) <= 256),
     ADD CONSTRAINT check_role CHECK (role IN ('Reviewer', 'Admin'));
@@ -31,8 +31,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Runs function on every update query on "user"
+-- Runs function on every update query on `users`
 CREATE TRIGGER update_user_before_update
-    BEFORE UPDATE ON "user"
+    BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_user_timestamp();

@@ -1,7 +1,7 @@
 -- Add migration script here
 
 -- password is "everythinghastostartsomewhere"
-INSERT INTO "user" (id, name, email, password_hash, role)
+INSERT INTO users (id, name, email, password_hash, role)
 VALUES (
     'ddf8994f-d522-4659-8d02-c1d479057be6',
     'Test',

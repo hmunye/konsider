@@ -40,7 +40,7 @@ async fn get_user_role(user_id: Uuid, db_pool: &PgPool) -> Result<UserRole> {
     let row = sqlx::query!(
         r#"
         SELECT role AS "role: UserRole"
-        FROM "user"
+        FROM users
         WHERE id = $1
         "#,
         user_id,

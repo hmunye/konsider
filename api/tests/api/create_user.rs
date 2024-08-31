@@ -48,7 +48,7 @@ async fn create_user_returns_200_status() {
     let row = sqlx::query!(
         r#"
         SELECT id
-        FROM "user"
+        FROM users
         WHERE email=$1 
         "#,
         email
@@ -101,7 +101,7 @@ async fn create_user_invalid_role_is_rejected() {
     let row = sqlx::query!(
         r#"
         SELECT id
-        FROM "user"
+        FROM users
         WHERE email=$1 
         "#,
         email

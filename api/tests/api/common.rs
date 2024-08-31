@@ -119,7 +119,7 @@ impl TestUser {
 
         sqlx::query!(
             r#"
-            INSERT INTO "user" (name, email, password_hash, role)
+            INSERT INTO users (name, email, password_hash, role)
             VALUES ($1, $2, $3, $4)
             "#,
             Uuid::new_v4().to_string(),
