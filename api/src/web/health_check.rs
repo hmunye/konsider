@@ -1,8 +1,25 @@
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 
+use crate::Environment;
+
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "health check")]
 pub async fn health_check() -> impl IntoResponse {
-    (StatusCode::OK, "status: ok").into_response()
+    let environment: Environment = std::env::var("ENVIRONMENT")
+        .unwrap_or_else(|_| "local".into())
+        .try_into()
+        .expect("Failed to convert ENVIRONMENT env variable");
+
+    let version: String = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "N/A".into());
+
+    (
+        StatusCode::OK,
+        format!(
+            "{{\n\tstatus: available,\n\tenvironment: {},\n\tversion: {}\n}}",
+            environment.as_str(),
+            version
+        ),
+    )
+        .into_response()
 }

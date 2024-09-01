@@ -42,7 +42,7 @@ impl Application {
     pub async fn build(config: Config) -> crate::Result<Self> {
         let db_pool = get_db_pool(&config);
 
-        let redis_pool = get_redis_pool(&config.redis_uri).await;
+        let redis_pool = get_redis_pool(&config.redis_uri()).await;
 
         let session_store = RedisStore::new(redis_pool);
 
@@ -84,11 +84,12 @@ pub fn get_db_pool(config: &Config) -> PgPool {
         // Set the minimum number of connections to maintain at all times
         .min_connections(10)
         // Set the maximum number of connections that this pool should maintain.
-        .max_connections(30)
+        .max_connections(20)
         // The amount of time the pool will wait to aquire a connection
         .acquire_timeout(std::time::Duration::from_secs(10))
         // The amount of time a connection can stay idle in the pool before it is closed
-        .idle_timeout(std::time::Duration::from_secs(60))
+        // Set to 15 minutes
+        .idle_timeout(std::time::Duration::from_secs(900))
         // Won't connect until a query is made
         .connect_lazy(config.connection_string().expose_secret())
         .expect("Failed to create connection pool")
@@ -141,13 +142,13 @@ pub async fn serve(
         .with_expiry(Expiry::OnInactivity(Duration::minutes(15)));
 
     let routes_all = Router::new()
-        .route("/health-check", get(health_check))
+        .route("/v1/health-check", get(health_check))
         .nest(
-            "/auth",
+            "/v1/auth",
             auth_routes(state.clone()), //.route_layer(axum::middleware::from_fn(reject_unauthorized_users)),
         )
         .nest(
-            "/admin",
+            "/v1/admin",
             admin_routes(state.clone()).route_layer(axum::middleware::from_fn_with_state(
                 state.clone(),
                 reject_non_admin_users,

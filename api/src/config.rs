@@ -14,13 +14,16 @@ pub struct Config {
     pub postgres_db: String,
 
     #[clap(long, env)]
-    pub postgres_port: u16,
-
-    #[clap(long, env)]
     pub postgres_host: String,
 
     #[clap(long, env)]
-    pub redis_uri: Secret<String>,
+    pub postgres_port: u16,
+
+    #[clap(long, env)]
+    pub redis_host: String,
+
+    #[clap(long, env)]
+    pub redis_port: u16,
 
     #[clap(long, env)]
     pub server_host: String,
@@ -55,6 +58,10 @@ impl Config {
             self.postgres_host,
             self.postgres_port,
         ))
+    }
+
+    pub fn redis_uri(&self) -> Secret<String> {
+        Secret::new(format!("redis://{}:{}", self.redis_host, self.redis_port))
     }
 }
 // ---------------------------------------------------------------------------------------------------------------

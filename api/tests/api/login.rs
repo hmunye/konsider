@@ -6,7 +6,7 @@ use crate::common::spawn_server;
 #[tokio::test]
 async fn login_returns_200_status() {
     let server = spawn_server().await;
-    let url = format!("{}/auth/login", server.addr);
+    let url = format!("{}/v1/auth/login", server.addr);
 
     // Payload (Uses 'Reviewer' test user credentials)
     let body = json!({
@@ -23,7 +23,7 @@ async fn login_returns_200_status() {
 #[tokio::test]
 async fn login_invalid_user_is_rejected() {
     let server = spawn_server().await;
-    let url = format!("{}/auth/login", server.addr);
+    let url = format!("{}/v1/auth/login", server.addr);
 
     // Payload (User should not exist in db)
     let body = json!({
@@ -40,7 +40,7 @@ async fn login_invalid_user_is_rejected() {
 #[tokio::test]
 async fn sql_injection_login_attempts_are_rejected() {
     let server = spawn_server().await;
-    let url = format!("{}/auth/login", server.addr);
+    let url = format!("{}/v1/auth/login", server.addr);
 
     // Test cases with various SQL injection payloads
     let test_cases = vec![

@@ -7,8 +7,8 @@ use crate::common::spawn_server;
 #[tokio::test]
 async fn logout_clears_session_state() {
     let server = spawn_server().await;
-    let login_url = format!("{}/auth/login", server.addr);
-    let logout_url = format!("{}/auth/logout", server.addr);
+    let login_url = format!("{}/v1/auth/login", server.addr);
+    let logout_url = format!("{}/v1/auth/logout", server.addr);
 
     // Payload (Uses 'Reviewer' test user credentials)
     let body = json!({

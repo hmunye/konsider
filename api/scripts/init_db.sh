@@ -5,7 +5,7 @@
 # ^ Ensures the script exits immediately if any command fails (-e) and that the exit status of a pipeline 
 # is determined by the last non-zero status
 
-ENV_FILE=".env"
+ENV_FILE=".env.local"
 
 if [ -f "$ENV_FILE" ]; then
 # Load environment variables from .env file
@@ -58,8 +58,10 @@ then
         -e POSTGRES_DB=${DB_NAME} \
         -p ${DB_HOST}:${DB_PORT}:5432 \
         -d postgres \
-        postgres -N 1000 
-        # ^ Increased maximum number of connections for testing purposes
+        postgres -N 25 
+        # In Postgres, the default limit is typically 100 open connections, 
+        # minus 3 which are reserved for superusers 
+        # (putting the default limit for unprivileged users at 97 connections)
 fi
 
 # Keep pinging Postgres until it's ready to accept commands

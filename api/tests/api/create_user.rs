@@ -7,8 +7,8 @@ use crate::common::spawn_server;
 #[tokio::test]
 async fn create_user_returns_200_status() {
     let server = spawn_server().await;
-    let login_url = format!("{}/auth/login", server.addr);
-    let url = format!("{}/admin/create-user", server.addr);
+    let login_url = format!("{}/v1/auth/login", server.addr);
+    let url = format!("{}/v1/admin/create-user", server.addr);
 
     // Payload (Uses 'Admin' test user credentials)
     let body = json!({
@@ -62,8 +62,8 @@ async fn create_user_returns_200_status() {
 #[tokio::test]
 async fn create_user_invalid_role_is_rejected() {
     let server = spawn_server().await;
-    let login_url = format!("{}/auth/login", server.addr);
-    let url = format!("{}/admin/create-user", server.addr);
+    let login_url = format!("{}/v1/auth/login", server.addr);
+    let url = format!("{}/v1/admin/create-user", server.addr);
 
     // Payload (Uses 'Reviewer' test user credentials)
     let body = json!({
@@ -118,8 +118,8 @@ async fn create_user_invalid_role_is_rejected() {
 #[tokio::test]
 async fn create_user_missing_fields_are_rejected() {
     let server = spawn_server().await;
-    let login_url = format!("{}/auth/login", server.addr);
-    let url = format!("{}/admin/create-user", server.addr);
+    let login_url = format!("{}/v1/auth/login", server.addr);
+    let url = format!("{}/v1/admin/create-user", server.addr);
 
     // Payload (Uses 'Admin' test user credentials)
     let body = json!({
@@ -191,8 +191,8 @@ async fn create_user_missing_fields_are_rejected() {
 #[tokio::test]
 async fn create_user_returns_400_status() {
     let server = spawn_server().await;
-    let login_url = format!("{}/auth/login", server.addr);
-    let url = format!("{}/admin/create-user", server.addr);
+    let login_url = format!("{}/v1/auth/login", server.addr);
+    let url = format!("{}/v1/admin/create-user", server.addr);
 
     // Payload (Uses 'Admin' test user credentials)
     let body = json!({
