@@ -12,6 +12,7 @@ const config: Config = {
                 foreground: "rgb(var(--foreground))",
                 background: "rgb(var(--background))",
                 primary: "rgb(var(--primary))",
+                destructive: "rgb(var(--destructive))",
             },
         },
     },
