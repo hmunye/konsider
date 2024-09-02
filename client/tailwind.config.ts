@@ -13,6 +13,7 @@ const config: Config = {
                 background: "rgb(var(--background))",
                 primary: "rgb(var(--primary))",
                 destructive: "rgb(var(--destructive))",
+                muted: "rgb(var(--muted))",
             },
         },
     },

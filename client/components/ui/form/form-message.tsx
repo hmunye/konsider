@@ -1,18 +1,28 @@
+import { cn } from "@/lib/utils";
+
 export type Message =
   | { success: string }
   | { error: string }
   | { message: string };
 
-export function FormMessage({ message }: { message: Message }) {
+export function FormMessage({
+  message,
+  className,
+}: {
+  message: Message;
+  className: string;
+}) {
   return (
-    <div className="flex flex-col gap-2 w-full max-w-md text-sm">
+    <div
+      className={cn("flex flex-col gap-2 w-full max-w-md text-sm", className)}
+    >
       {"success" in message && (
-        <div className="text-green-500 border-l-2 border-green-500 px-4">
+        <div className="text-primary border-l-2 border-primary px-4">
           {message.success}
         </div>
       )}
       {"error" in message && (
-        <div className="text-red-500 border-l-2 border-red-500 px-4">
+        <div className="text-destructive border-l-2 border-destructive px-4">
           {message.error}
         </div>
       )}

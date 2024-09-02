@@ -3,7 +3,7 @@
 
 use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
 use axum::extract::ConnectInfo;
-use axum::http::Request;
+use axum::http::{Method, Request};
 use axum::middleware::AddExtension;
 use axum::routing::get;
 use axum::serve::Serve;
@@ -15,6 +15,7 @@ use time::Duration;
 use tower::ServiceBuilder;
 use tower_cookies::cookie::SameSite;
 use tower_http::classify::StatusInRangeAsFailures;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tower_sessions::{Expiry, SessionManagerLayer};
 use tower_sessions_redis_store::{fred::prelude::*, RedisStore};
@@ -137,16 +138,27 @@ pub async fn serve(
         .with_http_only(true)
         .with_name("id")
         .with_domain("localhost")
-        .with_same_site(SameSite::None)
+        .with_same_site(SameSite::Lax)
         .with_path("/")
         .with_expiry(Expiry::OnInactivity(Duration::minutes(15)));
 
+    let origin = ["http://localhost:3000".parse().unwrap()];
+
+    // TODO: Update to be more strict
+    let cors_layer = CorsLayer::new()
+        .allow_origin(origin)
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+            Method::OPTIONS,
+        ])
+        .allow_headers(Any);
+
     let routes_all = Router::new()
         .route("/v1/health-check", get(health_check))
-        .nest(
-            "/v1/auth",
-            auth_routes(state.clone()), //.route_layer(axum::middleware::from_fn(reject_unauthorized_users)),
-        )
+        .nest("/v1/auth", auth_routes(state.clone()))
         .nest(
             "/v1/admin",
             admin_routes(state.clone()).route_layer(axum::middleware::from_fn_with_state(
@@ -156,6 +168,7 @@ pub async fn serve(
         )
         .layer(axum::middleware::map_response(main_response_mapper))
         .layer(session_layer)
+        .layer(cors_layer)
         .layer(
             ServiceBuilder::new().layer(
                 TraceLayer::new(

@@ -1,13 +1,23 @@
-import { cn } from "@/utils/cn";
+import React from "react";
+import { cn } from "@/lib/utils";
 
-export function Input({ ...props }: React.JSX.IntrinsicElements["input"]) {
-  return (
-    <input
-      className={cn(
-        "rounded-md h-8 text-sm px-4 py-2 bg-inherit border",
-        props.className,
-      )}
-      {...props}
-    />
-  );
-}
+type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {};
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-foreground file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-transparent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          className,
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  },
+);
+Input.displayName = "Input";
+
+export { Input };

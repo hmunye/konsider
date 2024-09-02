@@ -1,30 +1,34 @@
-"use client";
+import { cn } from "@/lib/utils";
+import React from "react";
 
-import { useFormStatus } from "react-dom";
-import { type ComponentProps } from "react";
-
-type Props = ComponentProps<"button"> & {
-  pendingText?: string;
+type SubmitButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  pending: boolean;
 };
 
-export function SubmitButton({
-  children,
-  pendingText = "Submitting...",
-  ...props
-}: Props) {
-  const { pending, action } = useFormStatus();
+const SubmitButton = React.forwardRef<HTMLButtonElement, SubmitButtonProps>(
+  ({ className, children, pending, ...props }, ref) => {
+    return (
+      <button
+        className={cn(
+          "bg-primary h-9 flex items-center justify-center font-medium text-md hover:brightness-125 duration-300 transition rounded-md text-foreground disabled:brightness-75",
+          className,
+        )}
+        type="submit"
+        disabled={pending}
+        aria-disabled={pending}
+        ref={ref}
+        {...props}
+      >
+        {pending ? (
+          <div className="animate-spin border-4 border-solid border-l-transparent rounded-2xl w-5 h-5 border-foreground brightness-75"></div>
+        ) : (
+          children
+        )}
+      </button>
+    );
+  },
+);
 
-  const isPending = pending && action === props.formAction;
+SubmitButton.displayName = "SubmitButton";
 
-  return (
-    <button
-      {...props}
-      className="bg-primary h-8 flex items-center justify-center font-medium text-md 
-            hover:brightness-125 duration-300 transition rounded-md text-foreground"
-      type="submit"
-      aria-disabled={pending}
-    >
-      {isPending ? pendingText : children}
-    </button>
-  );
-}
+export { SubmitButton };

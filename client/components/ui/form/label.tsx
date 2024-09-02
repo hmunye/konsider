@@ -1,13 +1,25 @@
-import { cn } from "@/utils/cn";
+import { cn } from "@/lib/utils";
 import React from "react";
 
-export function Label({
-  children,
-  ...props
-}: { children: React.ReactNode } & React.JSX.IntrinsicElements["label"]) {
-  return (
-    <label className={cn("text-sm font-medium", props.className)} {...props}>
-      {children}
-    </label>
-  );
-}
+type LabelProps = React.LabelHTMLAttributes<HTMLLabelElement> & {};
+
+const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
+  ({ children, className, ...props }, ref) => {
+    return (
+      <label
+        className={cn(
+          "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+          className,
+        )}
+        ref={ref}
+        {...props}
+      >
+        {children}
+      </label>
+    );
+  },
+);
+
+Label.displayName = "Label";
+
+export { Label };

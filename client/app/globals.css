@@ -3,10 +3,12 @@
 @tailwind utilities;
 
 :root {
+  /* Colors are in RGB */
   --foreground: 11 10 9;
   --background: 255 254 245;
   --primary: 91 140 90;
   --destructive: 227 101 91;
+  --muted: 161 166 180;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,6 +17,7 @@
     --background: 11 10 9;
     --primary: 91 140 90;
     --destructive: 227 101 91;
+    --muted: 161 166 180;
   }
 }
 
@@ -24,12 +27,12 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono;
   }
 }
 
 .animate-in {
-  animation: animateIn 0.3s ease 0.15s both;
+  animation: animateIn 0.5s ease 0.15s both;
 }
 
 @keyframes animateIn {
