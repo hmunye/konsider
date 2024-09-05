@@ -16,7 +16,6 @@ async fn login_returns_200_status() {
 
     // 1. Login Request
     let response = server.post_request(&url, body.to_string()).await;
-
     assert_eq!(200, response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------
@@ -33,7 +32,6 @@ async fn login_invalid_user_is_rejected() {
 
     // 1. Login Request
     let response = server.post_request(&url, body.to_string()).await;
-
     assert_eq!(401, response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------

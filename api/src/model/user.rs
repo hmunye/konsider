@@ -72,7 +72,7 @@ impl User {
     fn validate_password(password: &String) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$'];
 
-        // TODO: Make sure multiple spaces are handled (Replace  multiple spaces with single space)
+        // TODO: Make sure multiple spaces are handled (Replace multiple spaces with single space)
         //
         // TODO: Possibly check password against breached passwords such as the top 1,000 or 10,000
         // most common passwords

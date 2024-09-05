@@ -48,16 +48,7 @@ impl TestServer {
             .expect("Failed to execute request")
     }
 
-    pub async fn post_logout(&self, url: &String, session_id: &str) -> reqwest::Response {
-        self.api_client
-            .post(url)
-            .header(header::COOKIE, session_id)
-            .send()
-            .await
-            .expect("Failed to execute request")
-    }
-
-    pub async fn post_create_user(
+    pub async fn post_cookie_with_body(
         &self,
         url: &String,
         body: String,
@@ -68,6 +59,19 @@ impl TestServer {
             .header(header::CONTENT_TYPE, "application/json")
             .header(header::COOKIE, session_id)
             .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request")
+    }
+
+    pub async fn post_cookie_without_body(
+        &self,
+        url: &String,
+        session_id: &str,
+    ) -> reqwest::Response {
+        self.api_client
+            .post(url)
+            .header(header::COOKIE, session_id)
             .send()
             .await
             .expect("Failed to execute request")
@@ -178,7 +182,7 @@ pub async fn spawn_server() -> TestServer {
 
     // Use the same instance of client for each test so there is access to cookies
     let client = reqwest::Client::builder()
-        .cookie_store(true)
+        //.cookie_store(true)
         .build()
         .unwrap();
 

@@ -16,7 +16,7 @@ async fn main() -> Result<(), std::io::Error> {
     // _guard ensures buffered logs are flushed to their output in the case of abrupt terminations
     let (file_writer, _guard) = tracing_appender::non_blocking(file_appender);
 
-    // Change 'file_writer' to 'std::io::stdout' to view output in terminal
+    // Change 'file_writer' to 'std::io::stdout' to view output in terminal instead
     let subscriber = get_subscriber("konsider_api".into(), "info".into(), file_writer);
     init_subscriber(subscriber);
 

@@ -22,7 +22,7 @@ pub async fn validate_credentials(state: &AppState, payload: Credentials) -> Res
     // Fallback user_id and expected_password_hash are used so that the same operations happen during
     // each scenario and no notable time difference can be observed
     //
-    // Timing attacks (side-channel)
+    // Ex. Timing attacks (side-channel attack)
     let mut user_id = None;
     let mut expected_password_hash = Secret::new(
         "$argon2id$v=19$m=15000,t=2,p=1$\

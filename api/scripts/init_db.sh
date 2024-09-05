@@ -42,11 +42,11 @@ DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
 # Check if a custom database name has been set, otherwise default to 'konsider'
 DB_NAME="${POSTGRES_DB:=konsider}"
 
-# Check if a custom port has been set, otherwise default to '5432'
-DB_PORT="${POSTGRES_PORT:=5432}"
-
 # Check if a custom host has been set, otherwise default to '127.0.0.1'
 DB_HOST="${POSTGRES_HOST:=127.0.0.1}"
+
+# Check if a custom port has been set, otherwise default to '5432'
+DB_PORT="${POSTGRES_PORT:=5432}"
 
 # Allow to skip Docker if a dockerized Postgres database is already running
 if [[ -z "${SKIP}" ]]

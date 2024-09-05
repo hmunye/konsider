@@ -12,6 +12,7 @@ pub async fn reject_unauthorized_users(mut request: Request, next: Next) -> Resu
     // Get session from incoming request
     let session = request.extract_parts::<TypedSession>().await?;
 
+    // Check for a user id associated with the session
     match session.get_user_id().await? {
         Some(_) => {
             let response = next.run(request).await;

@@ -1,5 +1,3 @@
-// TODO: Look into anyhow and thiserror for better error handling
-
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
@@ -18,17 +16,17 @@ pub enum Error {
     #[error("validation error occured while parsing user payload: {0}")]
     UserValidationError(String),
 
-    #[error("{1}")]
-    UnexpectedError(
-        #[source] std::sync::Arc<dyn std::error::Error + Send + Sync>,
-        String,
-    ),
-
     #[error("no auth token provided")]
     NoAuthProvidedError,
 
     #[error("role is not vaild for the requested endpoint")]
     InvalidRoleError,
+
+    #[error("{1}")]
+    UnexpectedError(
+        #[source] std::sync::Arc<dyn std::error::Error + Send + Sync>,
+        String,
+    ),
 }
 
 #[derive(Debug, Serialize)]

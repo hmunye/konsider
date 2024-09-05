@@ -58,6 +58,7 @@ impl TypedSession {
     }
 }
 
+// This is necessary in order to extract sessions in handlers using the custom TypedSession
 #[async_trait]
 impl<S> FromRequestParts<S> for TypedSession
 where

@@ -1,3 +1,5 @@
+// TODO: Look into how to implement custom tracing
+
 use tokio::task::JoinHandle;
 use tracing::subscriber::set_global_default;
 use tracing::Subscriber;
@@ -8,7 +10,6 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{EnvFilter, Registry};
 
 // ---------------------------------------------------------------------------------------------------------------
-// TODO: Find out how to implement custom tracing
 // Register subscriber. Sink refers to where logs should be written to
 pub fn get_subscriber<Sink>(
     name: String,

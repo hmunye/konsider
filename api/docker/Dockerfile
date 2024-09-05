@@ -1,5 +1,5 @@
 # Using .dockerignore file, splitting into builder and runtime stages, and using
-# bare operating system "debain:bullseye-slim" reduces size of image to ~86MB
+# bare operating system "debain:bullseye-slim" reduces size of image to ~90MB
 
 # Builder Stage
 FROM rust:1.80.1 AS builder

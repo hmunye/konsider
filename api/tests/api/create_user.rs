@@ -39,9 +39,8 @@ async fn create_user_returns_200_status() {
 
     // 2. Create User Request
     let create_user_response = server
-        .post_create_user(&url, body.to_string(), &session_id.unwrap())
+        .post_cookie_with_body(&url, body.to_string(), &session_id.unwrap())
         .await;
-
     assert_eq!(200, create_user_response.status().as_u16());
 
     // 3. Check for user in database
@@ -94,8 +93,9 @@ async fn create_user_invalid_role_is_rejected() {
 
     // 2. Create User Request (Should fail because the test user has role `Reviewer`)
     let create_user_response = server
-        .post_create_user(&url, body.to_string(), &session_id.unwrap())
+        .post_cookie_with_body(&url, body.to_string(), &session_id.unwrap())
         .await;
+    assert_eq!(403, create_user_response.status().as_u16());
 
     // 3. Check for user in database
     let row = sqlx::query!(
@@ -110,11 +110,9 @@ async fn create_user_invalid_role_is_rejected() {
     .await;
 
     assert!(row.is_err());
-
-    assert_eq!(403, create_user_response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------
-// Original 422 status code is handled and converted to a 400 status code before response is sent to client
+// Normal 422 status code is handled and converted to a 400 status code before response is sent to client
 #[tokio::test]
 async fn create_user_missing_fields_are_rejected() {
     let server = spawn_server().await;
@@ -177,7 +175,7 @@ async fn create_user_missing_fields_are_rejected() {
     // 1. Create User Requests
     for (invalid_body, error_message) in test_cases {
         let response = server
-            .post_create_user(&url, invalid_body.to_string(), &session_id.unwrap())
+            .post_cookie_with_body(&url, invalid_body.to_string(), &session_id.unwrap())
             .await;
 
         (
@@ -249,7 +247,7 @@ async fn create_user_returns_400_status() {
             }),
             "malformed email",
         ),
-        // Would return a 422 status because role is from the UserRole enum
+        // Would normally return a 422 status because role is from the UserRole enum
         (
             json!({
                 "name": "John",
@@ -264,7 +262,7 @@ async fn create_user_returns_400_status() {
     // 2. Create User Requests
     for (invalid_body, error_message) in test_cases {
         let response = server
-            .post_create_user(&url, invalid_body.to_string(), &session_id.unwrap())
+            .post_cookie_with_body(&url, invalid_body.to_string(), &session_id.unwrap())
             .await;
 
         (

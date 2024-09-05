@@ -28,6 +28,8 @@ async fn logout_clears_session_state() {
         .and_then(|str| str.split(";").nth(0));
 
     // 2. Logout Request
-    let logout_response = server.post_logout(&logout_url, &session_id.unwrap()).await;
+    let logout_response = server
+        .post_cookie_without_body(&logout_url, &session_id.unwrap())
+        .await;
     assert_eq!(200, logout_response.status().as_u16());
 }

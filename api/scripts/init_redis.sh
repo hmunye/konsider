@@ -13,11 +13,11 @@ if ! [ -x "$(command -v redis-cli)" ]; then
   exit 1
 fi
 
-# Check if a custom port has been set, otherwise default to '6379'
-REDIS_PORT="${REDIS_PORT:=6379}"
-
 # Check if a custom host has been set, otherwise default to '127.0.0.1'
 REDIS_HOST="${REDIS_HOST:=127.0.0.1}"
+
+# Check if a custom port has been set, otherwise default to '6379'
+REDIS_PORT="${REDIS_PORT:=6379}"
 
 RUNNING_CONTAINER=$(docker ps --filter 'name=redis' --format '{{.ID}}')
 
@@ -31,7 +31,7 @@ fi
 # Launch Redis using Docker
 docker run \
     --name "redis" \
-    -p "127.0.0.1:6379:6379" \
+    -p ${REDIS_HOST}:${REDIS_PORT}:6379 \
     -d \
     redis
 
