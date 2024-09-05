@@ -60,12 +60,6 @@ export default function Login({ searchParams }: { searchParams: Message }) {
             <Label htmlFor="password" className="text-lg">
               Password
             </Label>
-            <Link
-              className="text-sm text-foreground underline"
-              href="/forgot-password"
-            >
-              Forgot Password?
-            </Link>
           </div>
           <Input
             {...register("password")}

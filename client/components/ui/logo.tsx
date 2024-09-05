@@ -1,7 +1,15 @@
+import Image from "next/image";
+import LogoImage from "@/public/logo.png";
+
 export function Logo() {
   return (
     <div className="flex flex-row items-center">
-      <h1 className="text-3xl font-bold">Konsider</h1>
+      <Image
+        src={LogoImage}
+        alt="Konsider Logo"
+        width={230}
+        height={230}
+      ></Image>
     </div>
   );
 }
