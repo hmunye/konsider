@@ -1,22 +1,18 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-    content: [
-        "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-        "./components/**/*.{js,ts,jsx,tsx,mdx}",
-        "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    ],
-    theme: {
-        extend: {
-            colors: {
-                foreground: "rgb(var(--foreground))",
-                background: "rgb(var(--background))",
-                primary: "rgb(var(--primary))",
-                destructive: "rgb(var(--destructive))",
-                muted: "rgb(var(--muted))",
-            },
-        },
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  theme: {
+    extend: {
+      colors: {
+        foreground: "rgb(var(--foreground))",
+        background: "rgb(var(--background))",
+        primary: "rgb(var(--primary))",
+        destructive: "rgb(var(--destructive))",
+        muted: "rgb(var(--muted))",
+      },
     },
-    plugins: [],
+  },
+  plugins: [],
 };
 export default config;

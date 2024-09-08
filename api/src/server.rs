@@ -3,7 +3,7 @@
 
 use axum::extract::connect_info::IntoMakeServiceWithConnectInfo;
 use axum::extract::ConnectInfo;
-use axum::http::{Method, Request};
+use axum::http::{header, Method, Request};
 use axum::middleware::AddExtension;
 use axum::routing::get;
 use axum::serve::Serve;
@@ -15,7 +15,7 @@ use time::Duration;
 use tower::ServiceBuilder;
 use tower_cookies::cookie::SameSite;
 use tower_http::classify::StatusInRangeAsFailures;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tower_sessions::{Expiry, SessionManagerLayer};
 use tower_sessions_redis_store::{fred::prelude::*, RedisStore};
@@ -154,8 +154,13 @@ pub async fn serve(
             Method::DELETE,
             Method::OPTIONS,
         ])
-        .allow_headers(Any);
-
+        .allow_credentials(true)
+        .allow_headers([
+            header::ACCEPT,
+            header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            header::AUTHORIZATION,
+            header::CONTENT_TYPE,
+        ]);
     let routes_all = Router::new()
         .route("/v1/health-check", get(health_check))
         .nest("/v1/auth", auth_routes(state.clone()))

@@ -1,27 +1,28 @@
-# Dependencies
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-
-# Testing
-/coverage
-
-# Next.js
-/.next/
-/out/
-
-# Production
-/build
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Misc 
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.pem
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Env files
 .env
@@ -29,4 +30,4 @@ yarn-error.log*
 
 # Typescript
 *.tsbuildinfo
-next-env.d.ts
+vite-env.d.ts

@@ -1,9 +1,9 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 export function BackLink({ url }: { url: string }) {
   return (
     <Link
-      href={url}
+      to={url}
       className="absolute left-8 top-8 py-2 px-4 rounded-md no-underline text-foreground bg-background hover:brightness-200 flex items-center group text-sm"
     >
       <svg

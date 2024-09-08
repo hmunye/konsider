@@ -1,8 +1,9 @@
-"use client";
+/* eslint-disable react-hooks/rules-of-hooks */
 
-import { useFetch } from "@/hooks/useFetch";
-import { API_LOGIN } from "@/lib/endpoints";
-import { LogInSchema } from "@/lib/types";
+import { useFetch } from "../hooks/useFetch";
+import { LogInSchema } from "../lib/types";
+
+const API_LOGIN = "http://localhost:8000/v1/auth/login";
 
 export async function logIn(formData: LogInSchema) {
   try {
@@ -17,7 +18,7 @@ export async function logIn(formData: LogInSchema) {
     }
 
     return response;
-  } catch (error) {
+  } catch {
     return { error: "An error occurred during login" };
   }
 }

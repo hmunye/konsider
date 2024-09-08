@@ -1,18 +1,20 @@
-"use client";
-
-import { BackLink } from "@/components/ui/back-link";
-import { FormMessage, Message } from "@/components/ui/form/form-message";
-import { Input } from "@/components/ui/form/input";
-import { Label } from "@/components/ui/form/label";
-import { SubmitButton } from "@/components/ui/form/submit-button";
-import { LogInSchema, logInSchema } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { logIn } from "../actions/server";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { BackLink } from "../components/ui/back-link";
+import { FormMessage, Message } from "../components/ui/form/form-message";
+import { Input } from "../components/ui/form/input";
+import { Label } from "../components/ui/form/label";
+import { SubmitButton } from "../components/ui/form/submit-button";
+import { logInSchema, LogInSchema } from "../lib/types";
+import { logIn } from "../api/auth";
 
-export default function Login({ searchParams }: { searchParams: Message }) {
+export const Route = createFileRoute("/login")({
+  component: () => <Login />,
+});
+
+const Login = () => {
   const {
     register,
     handleSubmit,
@@ -20,16 +22,18 @@ export default function Login({ searchParams }: { searchParams: Message }) {
   } = useForm<LogInSchema>({
     resolver: zodResolver(logInSchema),
   });
+  const [errorMessage, setErrorMessage] = useState<Message>();
 
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const onSubmit = async (formData: LogInSchema) => {
     const response = await logIn(formData);
 
     if (response.error) {
-      router.push(`/login?error=${encodeURIComponent(response.error)}`);
+      navigate({ to: "/login" });
+      setErrorMessage({ error: response.error });
     } else {
-      router.push("/dashboard");
+      navigate({ to: "/dashboard" });
     }
   };
 
@@ -72,9 +76,11 @@ export default function Login({ searchParams }: { searchParams: Message }) {
           <SubmitButton className="mt-5" pending={isSubmitting}>
             Log In
           </SubmitButton>
-          <FormMessage className="mt-5" message={searchParams} />
+          {errorMessage && (
+            <FormMessage className="mt-5" message={errorMessage} />
+          )}
         </div>
       </form>
     </div>
   );
-}
+};
