@@ -1,3 +1,10 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env*.local
+
 # Logs
 logs
 *.log
@@ -6,11 +13,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
 
 # Misc 
 .vscode/*
@@ -23,10 +25,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Env files
-.env
-.env*.local
 
 # Typescript
 *.tsbuildinfo

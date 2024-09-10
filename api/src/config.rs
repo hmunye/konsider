@@ -26,6 +26,9 @@ pub struct Config {
     pub redis_port: u16,
 
     #[clap(long, env)]
+    pub redis_password: Secret<String>,
+
+    #[clap(long, env)]
     pub server_host: String,
 
     #[clap(long, env)]
@@ -61,6 +64,15 @@ impl Config {
     }
 
     pub fn redis_uri(&self) -> Secret<String> {
+        Secret::new(format!(
+            "redis://:{}@{}:{}",
+            self.redis_password.expose_secret(),
+            self.redis_host,
+            self.redis_port
+        ))
+    }
+
+    pub fn redis_uri_without_password(&self) -> Secret<String> {
         Secret::new(format!("redis://{}:{}", self.redis_host, self.redis_port))
     }
 }

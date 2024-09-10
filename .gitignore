@@ -1,2 +1,6 @@
+config/
+self-signed-certs/
+.env
+
 # Misc
 .DS_Store

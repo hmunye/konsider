@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# set -x # Enable debugging
-# set -eo pipefail 
+set -x # Enable debugging
+set -eo pipefail 
 # ^ Ensures the script exits immediately if any command fails (-e) and that the exit status of a pipeline 
 # is determined by the last non-zero status
 
@@ -52,12 +52,12 @@ DB_PORT="${POSTGRES_PORT:=5432}"
 if [[ -z "${SKIP}" ]]
 then
     docker run \
-        --name "postgres" \
+        --name "postgres-local" \
         -e POSTGRES_USER=${DB_USER} \
         -e POSTGRES_PASSWORD=${DB_PASSWORD} \
         -e POSTGRES_DB=${DB_NAME} \
         -p ${DB_HOST}:${DB_PORT}:5432 \
-        -d postgres \
+        -d postgres:16-alpine \
         postgres -N 25 
         # In Postgres, the default limit is typically 100 open connections, 
         # minus 3 which are reserved for superusers 

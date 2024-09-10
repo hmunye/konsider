@@ -170,7 +170,7 @@ pub async fn spawn_server() -> TestServer {
 
     config_database(&config).await;
 
-    let application = Application::build(config.clone())
+    let application = Application::build(config.clone(), environment.as_str())
         .await
         .expect("Failed to build application");
 

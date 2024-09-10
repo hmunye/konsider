@@ -1,10 +1,9 @@
-docker/
 logs/
-migrations/
 scripts/
 target/
 tests/
 .env
 .env.example
 .env.local
-.DS_Store
+.gitignore
+README.md

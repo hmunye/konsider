@@ -13,20 +13,23 @@ env:
 
   SQLX_VERSION: 0.8.0
   SQLX_FEATURES: "rustls,postgres"
-  
+
   POSTGRES_USER: "postgres"
   POSTGRES_PASSWORD: "password"
   POSTGRES_DB: "konsider"
+
   POSTGRES_HOST: "127.0.0.1"
   POSTGRES_PORT: 5432
 
   REDIS_HOST: "127.0.0.1"
   REDIS_PORT: 6379
 
-  DATABASE_URL: "postgres://postgres:password@127.0.0.1:5432/konsider"
+  REDIS_PASSWORD: "password"
 
   SERVER_HOST: "127.0.0.1"
   SERVER_PORT: 8000
+
+  DATABASE_URL: "postgres://postgres:password@127.0.0.1:5432/konsider"
 
 jobs:
   test:
@@ -40,7 +43,7 @@ jobs:
           POSTGRES_PASSWORD: password
           POSTGRES_DB: postgres
         ports:
-         - 5432:5432
+          - 5432:5432
       redis:
         image: redis
         ports:
@@ -51,12 +54,11 @@ jobs:
 
       - name: Install sqlx-cli
         working-directory: api
-        run:
-            cargo install sqlx-cli
-            --version=${{ env.SQLX_VERSION }}
-            --features ${{ env.SQLX_FEATURES }}
-            --no-default-features
-            --locked
+        run: cargo install sqlx-cli
+          --version=${{ env.SQLX_VERSION }}
+          --features ${{ env.SQLX_FEATURES }}
+          --no-default-features
+          --locked
 
       - name: Install postgresql-client
         working-directory: api
@@ -94,7 +96,7 @@ jobs:
           POSTGRES_PASSWORD: password
           POSTGRES_DB: postgres
         ports:
-         - 5432:5432
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -103,12 +105,11 @@ jobs:
 
       - name: Install sqlx-cli
         working-directory: api
-        run:
-            cargo install sqlx-cli
-            --version=${{ env.SQLX_VERSION }}
-            --features ${{ env.SQLX_FEATURES }}
-            --no-default-features
-            --locked
+        run: cargo install sqlx-cli
+          --version=${{ env.SQLX_VERSION }}
+          --features ${{ env.SQLX_FEATURES }}
+          --no-default-features
+          --locked
 
       - name: Install postgresql-client
         working-directory: api

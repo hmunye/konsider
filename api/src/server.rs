@@ -23,7 +23,8 @@ use tracing::Level;
 use uuid::Uuid;
 
 use crate::web::{
-    admin_routes, auth_routes, health_check, main_response_mapper, reject_non_admin_users,
+    admin_routes, auth_routes, extract_client_ip, health_check, main_response_mapper,
+    reject_non_admin_users,
 };
 use crate::Config;
 
@@ -40,10 +41,15 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(config: Config) -> crate::Result<Self> {
+    pub async fn build(config: Config, environment: &str) -> crate::Result<Self> {
         let db_pool = get_db_pool(&config);
 
-        let redis_pool = get_redis_pool(&config.redis_uri()).await;
+        let redis_uri = match environment {
+            "production" => &config.redis_uri(),
+            _ => &config.redis_uri_without_password(),
+        };
+
+        let redis_pool = get_redis_pool(redis_uri).await;
 
         let session_store = RedisStore::new(redis_pool);
 
@@ -100,15 +106,21 @@ pub async fn get_redis_pool(redis_uri: &Secret<String>) -> RedisPool {
     let redis_config = RedisConfig::from_url(redis_uri.expose_secret())
         .expect("Failed to get redis config from uri");
 
-    let redis_pool =
-        RedisPool::new(redis_config, None, None, None, 6).expect("Failed to create redis pool");
+    let redis_pool = RedisPool::new(
+        redis_config,
+        Some(PerformanceConfig::default()),
+        Some(ConnectionConfig::default()),
+        Some(ReconnectPolicy::default()),
+        6,
+    )
+    .expect("Failed to create Redis pool");
 
     redis_pool.connect();
 
     redis_pool
         .wait_for_connect()
         .await
-        .expect("Failed to connect to redis server");
+        .expect("Failed to connect to Redis server");
 
     redis_pool
 }
@@ -138,11 +150,11 @@ pub async fn serve(
         .with_http_only(true)
         .with_name("id")
         .with_domain("localhost")
-        .with_same_site(SameSite::Lax)
+        .with_same_site(SameSite::Strict)
         .with_path("/")
         .with_expiry(Expiry::OnInactivity(Duration::minutes(15)));
 
-    let origin = ["http://localhost:3000".parse().unwrap()];
+    let origin = ["https://localhost".parse().unwrap()];
 
     // TODO: Update to be more strict
     let cors_layer = CorsLayer::new()
@@ -160,7 +172,9 @@ pub async fn serve(
             header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
             header::AUTHORIZATION,
             header::CONTENT_TYPE,
+            header::FORWARDED,
         ]);
+
     let routes_all = Router::new()
         .route("/v1/health-check", get(health_check))
         .nest("/v1/auth", auth_routes(state.clone()))
@@ -185,34 +199,35 @@ pub async fn serve(
                 .make_span_with(|request: &Request<_>| {
                     let request_id = Uuid::new_v4().to_string();
 
-                    let client_ip = if let Some(client_connection) = request
+                    let client_ip = request
                         .extensions()
-                        .get::<ConnectInfo<std::net::SocketAddr>>()
-                    {
-                        Ok(client_connection.ip())
-                    } else {
-                        Err("N/A".to_string())
-                    };
+                        .get::<String>()
+                        .cloned()
+                        .unwrap_or_else(|| "N/A".to_string());
+
+                    //                    let client_ip = if let Some(client_connection) = request
+                    //                        .extensions()
+                    //                        .get::<ConnectInfo<std::net::SocketAddr>>()
+                    //                    {
+                    //                        Ok(client_connection.ip())
+                    //                    } else {
+                    //                        Err("N/A".to_string())
+                    //                    };
 
                     // Will be included with every request log
                     tracing::span!(
                         Level::INFO,
                         "request",
                         %request_id,
-                        client_ip = {
-                            if client_ip.is_ok() {
-                                client_ip.unwrap().to_string()
-                            } else {
-                                format!("{:?}", client_ip)
-                            }
-                        },
+                        client_ip = client_ip,
                         method = ?request.method(),
                         uri = %request.uri(),
                         version = ?request.version(),
                     )
                 }),
             ),
-        );
+        )
+        .layer(axum::middleware::from_fn(extract_client_ip));
 
     Ok(axum::serve(
         tcp_listener,

@@ -16,7 +16,7 @@ pub enum Error {
     #[error("validation error occured while parsing user payload: {0}")]
     UserValidationError(String),
 
-    #[error("no auth token provided")]
+    #[error("no auth token provided for request")]
     NoAuthProvidedError,
 
     #[error("role is not vaild for the requested endpoint")]
@@ -27,6 +27,13 @@ pub enum Error {
         #[source] std::sync::Arc<dyn std::error::Error + Send + Sync>,
         String,
     ),
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(err: sqlx::Error) -> Self {
+        let err: std::sync::Arc<dyn std::error::Error + Send + Sync> = std::sync::Arc::new(err);
+        Self::UnexpectedError(err.clone(), err.to_string())
+    }
 }
 
 #[derive(Debug, Serialize)]

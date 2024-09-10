@@ -2,4 +2,6 @@
 /target
 .env.local
 .env.production
+
+# Misc
 .DS_Store

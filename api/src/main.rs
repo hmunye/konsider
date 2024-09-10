@@ -9,7 +9,7 @@ use api::{Config, Environment};
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     // TODO: Find out how to perform log cleanups
-    // This creates an hourly rotating file appender that writes to /logs/konsider_api.YYYY-MM-DD-HH
+    // Creates an hourly rotating file appender that writes to /logs/konsider_api.YYYY-MM-DD-HH
     let file_appender = tracing_appender::rolling::hourly("./logs", "konsider_api");
 
     // This spawns a dedicated worker thread which is responsible for writing log lines to the provided writer
@@ -36,7 +36,9 @@ async fn main() -> Result<(), std::io::Error> {
 
     let config = Config::default();
 
-    let application = Application::build(config.clone())
+    tracing::info!("Setting up application");
+
+    let application = Application::build(config.clone(), environment.as_str())
         .await
         .expect("Failed to build application");
 

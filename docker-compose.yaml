@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgresql.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - backend
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis-prod
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - backend
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+  api:
+    build:
+      context: ./api
+      dockerfile: docker/Dockerfile
+    container_name: api
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backend
+      - frontend
+    expose:
+      - "8080"
+
+  client:
+    build:
+      context: ./client
+      dockerfile: docker/Dockerfile
+    container_name: client
+    depends_on:
+      - api
+    networks:
+      - frontend
+
+  nginx:
+    image: nginx:1.27.1-alpine-slim
+    container_name: nginx-proxy
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+      - ./self-signed-certs/fullchain.pem:/etc/nginx/ssl/fullchain.pem
+      - ./self-signed-certs/cert-key.pem:/etc/nginx/ssl/cert-key.pem
+      # If using client cert verification:
+      # - ./certs/ca.pem:/etc/nginx/ssl/ca.pem
+    depends_on:
+      - client
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

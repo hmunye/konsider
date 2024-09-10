@@ -1,5 +1,7 @@
-# set -x
-# set -eo pipefail
+#!/usr/bin/env bash
+
+set -x
+set -eo pipefail
 
 ENV_FILE=".env.local"
 
@@ -19,9 +21,9 @@ REDIS_HOST="${REDIS_HOST:=127.0.0.1}"
 # Check if a custom port has been set, otherwise default to '6379'
 REDIS_PORT="${REDIS_PORT:=6379}"
 
-RUNNING_CONTAINER=$(docker ps --filter 'name=redis' --format '{{.ID}}')
+RUNNING_CONTAINER=$(docker ps --filter 'name=redis-local' --format '{{.ID}}')
 
-# If a redis container is running, print instructions to kill it and exit
+# If a redis local container is running, print instructions to kill it and exit
 if [[ -n $RUNNING_CONTAINER ]]; then
   echo >&2 "There is a redis container already running, kill it with"
   echo >&2 "    docker kill ${RUNNING_CONTAINER}"
@@ -30,9 +32,9 @@ fi
 
 # Launch Redis using Docker
 docker run \
-    --name "redis" \
+    --name "redis-local" \
     -p ${REDIS_HOST}:${REDIS_PORT}:6379 \
     -d \
-    redis
+    redis:7.4-alpine
 
 echo >&2 "Redis is up and ready"

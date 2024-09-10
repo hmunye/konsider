@@ -1,7 +1,9 @@
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
+use secrecy::ExposeSecret;
+use sqlx::PgPool;
 
-use crate::Environment;
+use crate::{Config, Environment};
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "health check")]
@@ -12,6 +14,14 @@ pub async fn health_check() -> impl IntoResponse {
         .expect("Failed to convert ENVIRONMENT env variable");
 
     let version: String = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "N/A".into());
+
+    let config = Config::default();
+
+    let connection_string = config.connection_string();
+
+    let _ = PgPool::connect(connection_string.expose_secret())
+        .await
+        .expect("Failed to connect to db from health_check");
 
     (
         StatusCode::OK,

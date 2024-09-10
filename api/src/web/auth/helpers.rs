@@ -71,12 +71,7 @@ async fn get_credentials(
     )
     .fetch_optional(&state.db_pool)
     .await
-    .map_err(|err| {
-        Error::UnexpectedError(
-            std::sync::Arc::new(err),
-            "Failed to get stored user credentials".into(),
-        )
-    })?
+    .map_err(Error::from)?
     .map(|row| (row.id, Secret::new(row.password_hash)));
 
     Ok(row)
