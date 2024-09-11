@@ -11,7 +11,6 @@ COPY . .
 
 # Compute a lock-like file for project
 RUN cargo chef prepare --recipe-path recipe.json
-
 ## -------------------------------------------------------------------------------------
 FROM chef AS builder
 
@@ -28,7 +27,6 @@ ENV SQLX_OFFLINE=true
 RUN cargo install sqlx-cli --no-default-features --features postgres
 
 RUN cargo build --release --bin api
-
 ## -------------------------------------------------------------------------------------
 FROM debian:bookworm-slim AS runtime
 

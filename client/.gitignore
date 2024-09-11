@@ -1,12 +1,11 @@
-node_modules
-dist
-dist-ssr
+node_modules/
+dist/
+dist-ssr/
 *.local
-.env
-.env*.local
+*.production
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -17,7 +16,7 @@ lerna-debug.log*
 # Misc 
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.pem
 *.suo

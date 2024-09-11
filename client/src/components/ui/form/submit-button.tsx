@@ -10,7 +10,7 @@ const SubmitButton = React.forwardRef<HTMLButtonElement, SubmitButtonProps>(
     return (
       <button
         className={cn(
-          "bg-primary h-9 flex items-center justify-center font-medium text-md hover:brightness-125 duration-300 transition rounded-md text-foreground disabled:brightness-75",
+          "bg-primary h-9 flex items-center justify-center font-medium text-md hover:brightness-125 duration-300 transition rounded-md text-background dark:text-foreground disabled:brightness-75",
           className,
         )}
         type="submit"

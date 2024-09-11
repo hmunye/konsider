@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Button } from "../components/ui/button";
 import { Footer } from "../components/ui/footer";
 import { Header } from "../components/ui/home-header";
-import { Logo } from "../components/ui/logo";
+import { AuthButton } from "../components/ui/auth-button";
 
 export const Route = createFileRoute("/")({
   component: () => <Home />,
@@ -13,9 +12,11 @@ const Home = () => {
     <section className="flex-1 w-full flex flex-col gap-20 items-center">
       <nav className="w-full flex justify-between items-center border-b border-b-foreground/10 h-20">
         <div className="w-full flex justify-between items-center px-16">
-          <Logo />
+          <div className="flex flex-row items-center">
+            <span className="text-3xl font-bold">Konsider</span>
+          </div>
           <Link to={"/login"}>
-            <Button className="mt-2">Log In</Button>
+            <AuthButton className="mt-2">Log In</AuthButton>
           </Link>
         </div>
       </nav>

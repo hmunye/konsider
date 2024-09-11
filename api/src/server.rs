@@ -154,7 +154,10 @@ pub async fn serve(
         .with_path("/")
         .with_expiry(Expiry::OnInactivity(Duration::minutes(15)));
 
-    let origin = ["https://localhost".parse().unwrap()];
+    let origin = [
+        "https://localhost".parse().unwrap(),
+        "http://localhost:3000".parse().unwrap(),
+    ];
 
     // TODO: Update to be more strict
     let cors_layer = CorsLayer::new()
