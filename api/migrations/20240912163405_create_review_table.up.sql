@@ -1,4 +1,3 @@
--- Add migration script here
 CREATE TYPE review_status AS ENUM (
     'UnderReview',
     'Complete'

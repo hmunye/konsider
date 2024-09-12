@@ -1,4 +1,3 @@
--- Add migration script here
 CREATE TABLE requester (
     request_id INTEGER PRIMARY KEY, -- From TeamDynamix ticket
     name TEXT NOT NULL, -- Full name

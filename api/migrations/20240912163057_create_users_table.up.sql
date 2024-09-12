@@ -1,4 +1,3 @@
--- Add migration script here
 CREATE EXTENSION "uuid-ossp";
 
 CREATE TYPE user_role AS ENUM (

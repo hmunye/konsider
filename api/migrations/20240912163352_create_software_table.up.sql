@@ -1,4 +1,3 @@
--- Add migration script here
 CREATE TABLE software (
     name TEXT PRIMARY KEY,
     version NUMERIC NOT NULL, -- Version requested
