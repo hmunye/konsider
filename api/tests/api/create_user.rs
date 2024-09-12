@@ -172,7 +172,7 @@ async fn create_user_missing_fields_are_rejected() {
         ),
     ];
 
-    // 1. Create User Requests
+    // 2. Create User Requests
     for (invalid_body, error_message) in test_cases {
         let response = server
             .post_cookie_with_body(&url, invalid_body.to_string(), &session_id.unwrap())

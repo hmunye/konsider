@@ -18,6 +18,6 @@ until psql -h postgres -U ${POSTGRES_USER} -p ${POSTGRES_PORT} -d postgres -c '\
 done
 
 sqlx database create
-sqlx migrate run --database-url ${DATABASE_URL}
+sqlx migrate run
 
 exec /app/api

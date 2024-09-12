@@ -58,7 +58,7 @@ async fn sql_injection_login_attempts_are_rejected() {
         ),
         (
             json!({
-                "email": "test' DROP TABLE 'user'; --",
+                "email": "test' DROP TABLE users; --",
                 "password": "password",
             }),
             "SQL injection attempt to drop table",

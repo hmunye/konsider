@@ -5,7 +5,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        tanker: ["Tanker-Regular", "monospace"],
+        "nippo-extra-light": ["Nippo-ExtraLight", "monospace"],
+        "nippo-light": ["Nippo-Light", "monospace"],
+        "nippo-regular": ["Nippo-Regular", "monospace"],
+        "nippo-medium": ["Nippo-Medium", "monospace"],
+        "nippo-bold": ["Nippo-Bold", "monospace"],
       },
       colors: {
         foreground: "rgb(var(--foreground))",

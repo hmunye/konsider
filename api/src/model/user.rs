@@ -91,6 +91,15 @@ impl User {
     }
 }
 
+// impl UserRole {
+//     pub fn to_string(&self) -> String {
+//         match self {
+//             UserRole::Reviewer => "Reviewer".to_string(),
+//             UserRole::Admin => "Admin".to_string(),
+//         }
+//     }
+// }
+
 // Unit Tests
 
 #[cfg(test)]

@@ -50,7 +50,7 @@ impl TypedSession {
         self.0.flush().await.map_err(|err| {
             Error::UnexpectedError(
                 std::sync::Arc::new(err),
-                "Failed to flush user's session".into(),
+                "Failed to flush user session".into(),
             )
         })?;
 

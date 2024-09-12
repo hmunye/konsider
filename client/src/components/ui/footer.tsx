@@ -1,6 +1,6 @@
-export function Footer() {
+export default function Footer() {
   return (
-    <footer className="w-full border-t border-t-foreground/10 p-8 flex justify-center">
+    <footer className="flex justify-center w-full border-t border-t-foreground/10 p-8">
       <span className="text-sm">Vendor Risk Management</span>
     </footer>
   );

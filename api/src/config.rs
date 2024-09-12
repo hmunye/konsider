@@ -71,10 +71,6 @@ impl Config {
             self.redis_port
         ))
     }
-
-    pub fn redis_uri_without_password(&self) -> Secret<String> {
-        Secret::new(format!("redis://{}:{}", self.redis_host, self.redis_port))
-    }
 }
 // ---------------------------------------------------------------------------------------------------------------
 pub enum Environment {

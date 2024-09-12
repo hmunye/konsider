@@ -50,7 +50,7 @@ export async function useFetch(params: FetchParams): Promise<any> {
     if (contentLength && contentLength !== "0") {
       try {
         const responseBody = await response.json();
-        return { success: "request processed successfully", responseBody };
+        return { success: responseBody };
       } catch {
         return { error: "Failed to parse JSON response" };
       }

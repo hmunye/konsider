@@ -1,17 +1,35 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
+use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::server::AppState;
 use crate::telemetry::spawn_blocking_with_tracing;
-use crate::{Error, Result};
+use crate::{Error, Result, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------
 #[derive(Debug, Deserialize)]
 pub struct Credentials {
     pub email: String,
     pub password: Secret<String>,
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tracing::instrument(name = "getting user role", skip(user_id, db_pool))]
+pub async fn get_user_role(user_id: Uuid, db_pool: &PgPool) -> Result<UserRole> {
+    let row = sqlx::query!(
+        r#"
+        SELECT role AS "role: UserRole"
+        FROM users
+        WHERE id = $1
+        "#,
+        user_id,
+    )
+    .fetch_one(db_pool)
+    .await
+    .map_err(Error::from)?;
+
+    Ok(row.role as UserRole)
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "validating credentials", skip(state, payload))]

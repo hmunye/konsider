@@ -36,8 +36,6 @@ async fn main() -> Result<(), std::io::Error> {
 
     let config = Config::default();
 
-    tracing::info!("Setting up application");
-
     let application = Application::build(config.clone(), environment.as_str())
         .await
         .expect("Failed to build application");

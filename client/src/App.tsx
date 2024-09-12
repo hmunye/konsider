@@ -7,7 +7,7 @@ declare module "@tanstack/react-router" {
   }
 }
 
-const router = createRouter({ routeTree });
+const router = createRouter({ routeTree, defaultPreload: "intent" });
 
 export default function App() {
   return <RouterProvider router={router} />;

@@ -58,7 +58,7 @@ then
         -e POSTGRES_DB=${DB_NAME} \
         -p ${DB_HOST}:${DB_PORT}:5432 \
         -d postgres:16-alpine \
-        postgres -N 25 
+        postgres -N 100 
         # In Postgres, the default limit is typically 100 open connections, 
         # minus 3 which are reserved for superusers 
         # (putting the default limit for unprivileged users at 97 connections)

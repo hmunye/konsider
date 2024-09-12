@@ -1,21 +1,23 @@
-export function Header() {
+export default function Header() {
   return (
-    <main className="flex-1 flex flex-col justify-center gap-6 px-4">
-      <div className="text-5xl mb-4 w-72 md:w-full">
-        <span className="relative inline-block bg-primary text-background dark:text-foreground p-2 rounded-md duration-300 translate-y-[-0.2em] hover:translate-y-[-0.5em]">
+    <header className="flex flex-1 flex-col justify-center px-4">
+      <div className="text-5xl">
+        <span className="text-5xl relative inline-block bg-primary text-background dark:text-foreground font-nippo-bold p-2 rounded-xl duration-300 translate-y-[-0.2em] hover:translate-y-[-0.5em]">
           Create
         </span>
         {" , "}
-        <span className="relative inline-block mt-5 bg-secondary text-foreground dark:text-background p-2 rounded-md duration-300 translate-y-[-0.2em] hover:translate-y-[-0.5em]">
+        <span className="text-5xl relative inline-block mt-5 bg-secondary text-foreground dark:text-background font-nippo-bold p-2 rounded-xl duration-300 translate-y-[-0.2em] hover:translate-y-[-0.5em]">
           Manage
         </span>
         {" , and "}
-        <span className="relative inline-block mt-5 bg-accent text-background dark:text-foreground p-2 rounded-md duration-300 translate-y-[-0.2em] hover:translate-y-[-0.5em]">
+        <span className="text-5xl relative inline-block mt-5 bg-accent text-background dark:text-foreground font-nippo-bold p-2 rounded-xl duration-300 translate-y-[-0.2em] hover:translate-y-[-0.5em]">
           Visualize
         </span>
         {" , "}
-        <span className="flex justify-center mt-2">Software Reviews</span>
+        <span className="text-5xl flex justify-center mt-5">
+          Software and Software Reviews
+        </span>
       </div>
-    </main>
+    </header>
   );
 }

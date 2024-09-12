@@ -44,12 +44,7 @@ impl Application {
     pub async fn build(config: Config, environment: &str) -> crate::Result<Self> {
         let db_pool = get_db_pool(&config);
 
-        let redis_uri = match environment {
-            "production" => &config.redis_uri(),
-            _ => &config.redis_uri_without_password(),
-        };
-
-        let redis_pool = get_redis_pool(redis_uri).await;
+        let redis_pool = get_redis_pool(&config.redis_uri()).await;
 
         let session_store = RedisStore::new(redis_pool);
 
@@ -66,7 +61,7 @@ impl Application {
             .expect("Failed to get local address from tcp listener")
             .port();
 
-        let server = serve(tcp_listener, db_pool, session_store).await?;
+        let server = serve(tcp_listener, db_pool, session_store, environment).await?;
 
         Ok(Self { port, host, server })
     }
@@ -134,6 +129,7 @@ pub async fn serve(
     tcp_listener: tokio::net::TcpListener,
     db_pool: PgPool,
     session_store: RedisStore<RedisPool>,
+    environment: &str,
 ) -> crate::Result<Server> {
     let state = AppState { db_pool };
 
@@ -145,8 +141,12 @@ pub async fn serve(
     // (Does all the heavy lifting)
     //
     // SessionManagerLayer configures cookie properties
+
+    // Set secure attribute on cookie based on current environment
+    let secure = matches!(environment, "production");
+
     let session_layer = SessionManagerLayer::new(session_store)
-        .with_secure(false)
+        .with_secure(secure)
         .with_http_only(true)
         .with_name("id")
         .with_domain("localhost")
@@ -207,15 +207,6 @@ pub async fn serve(
                         .get::<String>()
                         .cloned()
                         .unwrap_or_else(|| "N/A".to_string());
-
-                    //                    let client_ip = if let Some(client_connection) = request
-                    //                        .extensions()
-                    //                        .get::<ConnectInfo<std::net::SocketAddr>>()
-                    //                    {
-                    //                        Ok(client_connection.ip())
-                    //                    } else {
-                    //                        Err("N/A".to_string())
-                    //                    };
 
                     // Will be included with every request log
                     tracing::span!(

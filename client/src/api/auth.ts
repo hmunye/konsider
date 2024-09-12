@@ -23,4 +23,19 @@ export async function logIn(formData: LogInSchema) {
   }
 }
 
-export async function logOut() {}
+export async function logOut() {
+  try {
+    const response = await useFetch({
+      url: `${API_URL}/v1/auth/logout`,
+      method: "POST",
+    });
+
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    return response;
+  } catch {
+    return { error: "An error occurred during logout" };
+  }
+}
