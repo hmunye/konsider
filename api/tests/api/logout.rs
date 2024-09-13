@@ -1,23 +1,26 @@
 use reqwest::header;
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::common::spawn_server;
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
-async fn logout_clears_session_state() {
+async fn logout_is_successful_and_clears_session() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
     let logout_url = format!("{}/v1/auth/logout", server.addr);
+    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
 
-    // Payload (Uses 'Reviewer' test user credentials)
+    // Uses 'Admin' test user credentials
     let body = json!({
-        "email": server.test_users[0].email,
-        "password": server.test_users[0].password
+        "email": server.test_users[1].email,
+        "password": server.test_users[1].password
     });
 
-    // 1. Login Request
-    let login_response = server.post_request(&login_url, body.to_string()).await;
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None)
+        .await;
     assert_eq!(200, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
@@ -27,9 +30,50 @@ async fn logout_clears_session_state() {
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
-    // 2. Logout Request
     let logout_response = server
-        .post_cookie_without_body(&logout_url, &session_id.unwrap())
+        .post_request(&logout_url, None, Some(&session_id.unwrap()))
         .await;
     assert_eq!(200, logout_response.status().as_u16());
+
+    let email: String = String::from("john@gmail.com");
+
+    let body = json!({
+        "name": "John",
+        "email": &email,
+        "password": "password1234",
+        "role": "Reviewer"
+    });
+
+    // Use the cleared session_id on an endpoint that requires a valid session
+    let create_user_response = server
+        .post_request(
+            &create_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+        )
+        .await;
+    assert_eq!(401, create_user_response.status().as_u16());
+}
+// ---------------------------------------------------------------------------------------------------------------
+// TODO: Possibly test with session token that is expired as well
+#[tokio::test]
+async fn logout_with_invalid_session_token_rejected() {
+    let server = spawn_server().await;
+    let logout_url = format!("{}/v1/auth/logout", server.addr);
+
+    let session_id = Uuid::new_v4().to_string();
+
+    let logout_response = server
+        .post_request(&logout_url, None, Some(&session_id))
+        .await;
+    assert_eq!(401, logout_response.status().as_u16());
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tokio::test]
+async fn logout_with_missing_session_token_rejected() {
+    let server = spawn_server().await;
+    let logout_url = format!("{}/v1/auth/logout", server.addr);
+
+    let logout_response = server.post_request(&logout_url, None, None).await;
+    assert_eq!(401, logout_response.status().as_u16());
 }

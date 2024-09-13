@@ -5,6 +5,7 @@ use validator::ValidateEmail;
 
 use crate::{Error, Result};
 
+// ---------------------------------------------------------------------------------------------------------------
 #[derive(Debug, Deserialize)]
 pub struct User {
     pub name: String,
@@ -18,6 +19,15 @@ pub struct User {
 pub enum UserRole {
     Reviewer,
     Admin,
+}
+
+impl std::fmt::Display for UserRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UserRole::Reviewer => write!(f, "Reviewer"),
+            UserRole::Admin => write!(f, "Admin"),
+        }
+    }
 }
 
 impl User {
@@ -40,6 +50,26 @@ impl User {
             return Err(Error::UserValidationError(
                 "invaild password provided".into(),
             ));
+        }
+
+        Ok(())
+    }
+
+    // When handling partial updates on users, if password is not changed, their password hash is
+    // parsed, resulting in a failure because of `forbidden_chars` contained within it
+    pub fn parse_without_password(&self) -> Result<()> {
+        if !Self::validate_name(&self.name) {
+            return Err(Error::UserValidationError(format!(
+                "'{}' is an invaild name",
+                &self.name
+            )));
+        }
+
+        if !Self::validate_email(&self.email) {
+            return Err(Error::UserValidationError(format!(
+                "'{}' is an invaild email",
+                &self.email
+            )));
         }
 
         Ok(())
@@ -90,18 +120,8 @@ impl User {
             || password_contains_forbidden_chars)
     }
 }
-
-// impl UserRole {
-//     pub fn to_string(&self) -> String {
-//         match self {
-//             UserRole::Reviewer => "Reviewer".to_string(),
-//             UserRole::Admin => "Admin".to_string(),
-//         }
-//     }
-// }
-
+// ---------------------------------------------------------------------------------------------------------------
 // Unit Tests
-
 #[cfg(test)]
 mod name_tests {
     use crate::model::User;

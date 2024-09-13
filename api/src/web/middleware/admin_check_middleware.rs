@@ -9,7 +9,7 @@ use crate::web::auth::get_user_role;
 use crate::{Error, Result, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "checking user role", skip(state, request, next))]
+#[tracing::instrument(name = "checking for admin role", skip(state, request, next))]
 pub async fn reject_non_admin_users(
     State(state): State<AppState>,
     mut request: Request,

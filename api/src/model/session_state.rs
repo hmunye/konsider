@@ -6,6 +6,8 @@ use uuid::Uuid;
 
 use crate::Error;
 
+// ---------------------------------------------------------------------------------------------------------------
+#[derive(Debug)]
 pub struct TypedSession(pub Session);
 
 impl TypedSession {
@@ -57,7 +59,7 @@ impl TypedSession {
         Ok(())
     }
 }
-
+// ---------------------------------------------------------------------------------------------------------------
 // This is necessary in order to extract sessions in handlers using the custom TypedSession
 #[async_trait]
 impl<S> FromRequestParts<S> for TypedSession

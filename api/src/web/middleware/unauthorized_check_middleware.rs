@@ -7,7 +7,7 @@ use crate::model::TypedSession;
 use crate::{Error, Result};
 
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "checking for existing session", skip(request, next))]
+#[tracing::instrument(name = "checking for existing user session", skip(request, next))]
 pub async fn reject_unauthorized_users(mut request: Request, next: Next) -> Result<Response> {
     // Get session from incoming request
     let session = request.extract_parts::<TypedSession>().await?;

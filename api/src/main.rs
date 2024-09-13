@@ -10,6 +10,7 @@ use api::{Config, Environment};
 async fn main() -> Result<(), std::io::Error> {
     // TODO: Find out how to perform log cleanups
     // Creates an hourly rotating file appender that writes to /logs/konsider_api.YYYY-MM-DD-HH
+    // (New log file to write to every hour)
     let file_appender = tracing_appender::rolling::hourly("./logs", "konsider_api");
 
     // This spawns a dedicated worker thread which is responsible for writing log lines to the provided writer

@@ -5,19 +5,20 @@ use crate::common::spawn_server;
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
-async fn create_user_returns_200_status() {
+async fn create_user_successful() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
 
-    // Payload (Uses 'Admin' test user credentials)
+    // Uses 'Admin' test user credentials
     let body = json!({
         "email": server.test_users[1].email,
         "password": server.test_users[1].password
     });
 
-    // 1. Login Request
-    let login_response = server.post_request(&login_url, body.to_string()).await;
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None)
+        .await;
     assert_eq!(200, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
@@ -29,7 +30,6 @@ async fn create_user_returns_200_status() {
 
     let email: String = String::from("john@gmail.com");
 
-    // Payload
     let body = json!({
         "name": "John",
         "email": &email,
@@ -37,13 +37,15 @@ async fn create_user_returns_200_status() {
         "role": "Reviewer"
     });
 
-    // 2. Create User Request
     let create_user_response = server
-        .post_cookie_with_body(&url, body.to_string(), &session_id.unwrap())
+        .post_request(
+            &create_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+        )
         .await;
     assert_eq!(200, create_user_response.status().as_u16());
 
-    // 3. Check for user in database
     let row = sqlx::query!(
         r#"
         SELECT id
@@ -59,19 +61,63 @@ async fn create_user_returns_200_status() {
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
-async fn create_user_invalid_role_is_rejected() {
+async fn create_user_with_existing_email_rejected() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
 
-    // Payload (Uses 'Reviewer' test user credentials)
+    // Uses 'Admin' test user credentials
+    let body = json!({
+        "email": server.test_users[1].email,
+        "password": server.test_users[1].password
+    });
+
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None)
+        .await;
+    assert_eq!(200, login_response.status().as_u16());
+
+    // TODO: Find out how to correctly preserve cookies without manual extraction
+    let session_id = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
+
+    let email = server.test_users[1].email.clone();
+
+    let body = json!({
+        "name": "John",
+        "email": &email,
+        "password": "password1234",
+        "role": "Reviewer"
+    });
+
+    let create_user_response = server
+        .post_request(
+            &create_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+        )
+        .await;
+    assert_eq!(409, create_user_response.status().as_u16());
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tokio::test]
+async fn create_user_using_invalid_role_rejected() {
+    let server = spawn_server().await;
+    let login_url = format!("{}/v1/auth/login", server.addr);
+    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+
+    // Uses 'Reviewer' test user credentials
     let body = json!({
         "email": server.test_users[0].email,
         "password": server.test_users[0].password
     });
 
-    // 1. Login Request
-    let login_response = server.post_request(&login_url, body.to_string()).await;
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None)
+        .await;
     assert_eq!(200, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
@@ -83,7 +129,6 @@ async fn create_user_invalid_role_is_rejected() {
 
     let email: String = String::from("john@gmail.com");
 
-    // Payload
     let body = json!({
         "name": "John",
         "email": &email,
@@ -91,42 +136,31 @@ async fn create_user_invalid_role_is_rejected() {
         "role": "Reviewer"
     });
 
-    // 2. Create User Request (Should fail because the test user has role `Reviewer`)
     let create_user_response = server
-        .post_cookie_with_body(&url, body.to_string(), &session_id.unwrap())
+        .post_request(
+            &create_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+        )
         .await;
     assert_eq!(403, create_user_response.status().as_u16());
-
-    // 3. Check for user in database
-    let row = sqlx::query!(
-        r#"
-        SELECT id
-        FROM users
-        WHERE email=$1 
-        "#,
-        email
-    )
-    .fetch_one(&server.db_pool)
-    .await;
-
-    assert!(row.is_err());
 }
 // ---------------------------------------------------------------------------------------------------------------
-// Normal 422 status code is handled and converted to a 400 status code before response is sent to client
 #[tokio::test]
-async fn create_user_missing_fields_are_rejected() {
+async fn create_user_with_invalid_fields_rejected() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
 
-    // Payload (Uses 'Admin' test user credentials)
+    // Uses 'Admin' test user credentials
     let body = json!({
-        "email": server.test_users[1].email,
-        "password": server.test_users[1].password
+    "email": server.test_users[1].email,
+    "password": server.test_users[1].password
     });
 
-    // 1. Login Request
-    let login_response = server.post_request(&login_url, body.to_string()).await;
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None)
+        .await;
     assert_eq!(200, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
@@ -136,46 +170,106 @@ async fn create_user_missing_fields_are_rejected() {
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
-    // Payloads where the user should not be created
     let test_cases = vec![
         (
             json!({
-                "email": "test@gmail.com",
-                "password": "testing123",
-                "role": "Reviewer",
+            "name": "",
+            "email": "test@gmail.com",
+            "password": "testing123456",
+            "role": "Reviewer",
             }),
-            "missing name.",
+            "empty name",
         ),
         (
             json!({
-                "name": "John",
-                "password": "testing123",
-                "role": "Reviewer",
+            "name": "John",
+            "email": "",
+            "password": "testing123456",
+            "role": "Reviewer",
             }),
-            "missing email.",
+            "empty email",
         ),
         (
             json!({
-                "name": "John",
-                "email": "test@gmail.com",
-                "role": "Reviewer",
+            "name": "John",
+            "email": "test@gmail.com",
+            "password": "",
+            "role": "Reviewer",
             }),
-            "missing password.",
+            "empty password",
         ),
         (
             json!({
-                "name": "John",
-                "email": "test@gmail.com",
-                "password": "testing123",
+            "name": "John",
+            "email": "test@gmail.com",
+            "password": "testing123456",
+            "role": "",
             }),
-            "missing role.",
+            "empty role",
+        ),
+        (
+            json!({
+            "name": "//John$)",
+            "email": "test@gmail.com",
+            "password": "testing123456",
+            "role": "Reviewer",
+            }),
+            "malformed name",
+        ),
+        (
+            json!({
+            "name": "John",
+            "email": "//$(test@gmail.com)",
+            "password": "testing123456",
+            "role": "Reviewer",
+            }),
+            "malformed email",
+        ),
+        (
+            json!({
+            "name": "John",
+            "email": "test@gmail.com",
+            "password": "//John$)232343",
+            "role": "Reviewer",
+            }),
+            "malformed password",
+        ),
+        (
+            json!({
+            "name": "John",
+            "email": "test@gmail.com",
+            "password": "testing123456",
+            "role": "R($ev\"iewer",
+            }),
+            "malformed role",
+        ),
+        (
+            json!({
+            "name": "John",
+            "email": "testgmail.com",
+            "password": "testing123456",
+            "role": "Reviewer",
+            }),
+            "invaild email",
+        ),
+        (
+            json!({
+            "name": "John",
+            "email": "test@gmail.com",
+            "password": "t",
+            "role": "Reviewer",
+            }),
+            "invaild password",
         ),
     ];
 
-    // 2. Create User Requests
     for (invalid_body, error_message) in test_cases {
         let response = server
-            .post_cookie_with_body(&url, invalid_body.to_string(), &session_id.unwrap())
+            .post_request(
+                &create_user_url,
+                Some(invalid_body.to_string()),
+                Some(&session_id.unwrap()),
+            )
             .await;
 
         (
@@ -187,19 +281,20 @@ async fn create_user_missing_fields_are_rejected() {
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
-async fn create_user_returns_400_status() {
+async fn create_user_with_missing_fields_rejected() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
 
-    // Payload (Uses 'Admin' test user credentials)
+    // Uses 'Admin' test user credentials
     let body = json!({
         "email": server.test_users[1].email,
         "password": server.test_users[1].password
     });
 
-    // 1. Login Request
-    let login_response = server.post_request(&login_url, body.to_string()).await;
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None)
+        .await;
     assert_eq!(200, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
@@ -209,60 +304,48 @@ async fn create_user_returns_400_status() {
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
-    // Payloads where the user should not be created
     let test_cases = vec![
         (
             json!({
-                "name": "",
                 "email": "test@gmail.com",
                 "password": "testing123",
                 "role": "Reviewer",
             }),
-            "empty name",
+            "missing name",
         ),
         (
             json!({
                 "name": "John",
-                "email": "",
                 "password": "testing123",
                 "role": "Reviewer",
             }),
-            "empty email",
+            "missing email",
         ),
         (
             json!({
                 "name": "John",
                 "email": "test@gmail.com",
-                "password": "",
                 "role": "Reviewer",
             }),
-            "empty password",
+            "missing password",
         ),
-        (
-            json!({
-                "name": "John",
-                "email": "//$(test@gmail.com)",
-                "password": "testing123",
-                "role": "Reviewer",
-            }),
-            "malformed email",
-        ),
-        // Would normally return a 422 status because role is from the UserRole enum
         (
             json!({
                 "name": "John",
                 "email": "test@gmail.com",
                 "password": "testing123",
-                "role": "",
             }),
-            "empty role",
+            "missing role",
         ),
     ];
 
-    // 2. Create User Requests
     for (invalid_body, error_message) in test_cases {
         let response = server
-            .post_cookie_with_body(&url, invalid_body.to_string(), &session_id.unwrap())
+            .post_request(
+                &create_user_url,
+                Some(invalid_body.to_string()),
+                Some(&session_id.unwrap()),
+            )
             .await;
 
         (

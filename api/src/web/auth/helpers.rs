@@ -15,7 +15,7 @@ pub struct Credentials {
     pub password: Secret<String>,
 }
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "getting user role", skip(user_id, db_pool))]
+#[tracing::instrument(name = "fetching user role", skip(user_id, db_pool))]
 pub async fn get_user_role(user_id: Uuid, db_pool: &PgPool) -> Result<UserRole> {
     let row = sqlx::query!(
         r#"
@@ -27,12 +27,17 @@ pub async fn get_user_role(user_id: Uuid, db_pool: &PgPool) -> Result<UserRole> 
     )
     .fetch_one(db_pool)
     .await
-    .map_err(Error::from)?;
+    .map_err(|err| {
+        Error::UnexpectedError(
+            std::sync::Arc::new(err),
+            "Failed to fetch user role from database".into(),
+        )
+    })?;
 
     Ok(row.role as UserRole)
 }
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "validating credentials", skip(state, payload))]
+#[tracing::instrument(name = "validating user credentials", skip(state, payload))]
 pub async fn validate_credentials(state: &AppState, payload: Credentials) -> Result<Uuid> {
     // When attempting to validate credentails, passing an incorrect email and password takes
     // and order of magnitude less of time then with a correct email and incorrect password
@@ -74,7 +79,7 @@ pub async fn validate_credentials(state: &AppState, payload: Credentials) -> Res
     })
 }
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "getting stored credentials", skip(state, email))]
+#[tracing::instrument(name = "fetching stored credentials", skip(state, email))]
 async fn get_credentials(
     state: &AppState,
     email: &str,
@@ -89,7 +94,12 @@ async fn get_credentials(
     )
     .fetch_optional(&state.db_pool)
     .await
-    .map_err(Error::from)?
+    .map_err(|err| {
+        Error::UnexpectedError(
+            std::sync::Arc::new(err),
+            "Failed to fetch user credentials from database".into(),
+        )
+    })?
     .map(|row| (row.id, Secret::new(row.password_hash)));
 
     Ok(row)

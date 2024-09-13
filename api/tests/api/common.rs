@@ -14,7 +14,7 @@ use api::server::{get_db_pool, Application};
 use api::telemetry::{get_subscriber, init_subscriber};
 use api::{Config, Environment, UserRole};
 
-// Ensure it is only initialized once
+// Ensure the subscriber is only initialized once
 static TRACING: Lazy<()> = Lazy::new(|| {
     // Using std::io::sink will not output logs
     let subscriber = get_subscriber("test".into(), "info".into(), std::io::sink);
@@ -22,6 +22,7 @@ static TRACING: Lazy<()> = Lazy::new(|| {
 });
 
 // ---------------------------------------------------------------------------------------------------------------
+#[derive(Debug)]
 pub struct TestServer {
     pub addr: String,
     pub db_pool: PgPool,
@@ -38,48 +39,120 @@ impl TestServer {
             .expect("Failed to execute request")
     }
 
-    pub async fn post_request(&self, url: &String, body: String) -> reqwest::Response {
-        self.api_client
-            .post(url)
-            .header(header::CONTENT_TYPE, "application/json")
-            .body(body)
-            .send()
-            .await
-            .expect("Failed to execute request")
-    }
-
-    pub async fn post_cookie_with_body(
+    pub async fn post_request(
         &self,
         url: &String,
-        body: String,
-        session_id: &str,
+        body: Option<String>,
+        session_id: Option<&str>,
     ) -> reqwest::Response {
-        self.api_client
-            .post(url)
-            .header(header::CONTENT_TYPE, "application/json")
-            .header(header::COOKIE, session_id)
-            .body(body)
-            .send()
-            .await
-            .expect("Failed to execute request")
+        match body {
+            Some(body) => match session_id {
+                Some(session_id) => self
+                    .api_client
+                    .post(url)
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .header(header::COOKIE, session_id)
+                    .body(body)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+                None => self
+                    .api_client
+                    .post(url)
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(body)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+            },
+            None => match session_id {
+                Some(session_id) => self
+                    .api_client
+                    .post(url)
+                    .header(header::COOKIE, session_id)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+                None => self
+                    .api_client
+                    .post(url)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+            },
+        }
     }
 
-    pub async fn post_cookie_without_body(
+    pub async fn patch_request(
         &self,
         url: &String,
-        session_id: &str,
+        body: Option<String>,
+        session_id: Option<&str>,
     ) -> reqwest::Response {
-        self.api_client
-            .post(url)
-            .header(header::COOKIE, session_id)
-            .send()
-            .await
-            .expect("Failed to execute request")
+        match body {
+            Some(body) => match session_id {
+                Some(session_id) => self
+                    .api_client
+                    .patch(url)
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .header(header::COOKIE, session_id)
+                    .body(body)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+                None => self
+                    .api_client
+                    .patch(url)
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(body)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+            },
+            None => match session_id {
+                Some(session_id) => self
+                    .api_client
+                    .patch(url)
+                    .header(header::COOKIE, session_id)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+                None => self
+                    .api_client
+                    .patch(url)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+            },
+        }
+    }
+
+    pub async fn delete_request(
+        &self,
+        url: &String,
+        session_id: Option<&str>,
+    ) -> reqwest::Response {
+        match session_id {
+            Some(session_id) => self
+                .api_client
+                .delete(url)
+                .header(header::COOKIE, session_id)
+                .send()
+                .await
+                .expect("Failed to execute request"),
+            None => self
+                .api_client
+                .delete(url)
+                .send()
+                .await
+                .expect("Failed to execute request"),
+        }
     }
 }
 // ---------------------------------------------------------------------------------------------------------------
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct TestUser {
+    pub id: Uuid,
     pub name: String,
     pub email: String,
     pub password: String,
@@ -91,6 +164,7 @@ impl TestUser {
         let user_role = UserRole::Reviewer;
 
         Self {
+            id: Uuid::new_v4(),
             name: Uuid::new_v4().to_string(),
             email: format!("{}@test.com", Uuid::new_v4().to_string()),
             password: Uuid::new_v4().to_string(),
@@ -102,6 +176,7 @@ impl TestUser {
         let user_role = UserRole::Admin;
 
         Self {
+            id: Uuid::new_v4(),
             name: Uuid::new_v4().to_string(),
             email: format!("{}@test.com", Uuid::new_v4().to_string()),
             password: Uuid::new_v4().to_string(),
@@ -123,9 +198,10 @@ impl TestUser {
 
         sqlx::query!(
             r#"
-            INSERT INTO users (name, email, password_hash, role)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO users (id, name, email, password_hash, role)
+            VALUES ($1, $2, $3, $4, $5)
             "#,
+            self.id,
             Uuid::new_v4().to_string(),
             self.email,
             password_hash,
@@ -182,7 +258,7 @@ pub async fn spawn_server() -> TestServer {
 
     // Use the same instance of client for each test so there is access to cookies
     let client = reqwest::Client::builder()
-        //.cookie_store(true)
+        .cookie_store(true)
         .build()
         .unwrap();
 

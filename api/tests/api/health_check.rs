@@ -2,11 +2,10 @@ use crate::common::spawn_server;
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
-async fn health_check_test() {
+async fn health_check_successful() {
     let server = spawn_server().await;
-    let url = format!("{}/v1/health-check", server.addr);
+    let health_check_url = format!("{}/v1/health-check", server.addr);
 
-    // 1. Health Check Request
-    let response = server.get_request(&url).await;
+    let response = server.get_request(&health_check_url).await;
     assert_eq!(200, response.status().as_u16());
 }

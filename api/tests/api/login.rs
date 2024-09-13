@@ -1,46 +1,93 @@
+// TODO: Create a test to verify session token expiration
+
+use reqwest::header;
 use serde_json::json;
 
 use crate::common::spawn_server;
 
 // ---------------------------------------------------------------------------------------------------------------
+// TODO: Update to validate session token as well
 #[tokio::test]
-async fn login_returns_200_status() {
+async fn login_is_successful_and_returns_session_token() {
     let server = spawn_server().await;
-    let url = format!("{}/v1/auth/login", server.addr);
+    let login_url = format!("{}/v1/auth/login", server.addr);
 
-    // Payload (Uses 'Reviewer' test user credentials)
+    // Uses 'Reviewer' test user credentials
     let body = json!({
         "email": server.test_users[0].email,
         "password": server.test_users[0].password
     });
 
-    // 1. Login Request
-    let response = server.post_request(&url, body.to_string()).await;
-    assert_eq!(200, response.status().as_u16());
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None)
+        .await;
+    assert_eq!(200, login_response.status().as_u16());
+
+    // TODO: Find out how to correctly preserve cookies without manual extraction
+    let session_id = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
+
+    assert!(session_id.is_some())
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
-async fn login_invalid_user_is_rejected() {
+async fn login_with_invalid_credentials_rejected() {
     let server = spawn_server().await;
-    let url = format!("{}/v1/auth/login", server.addr);
+    let login_url = format!("{}/v1/auth/login", server.addr);
 
-    // Payload (User should not exist in db)
     let body = json!({
-        "email": "test",
-        "password": "test"
+        "email": "test@sdasdas.com",
+        "password": "testsadasdasdsas"
     });
 
-    // 1. Login Request
-    let response = server.post_request(&url, body.to_string()).await;
+    let response = server
+        .post_request(&login_url, Some(body.to_string()), None)
+        .await;
     assert_eq!(401, response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
-async fn sql_injection_login_attempts_are_rejected() {
+async fn login_with_missing_credentials_rejected() {
     let server = spawn_server().await;
-    let url = format!("{}/v1/auth/login", server.addr);
+    let login_url = format!("{}/v1/auth/login", server.addr);
 
-    // Test cases with various SQL injection payloads
+    let test_cases = vec![
+        (
+            json!({
+                "password": "testing12323445",
+            }),
+            "missing email field",
+        ),
+        (
+            json!({
+                "email": "testing@123.com",
+            }),
+            "missing password field",
+        ),
+        (json!({}), "missing both email and password fields"),
+    ];
+
+    for (invalid_body, error_message) in test_cases {
+        let response = server
+            .post_request(&login_url, Some(invalid_body.to_string()), None)
+            .await;
+
+        (
+            assert_eq!(400, response.status().as_u16()),
+            "API did not fail with a 400 status when the payload was {}",
+            error_message,
+        );
+    }
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tokio::test]
+async fn sql_injection_login_attempts_rejected() {
+    let server = spawn_server().await;
+    let login_url = format!("{}/v1/auth/login", server.addr);
+
     let test_cases = vec![
         (
             json!({
@@ -79,9 +126,10 @@ async fn sql_injection_login_attempts_are_rejected() {
         ),
     ];
 
-    // 1. Login Requests
     for (invalid_body, error_message) in test_cases {
-        let response = server.post_request(&url, invalid_body.to_string()).await;
+        let response = server
+            .post_request(&login_url, Some(invalid_body.to_string()), None)
+            .await;
 
         (
             assert_eq!(401, response.status().as_u16()),

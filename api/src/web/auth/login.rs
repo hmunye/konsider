@@ -8,7 +8,7 @@ use crate::Result;
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(
-    name = "user login attempt", 
+    name = "logging in user", 
     // Any values in 'skip' won't be included in logs
     skip(state, session, payload),
     fields(

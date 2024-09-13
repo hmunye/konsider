@@ -87,7 +87,7 @@ pub fn get_db_pool(config: &Config) -> PgPool {
         .min_connections(10)
         // Set the maximum number of connections that this pool should maintain.
         .max_connections(20)
-        // The amount of time the pool will wait to aquire a connection
+        // The amount of time the pool will wait to acquire a connection
         .acquire_timeout(std::time::Duration::from_secs(10))
         // The amount of time a connection can stay idle in the pool before it is closed
         // Set to 15 minutes

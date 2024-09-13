@@ -2,7 +2,7 @@ use clap::Parser;
 use secrecy::{ExposeSecret, Secret};
 
 // ---------------------------------------------------------------------------------------------------------------
-#[derive(Clone, Parser)]
+#[derive(Debug, Clone, Parser)]
 pub struct Config {
     #[clap(long, env)]
     pub postgres_user: String,

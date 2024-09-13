@@ -9,7 +9,7 @@ use crate::{Result, User};
 
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(
-    name = "creating new user", 
+    name = "creating user", 
     // Any values in 'skip' won't be included in logs
     skip(state, payload),
     fields(

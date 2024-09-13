@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-# ^ Modify the behavior of the script by making it 
-# exit immediately if any command returns a non-zero exit status
+# ^ Exit immediately if any command returns a non-zero exit status
 
 if [ -f /app/.env.production ]; then
   export $(grep -v '^#' /app/.env.production | xargs)

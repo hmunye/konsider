@@ -21,7 +21,7 @@ pub async fn health_check() -> impl IntoResponse {
 
     let _ = PgPool::connect(connection_string.expose_secret())
         .await
-        .expect("Failed to connect to db from health_check");
+        .expect("Failed to connect to database from health_check endpoint");
 
     (
         StatusCode::OK,
