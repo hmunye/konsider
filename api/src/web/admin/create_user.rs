@@ -20,7 +20,7 @@ pub struct CreatePayload {
 #[tracing::instrument(
     name = "creating user", 
     // Any values in 'skip' won't be included in logs
-    skip(state, payload),
+    skip(state, session, payload),
     fields(
         user_email = tracing::field::Empty,
     )
@@ -32,9 +32,6 @@ pub async fn api_create_user(
 ) -> Result<StatusCode> {
     tracing::Span::current().record("user_email", tracing::field::display(&payload.user.email));
 
-    // Validate request payload
-    payload.user.parse()?;
-
     let idempotency_key: IdempotencyKey = payload
         .idempotency_key
         .try_into()
@@ -44,12 +41,18 @@ pub async fn api_create_user(
         let key_status = get_key_status(&state.redis_pool, &idempotency_key, user_id).await?;
 
         match key_status {
+            // Request has already been processed, return early
             IdempotencyStatus::Processed => return Ok(StatusCode::OK),
+            // New request made, handle normally
             IdempotencyStatus::NotProcessed => {
+                // Validate request payload
+                payload.user.parse()?;
+
                 let password_hash = compute_password_hash(payload.user.password.expose_secret())?;
 
                 insert_user(&state, &payload.user, password_hash).await?;
 
+                // Save idempotency key so duplicate requests are not processed
                 save_key_status(&state.redis_pool, &idempotency_key, user_id).await?;
             }
         }

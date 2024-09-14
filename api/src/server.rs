@@ -52,7 +52,7 @@ impl Application {
 
         let tcp_listener = tokio::net::TcpListener::bind(&addr)
             .await
-            .expect("Failed to bind to address");
+            .expect("Failed to bind tcp listener to address");
 
         let host = config.server_host;
 
@@ -101,12 +101,12 @@ pub fn get_db_pool(config: &Config) -> PgPool {
         .idle_timeout(std::time::Duration::from_secs(900))
         // Won't connect until a query is made
         .connect_lazy(config.connection_string().expose_secret())
-        .expect("Failed to create connection pool")
+        .expect("Failed to create PostgreSQL connection pool")
 }
 // ---------------------------------------------------------------------------------------------------------------
 pub async fn get_redis_pool(redis_uri: &Secret<String>) -> RedisPool {
     let redis_config = RedisConfig::from_url(redis_uri.expose_secret())
-        .expect("Failed to get redis config from uri");
+        .expect("Failed to get Redis config from uri");
 
     let redis_pool = RedisPool::new(
         redis_config,

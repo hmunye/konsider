@@ -6,7 +6,7 @@ use tower_sessions_redis_store::fred::error::RedisError;
 pub type Result<T> = std::result::Result<T, Error>;
 
 // ---------------------------------------------------------------------------------------------------------------
-#[derive(Clone, Debug, thiserror::Error)]
+#[derive(Clone, thiserror::Error)]
 pub enum Error {
     #[error("{0}")]
     EmailNotFoundError(String),
@@ -14,25 +14,25 @@ pub enum Error {
     #[error("{0}")]
     InvalidPasswordError(String),
 
-    #[error("validation error occured while parsing user payload: {0}")]
+    #[error("Validation error occured while parsing user payload: {0}")]
     UserValidationError(String),
 
-    #[error("no session token provided for request")]
+    #[error("No session token provided for request")]
     NoAuthProvidedError,
 
-    #[error("role is not vaild for the requested endpoint")]
+    #[error("Role is not vaild for the requested endpoint")]
     InvalidRoleError,
 
-    #[error("user could not be found")]
+    #[error("User could not be found")]
     UserNotFoundError,
 
-    #[error("email is already in use")]
+    #[error("Email is already in use")]
     EmailInUseError,
 
-    #[error("no details provided to update user")]
+    #[error("No details provided to update user")]
     NoUpdatesProvidedError,
 
-    #[error("error occured validating idempotency key")]
+    #[error("Error occured validating idempotency key")]
     IdempotencyKeyError,
 
     #[error("{1}")]
@@ -54,9 +54,37 @@ pub enum ClientError {
     SERVICE_ERROR,
 }
 
+fn error_chain_fmt(
+    e: &impl std::error::Error,
+    f: &mut std::fmt::Formatter<'_>,
+) -> std::fmt::Result {
+    writeln!(f, "{}\n", e)?;
+
+    let mut current = e.source();
+
+    while let Some(cause) = current {
+        writeln!(f, "CAUSED BY:\n\t{}", cause)?;
+        current = cause.source();
+    }
+
+    Ok(())
+}
+
+impl std::fmt::Debug for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
+    }
+}
+
 impl From<RedisError> for Error {
     fn from(err: RedisError) -> Self {
-        Error::UnexpectedError(std::sync::Arc::new(err), "redis error occured".into())
+        Error::UnexpectedError(std::sync::Arc::new(err), "Redis error occured".into())
+    }
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(err: sqlx::Error) -> Self {
+        Error::UnexpectedError(std::sync::Arc::new(err), "PostgreSQL error occured".into())
     }
 }
 
