@@ -44,7 +44,12 @@ impl TestServer {
         url: &String,
         body: Option<String>,
         session_id: Option<&str>,
+        delay: Option<std::time::Duration>,
     ) -> reqwest::Response {
+        if let Some(delay_duration) = delay {
+            tokio::time::sleep(delay_duration).await
+        }
+
         match body {
             Some(body) => match session_id {
                 Some(session_id) => self

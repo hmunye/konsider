@@ -19,7 +19,7 @@ async fn login_is_successful_and_returns_session_token() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -44,7 +44,7 @@ async fn login_with_invalid_credentials_rejected() {
     });
 
     let response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(401, response.status().as_u16());
 }
@@ -72,7 +72,7 @@ async fn login_with_missing_credentials_rejected() {
 
     for (invalid_body, error_message) in test_cases {
         let response = server
-            .post_request(&login_url, Some(invalid_body.to_string()), None)
+            .post_request(&login_url, Some(invalid_body.to_string()), None, None)
             .await;
 
         (
@@ -128,7 +128,7 @@ async fn sql_injection_login_attempts_rejected() {
 
     for (invalid_body, error_message) in test_cases {
         let response = server
-            .post_request(&login_url, Some(invalid_body.to_string()), None)
+            .post_request(&login_url, Some(invalid_body.to_string()), None, None)
             .await;
 
         (

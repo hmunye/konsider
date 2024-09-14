@@ -46,7 +46,7 @@ impl Application {
 
         let redis_pool = get_redis_pool(&config.redis_uri()).await;
 
-        let session_store = RedisStore::new(redis_pool);
+        let session_store = RedisStore::new(redis_pool.clone());
 
         let addr = format!("{}:{}", config.server_host, config.server_port);
 
@@ -61,7 +61,14 @@ impl Application {
             .expect("Failed to get local address from tcp listener")
             .port();
 
-        let server = serve(tcp_listener, db_pool, session_store, environment).await?;
+        let server = serve(
+            tcp_listener,
+            db_pool,
+            redis_pool,
+            session_store,
+            environment,
+        )
+        .await?;
 
         Ok(Self { port, host, server })
     }
@@ -123,15 +130,20 @@ pub async fn get_redis_pool(redis_uri: &Secret<String>) -> RedisPool {
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: PgPool,
+    pub redis_pool: RedisPool,
 }
 
 pub async fn serve(
     tcp_listener: tokio::net::TcpListener,
     db_pool: PgPool,
+    redis_pool: RedisPool,
     session_store: RedisStore<RedisPool>,
     environment: &str,
 ) -> crate::Result<Server> {
-    let state = AppState { db_pool };
+    let state = AppState {
+        db_pool,
+        redis_pool,
+    };
 
     // User ID will be stored into the session state on login and will be retrieved
     // on other endpoints when specified

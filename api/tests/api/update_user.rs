@@ -30,7 +30,7 @@ async fn update_user_successful() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -126,7 +126,7 @@ async fn update_user_using_invalid_role_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -169,7 +169,7 @@ async fn update_user_with_invalid_id_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -213,7 +213,7 @@ async fn update_user_with_invalid_fields_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -284,7 +284,7 @@ async fn update_user_with_missing_fields_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 

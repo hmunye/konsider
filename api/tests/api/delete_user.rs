@@ -21,7 +21,7 @@ async fn delete_user_successful() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -67,7 +67,7 @@ async fn delete_user_using_invalid_role_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -79,7 +79,7 @@ async fn delete_user_using_invalid_role_rejected() {
         .and_then(|str| str.split(";").nth(0));
 
     let delete_user_response = server
-        .post_request(&delete_user_url, None, Some(&session_id.unwrap()))
+        .delete_request(&delete_user_url, Some(&session_id.unwrap()))
         .await;
     assert_eq!(403, delete_user_response.status().as_u16());
 }
@@ -99,7 +99,7 @@ async fn delete_user_with_invalid_id_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 

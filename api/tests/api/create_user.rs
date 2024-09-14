@@ -1,5 +1,6 @@
 use reqwest::header;
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::common::spawn_server;
 
@@ -17,7 +18,7 @@ async fn create_user_successful() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -31,10 +32,13 @@ async fn create_user_successful() {
     let email: String = String::from("john@gmail.com");
 
     let body = json!({
-        "name": "John",
-        "email": &email,
-        "password": "password1234",
-        "role": "Reviewer"
+        "user": {
+            "name": "John",
+            "email": &email,
+            "password": "password1234",
+            "role": "Reviewer",
+        },
+        "idempotency_key": Uuid::new_v4().to_string()
     });
 
     let create_user_response = server
@@ -42,9 +46,10 @@ async fn create_user_successful() {
             &create_user_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
+            None,
         )
         .await;
-    assert_eq!(200, create_user_response.status().as_u16());
+    assert_eq!(201, create_user_response.status().as_u16());
 
     let row = sqlx::query!(
         r#"
@@ -73,7 +78,7 @@ async fn create_user_with_existing_email_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -87,10 +92,13 @@ async fn create_user_with_existing_email_rejected() {
     let email = server.test_users[1].email.clone();
 
     let body = json!({
-        "name": "John",
-        "email": &email,
-        "password": "password1234",
-        "role": "Reviewer"
+        "user": {
+            "name": "John",
+            "email": &email,
+            "password": "password1234",
+            "role": "Reviewer",
+        },
+        "idempotency_key": Uuid::new_v4().to_string()
     });
 
     let create_user_response = server
@@ -98,6 +106,7 @@ async fn create_user_with_existing_email_rejected() {
             &create_user_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
+            None,
         )
         .await;
     assert_eq!(409, create_user_response.status().as_u16());
@@ -116,7 +125,7 @@ async fn create_user_using_invalid_role_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -130,10 +139,13 @@ async fn create_user_using_invalid_role_rejected() {
     let email: String = String::from("john@gmail.com");
 
     let body = json!({
-        "name": "John",
-        "email": &email,
-        "password": "password123",
-        "role": "Reviewer"
+        "user": {
+            "name": "John",
+            "email": &email,
+            "password": "password1234",
+            "role": "Reviewer",
+        },
+        "idempotency_key": Uuid::new_v4().to_string()
     });
 
     let create_user_response = server
@@ -141,6 +153,7 @@ async fn create_user_using_invalid_role_rejected() {
             &create_user_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
+            None,
         )
         .await;
     assert_eq!(403, create_user_response.status().as_u16());
@@ -159,7 +172,7 @@ async fn create_user_with_invalid_fields_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -173,93 +186,135 @@ async fn create_user_with_invalid_fields_rejected() {
     let test_cases = vec![
         (
             json!({
-            "name": "",
-            "email": "test@gmail.com",
-            "password": "testing123456",
-            "role": "Reviewer",
+                "user": {
+                    "name": "",
+                    "email": "test@gmail.com",
+                    "password": "testing123456",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "empty name",
         ),
         (
             json!({
-            "name": "John",
-            "email": "",
-            "password": "testing123456",
-            "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "",
+                    "password": "testing123456",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "empty email",
         ),
         (
             json!({
-            "name": "John",
-            "email": "test@gmail.com",
-            "password": "",
-            "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "empty password",
         ),
         (
             json!({
-            "name": "John",
-            "email": "test@gmail.com",
-            "password": "testing123456",
-            "role": "",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "testing123456",
+                    "role": ""
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "empty role",
         ),
         (
             json!({
-            "name": "//John$)",
-            "email": "test@gmail.com",
-            "password": "testing123456",
-            "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "testing123456",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": ""
+            }),
+            "empty idempotency key",
+        ),
+        (
+            json!({
+                "user": {
+                    "name": "//John$)",
+                    "email": "test@gmail.com",
+                    "password": "testing123456",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "malformed name",
         ),
         (
             json!({
-            "name": "John",
-            "email": "//$(test@gmail.com)",
-            "password": "testing123456",
-            "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "//$(test@gmail.com)",
+                    "password": "testing123456",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "malformed email",
         ),
         (
             json!({
-            "name": "John",
-            "email": "test@gmail.com",
-            "password": "//John$)232343",
-            "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "//John$)232343",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "malformed password",
         ),
         (
             json!({
-            "name": "John",
-            "email": "test@gmail.com",
-            "password": "testing123456",
-            "role": "R($ev\"iewer",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "testing123456",
+                    "role": "R($ev\"iewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "malformed role",
         ),
         (
             json!({
-            "name": "John",
-            "email": "testgmail.com",
-            "password": "testing123456",
-            "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "testgmail.com",
+                    "password": "testing123456",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
-            "invaild email",
+            "invalid email",
         ),
         (
             json!({
-            "name": "John",
-            "email": "test@gmail.com",
-            "password": "t",
-            "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "t",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
-            "invaild password",
+            "invalid password",
         ),
     ];
 
@@ -269,6 +324,7 @@ async fn create_user_with_invalid_fields_rejected() {
                 &create_user_url,
                 Some(invalid_body.to_string()),
                 Some(&session_id.unwrap()),
+                None,
             )
             .await;
 
@@ -293,7 +349,7 @@ async fn create_user_with_missing_fields_rejected() {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None)
+        .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
@@ -307,35 +363,58 @@ async fn create_user_with_missing_fields_rejected() {
     let test_cases = vec![
         (
             json!({
-                "email": "test@gmail.com",
-                "password": "testing123",
-                "role": "Reviewer",
+                "user": {
+                    "email": "test@gmail.com",
+                    "password": "testing123",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "missing name",
         ),
         (
             json!({
-                "name": "John",
-                "password": "testing123",
-                "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "password": "testing123",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "missing email",
         ),
         (
             json!({
-                "name": "John",
-                "email": "test@gmail.com",
-                "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "role": "Reviewer"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "missing password",
         ),
         (
             json!({
-                "name": "John",
-                "email": "test@gmail.com",
-                "password": "testing123",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "testing123"
+                },
+                "idempotency_key": Uuid::new_v4().to_string()
             }),
             "missing role",
+        ),
+        (
+            json!({
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "testing123",
+                    "role": "Reviewer"
+                },
+            }),
+            "missing idempotency key",
         ),
     ];
 
@@ -345,6 +424,7 @@ async fn create_user_with_missing_fields_rejected() {
                 &create_user_url,
                 Some(invalid_body.to_string()),
                 Some(&session_id.unwrap()),
+                None,
             )
             .await;
 
@@ -354,4 +434,122 @@ async fn create_user_with_missing_fields_rejected() {
             error_message,
         );
     }
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tokio::test]
+async fn create_user_concurrent_request_handled() {
+    let server = spawn_server().await;
+    let login_url = format!("{}/v1/auth/login", server.addr);
+    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+
+    // Uses 'Admin' test user credentials
+    let body = json!({
+        "email": server.test_users[1].email,
+        "password": server.test_users[1].password
+    });
+
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None, None)
+        .await;
+    assert_eq!(200, login_response.status().as_u16());
+
+    // TODO: Find out how to correctly preserve cookies without manual extraction
+    let session_id = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
+
+    let email: String = String::from("john@gmail.com");
+
+    let body = json!({
+        "user": {
+            "name": "John",
+            "email": &email,
+            "password": "password1234",
+            "role": "Reviewer",
+        },
+        "idempotency_key": Uuid::new_v4().to_string()
+    });
+
+    let create_user_response_1 = server.post_request(
+        &create_user_url,
+        Some(body.to_string()),
+        Some(&session_id.unwrap()),
+        Some(std::time::Duration::from_secs(2)),
+    );
+
+    let create_user_response_2 = server.post_request(
+        &create_user_url,
+        Some(body.to_string()),
+        Some(&session_id.unwrap()),
+        None,
+    );
+
+    // Await both requests concurrently
+    let (create_user_response_1, create_user_response_2) =
+        tokio::join!(create_user_response_1, create_user_response_2);
+
+    // Should return 200 since it is treated as duplicate result
+    assert_eq!(200, create_user_response_1.status().as_u16());
+
+    // Should return 201 because it is the first response to be processed
+    assert_eq!(201, create_user_response_2.status().as_u16());
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tokio::test]
+async fn create_user_is_idempotent() {
+    let server = spawn_server().await;
+    let login_url = format!("{}/v1/auth/login", server.addr);
+    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+
+    // Uses 'Admin' test user credentials
+    let body = json!({
+        "email": server.test_users[1].email,
+        "password": server.test_users[1].password
+    });
+
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None, None)
+        .await;
+    assert_eq!(200, login_response.status().as_u16());
+
+    // TODO: Find out how to correctly preserve cookies without manual extraction
+    let session_id = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
+
+    let email: String = String::from("john@gmail.com");
+
+    let body = json!({
+        "user": {
+            "name": "John",
+            "email": &email,
+            "password": "password1234",
+            "role": "Reviewer",
+        },
+        "idempotency_key": Uuid::new_v4().to_string()
+    });
+
+    let create_user_response = server
+        .post_request(
+            &create_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+            None,
+        )
+        .await;
+    assert_eq!(201, create_user_response.status().as_u16());
+
+    let dup_create_user_response = server
+        .post_request(
+            &create_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+            None,
+        )
+        .await;
+    assert_eq!(200, dup_create_user_response.status().as_u16());
 }

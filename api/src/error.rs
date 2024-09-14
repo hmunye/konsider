@@ -1,6 +1,7 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
+use tower_sessions_redis_store::fred::error::RedisError;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -28,8 +29,11 @@ pub enum Error {
     #[error("email is already in use")]
     EmailInUseError,
 
-    #[error("No details provided to update user")]
+    #[error("no details provided to update user")]
     NoUpdatesProvidedError,
+
+    #[error("error occured validating idempotency key")]
+    IdempotencyKeyError,
 
     #[error("{1}")]
     UnexpectedError(
@@ -48,6 +52,12 @@ pub enum ClientError {
     CONFLICT,
     INVALID_PARAMS,
     SERVICE_ERROR,
+}
+
+impl From<RedisError> for Error {
+    fn from(err: RedisError) -> Self {
+        Error::UnexpectedError(std::sync::Arc::new(err), "redis error occured".into())
+    }
 }
 
 // Used for 'main_response_mapper' middleware
@@ -79,9 +89,9 @@ impl Error {
 
             Self::InvalidRoleError => (StatusCode::FORBIDDEN, ClientError::INVALID_PERMISSIONS),
 
-            Self::UserValidationError(..) | Self::NoUpdatesProvidedError => {
-                (StatusCode::BAD_REQUEST, ClientError::INVALID_PARAMS)
-            }
+            Self::UserValidationError(..)
+            | Self::NoUpdatesProvidedError
+            | Self::IdempotencyKeyError => (StatusCode::BAD_REQUEST, ClientError::INVALID_PARAMS),
 
             // -- Fallback
             _ => (

@@ -1,5 +1,6 @@
 pub mod config;
 pub mod error;
+pub mod idempotency;
 pub mod model;
 pub mod server;
 pub mod telemetry;
