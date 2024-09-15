@@ -13,7 +13,7 @@ pub async fn main_response_mapper(response: Response) -> Response {
     // Ex. If payload to create user is missing 'role', it cannot properly desearialize it,
     // resulting in a 422 status code
     if status_code == StatusCode::UNPROCESSABLE_ENTITY {
-        tracing::error!(error = "invalid payload provided", "[ERROR]");
+        tracing::error!(error = "invalid request payload provided", "[ERROR]");
 
         let client_error_body = json!({
             "error": ClientError::INVALID_PARAMS

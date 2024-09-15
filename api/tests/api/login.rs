@@ -21,7 +21,7 @@ async fn login_is_successful_and_returns_session_token() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response

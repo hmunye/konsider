@@ -43,7 +43,7 @@ pub async fn api_create_user(
 
         match key_status {
             // Request has already been processed, return early
-            IdempotencyStatus::Processed => return Ok(StatusCode::OK),
+            IdempotencyStatus::Processed => return Ok(StatusCode::NO_CONTENT),
             // New request made, handle normally
             IdempotencyStatus::NotProcessed => {
                 // Validate request payload

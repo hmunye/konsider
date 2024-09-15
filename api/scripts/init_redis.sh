@@ -43,6 +43,3 @@ docker run \
     redis-server --requirepass "$REDIS_PASSWORD"
 
 echo >&2 "Redis is up and ready"
-
-# Used for local script. Can remove
-zsh

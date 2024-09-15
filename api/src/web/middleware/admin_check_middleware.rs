@@ -5,7 +5,7 @@ use axum::RequestExt;
 
 use crate::model::TypedSession;
 use crate::server::AppState;
-use crate::web::auth::get_user_role;
+use crate::web::admin::get_user_role;
 use crate::{Error, Result, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------

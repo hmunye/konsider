@@ -58,5 +58,5 @@ pub async fn api_delete_user(
         }
     }
 
-    Ok(StatusCode::OK)
+    Ok(StatusCode::NO_CONTENT)
 }

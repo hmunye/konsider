@@ -12,6 +12,7 @@ pub struct User {
     pub email: String,
     pub password: Secret<String>,
     pub role: UserRole,
+    pub version: Option<i32>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, sqlx::Type)]

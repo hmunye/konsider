@@ -79,6 +79,3 @@ sqlx database create
 sqlx migrate run
 
 >&2 echo "Migrated successfully"
-
-# Used for local script. Can remove
-zsh

@@ -17,5 +17,5 @@ pub async fn api_logout(session: TypedSession) -> Result<StatusCode> {
         session.log_out_user().await?;
     };
 
-    Ok(StatusCode::OK)
+    Ok(StatusCode::NO_CONTENT)
 }

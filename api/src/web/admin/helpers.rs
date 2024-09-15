@@ -1,17 +1,43 @@
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHasher};
 use secrecy::{ExposeSecret, Secret};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::server::AppState;
 use crate::{Error, Result, User, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------
+#[tracing::instrument(name = "fetching user role", skip(user_id, db_pool))]
+pub async fn get_user_role(user_id: Uuid, db_pool: &PgPool) -> Result<UserRole> {
+    match sqlx::query!(
+        r#"
+        SELECT role AS "role: UserRole"
+        FROM users
+        WHERE id = $1
+        "#,
+        user_id,
+    )
+    .fetch_one(db_pool)
+    .await
+    {
+        Ok(row) => Ok(row),
+        Err(err) => match err {
+            sqlx::Error::RowNotFound => Err(Error::NotFoundError),
+            _ => Err(Error::UnexpectedError(
+                std::sync::Arc::new(err),
+                "Failed to fetch user role from database".into(),
+            )),
+        },
+    }
+    .map(|row| row.role as UserRole)
+}
+// ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "fetching user by id", skip(state, user_id))]
 pub async fn fetch_user_by_id(state: &AppState, user_id: &Uuid) -> Result<User> {
     match sqlx::query!(
         r#"
-        SELECT name, email, password_hash, role AS "role: UserRole" 
+        SELECT name, email, password_hash, role AS "role: UserRole", version 
         FROM users
         WHERE id = $1
         "#,
@@ -22,7 +48,7 @@ pub async fn fetch_user_by_id(state: &AppState, user_id: &Uuid) -> Result<User> 
     {
         Ok(row) => Ok(row),
         Err(err) => match err {
-            sqlx::Error::RowNotFound => Err(Error::UserNotFoundError),
+            sqlx::Error::RowNotFound => Err(Error::NotFoundError),
             _ => Err(Error::UnexpectedError(
                 std::sync::Arc::new(err),
                 "Failed to fetch user by id from database".into(),
@@ -34,6 +60,7 @@ pub async fn fetch_user_by_id(state: &AppState, user_id: &Uuid) -> Result<User> 
         email: row.email,
         password: Secret::new(row.password_hash),
         role: row.role,
+        version: row.version,
     })
 }
 // ---------------------------------------------------------------------------------------------------------------
@@ -72,22 +99,23 @@ pub async fn update_user(state: &AppState, user: &User, user_id: &Uuid) -> Resul
     match sqlx::query!(
         r#"
         UPDATE users 
-        SET name = $1, email = $2, password_hash = $3, role = $4
-        WHERE id = $5
-        RETURNING id
+        SET name = $1, email = $2, password_hash = $3, role = $4, version = version + 1
+        WHERE id = $5 AND version = $6
+        RETURNING version
         "#,
         user.name,
         user.email,
         user.password.expose_secret(),
         user.role.clone() as UserRole,
-        user_id
+        user_id,
+        user.version
     )
     .fetch_one(&state.db_pool)
     .await
     {
         Ok(_) => Ok(()),
         Err(err) => match err {
-            sqlx::Error::RowNotFound => Err(Error::UserNotFoundError),
+            sqlx::Error::RowNotFound => Err(Error::EditConflictError),
             _ => Err(Error::UnexpectedError(
                 std::sync::Arc::new(err),
                 "Failed to update user in database".into(),
@@ -111,7 +139,7 @@ pub async fn delete_user(state: &AppState, user_id: &Uuid) -> Result<()> {
     {
         Ok(_) => Ok(()),
         Err(err) => match err {
-            sqlx::Error::RowNotFound => Err(Error::UserNotFoundError),
+            sqlx::Error::RowNotFound => Err(Error::NotFoundError),
             _ => Err(Error::UnexpectedError(
                 std::sync::Arc::new(err),
                 "Failed to delete user from database".into(),

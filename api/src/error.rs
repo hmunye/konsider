@@ -23,8 +23,11 @@ pub enum Error {
     #[error("Role is not vaild for the requested endpoint")]
     InvalidRoleError,
 
-    #[error("User could not be found")]
-    UserNotFoundError,
+    #[error("Database record could not be found")]
+    NotFoundError,
+
+    #[error("Error updating the database record due to an edit conflict")]
+    EditConflictError,
 
     #[error("Email is already in use")]
     EmailInUseError,
@@ -111,9 +114,11 @@ impl Error {
 
             Self::NoAuthProvidedError => (StatusCode::UNAUTHORIZED, ClientError::NO_AUTH),
 
-            Self::UserNotFoundError => (StatusCode::NOT_FOUND, ClientError::NOT_FOUND),
+            Self::NotFoundError => (StatusCode::NOT_FOUND, ClientError::NOT_FOUND),
 
-            Self::EmailInUseError => (StatusCode::CONFLICT, ClientError::CONFLICT),
+            Self::EmailInUseError | Self::EditConflictError => {
+                (StatusCode::CONFLICT, ClientError::CONFLICT)
+            }
 
             Self::InvalidRoleError => (StatusCode::FORBIDDEN, ClientError::INVALID_PERMISSIONS),
 

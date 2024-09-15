@@ -28,13 +28,5 @@ pub async fn api_login(
     // Create session with user id
     session.insert_user_id(user_id).await?;
 
-    //    let user_role = get_user_role(user_id, &state.db_pool).await?;
-    //
-    //    Ok(Response::builder()
-    //        .status(StatusCode::OK)
-    //        .header(header::CONTENT_TYPE, "application/json")
-    //        .body(json!({"role": user_role.to_string()}).to_string())
-    //        .unwrap_or_default())
-
-    Ok(StatusCode::OK)
+    Ok(StatusCode::NO_CONTENT)
 }

@@ -32,7 +32,7 @@ async fn update_user_successful() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
@@ -103,8 +103,8 @@ async fn update_user_successful() {
             .await;
 
         (
-            assert_eq!(200, update_user_response.status().as_u16()),
-            "API processed request with a 200 status when the payload was {}",
+            assert_eq!(204, update_user_response.status().as_u16()),
+            "API processed request with a 204 status when the payload was {}",
             update_message,
         );
     }
@@ -144,7 +144,7 @@ async fn update_user_using_invalid_role_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
@@ -191,7 +191,7 @@ async fn update_user_with_invalid_id_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
@@ -239,7 +239,7 @@ async fn update_user_with_invalid_fields_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
@@ -324,7 +324,7 @@ async fn update_user_with_missing_fields_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
@@ -364,7 +364,7 @@ async fn update_user_is_idempotent() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -387,7 +387,7 @@ async fn update_user_is_idempotent() {
             None,
         )
         .await;
-    assert_eq!(200, update_user_response.status().as_u16());
+    assert_eq!(204, update_user_response.status().as_u16());
 
     let dup_update_user_response = server
         .patch_request(
@@ -398,4 +398,85 @@ async fn update_user_is_idempotent() {
         )
         .await;
     assert_eq!(418, dup_update_user_response.status().as_u16());
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tokio::test]
+async fn update_user_optimistic_concurrency_control() {
+    let server = spawn_server().await;
+    let login_url = format!("{}/v1/auth/login", server.addr);
+
+    // Uses 'Reviewer' test user id
+    let test_user_id = server.test_users[0].id;
+    let update_user_url = format!("{}/v1/admin/update-user/{}", server.addr, test_user_id);
+
+    // -------------------------------------------------------------------------
+    // Uses 'Admin' test user credentials
+    let body = json!({
+        "email": server.test_users[1].email,
+        "password": server.test_users[1].password
+    });
+
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None, None)
+        .await;
+    assert_eq!(204, login_response.status().as_u16());
+
+    let session_id = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
+
+    let body = json!({
+        "user": {
+            "name": "newname",
+        },
+        "idempotency_key": Uuid::new_v4().to_string(),
+    });
+
+    let update_user_response_1 = server.patch_request(
+        &update_user_url,
+        Some(body.to_string()),
+        Some(&session_id.unwrap()),
+        None,
+    );
+    // -------------------------------------------------------------------------
+    // Uses different 'Admin' test user credentials
+    let body = json!({
+        "email": server.test_users[3].email,
+        "password": server.test_users[3].password
+    });
+
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None, None)
+        .await;
+    assert_eq!(204, login_response.status().as_u16());
+
+    let session_id = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
+
+    let body = json!({
+        "user": {
+            "password": "secondpassword12345",
+        },
+        "idempotency_key": Uuid::new_v4().to_string(),
+    });
+
+    let update_user_response_2 = server.patch_request(
+        &update_user_url,
+        Some(body.to_string()),
+        Some(&session_id.unwrap()),
+        None,
+    );
+    // -------------------------------------------------------------------------
+
+    // Await both requests concurrently
+    let (update_user_response_1, update_user_response_2) =
+        tokio::join!(update_user_response_1, update_user_response_2);
+
+    assert_eq!(409, update_user_response_1.status().as_u16());
+    assert_eq!(204, update_user_response_2.status().as_u16());
 }

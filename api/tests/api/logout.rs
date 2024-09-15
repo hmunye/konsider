@@ -21,7 +21,7 @@ async fn logout_is_successful_and_clears_session() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
@@ -33,7 +33,7 @@ async fn logout_is_successful_and_clears_session() {
     let logout_response = server
         .post_request(&logout_url, None, Some(&session_id.unwrap()), None)
         .await;
-    assert_eq!(200, logout_response.status().as_u16());
+    assert_eq!(204, logout_response.status().as_u16());
 
     let email: String = String::from("john@gmail.com");
 

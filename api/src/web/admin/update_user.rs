@@ -113,5 +113,5 @@ pub async fn api_update_user(
         }
     }
 
-    Ok(StatusCode::OK)
+    Ok(StatusCode::NO_CONTENT)
 }
