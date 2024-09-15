@@ -31,7 +31,15 @@ pub struct TestServer {
 }
 
 impl TestServer {
-    pub async fn get_request(&self, url: &String) -> reqwest::Response {
+    pub async fn get_request(
+        &self,
+        url: &String,
+        delay: Option<std::time::Duration>,
+    ) -> reqwest::Response {
+        if let Some(delay_duration) = delay {
+            tokio::time::sleep(delay_duration).await
+        }
+
         self.api_client
             .get(url)
             .send()
@@ -93,7 +101,12 @@ impl TestServer {
         url: &String,
         body: Option<String>,
         session_id: Option<&str>,
+        delay: Option<std::time::Duration>,
     ) -> reqwest::Response {
+        if let Some(delay_duration) = delay {
+            tokio::time::sleep(delay_duration).await
+        }
+
         match body {
             Some(body) => match session_id {
                 Some(session_id) => self
@@ -135,22 +148,49 @@ impl TestServer {
     pub async fn delete_request(
         &self,
         url: &String,
+        body: Option<String>,
         session_id: Option<&str>,
+        delay: Option<std::time::Duration>,
     ) -> reqwest::Response {
-        match session_id {
-            Some(session_id) => self
-                .api_client
-                .delete(url)
-                .header(header::COOKIE, session_id)
-                .send()
-                .await
-                .expect("Failed to execute request"),
-            None => self
-                .api_client
-                .delete(url)
-                .send()
-                .await
-                .expect("Failed to execute request"),
+        if let Some(delay_duration) = delay {
+            tokio::time::sleep(delay_duration).await
+        }
+
+        match body {
+            Some(body) => match session_id {
+                Some(session_id) => self
+                    .api_client
+                    .delete(url)
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .header(header::COOKIE, session_id)
+                    .body(body)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+                None => self
+                    .api_client
+                    .delete(url)
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(body)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+            },
+            None => match session_id {
+                Some(session_id) => self
+                    .api_client
+                    .delete(url)
+                    .header(header::COOKIE, session_id)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+                None => self
+                    .api_client
+                    .delete(url)
+                    .send()
+                    .await
+                    .expect("Failed to execute request"),
+            },
         }
     }
 }
@@ -270,15 +310,26 @@ pub async fn spawn_server() -> TestServer {
     let test_server = TestServer {
         addr,
         db_pool: get_db_pool(&config),
-        test_users: vec![TestUser::new_reviewer(), TestUser::new_admin()],
+        test_users: vec![
+            TestUser::new_reviewer(),
+            TestUser::new_admin(),
+            TestUser::new_reviewer(),
+            TestUser::new_admin(),
+        ],
         api_client: client,
     };
 
-    // test_users[0] is the `Reviewer` test user
+    // test_users[0] is a `Reviewer` test user
     test_server.test_users[0].store(&test_server.db_pool).await;
 
-    // test_users[1] is the `Admin` test user
+    // test_users[1] is an `Admin` test user
     test_server.test_users[1].store(&test_server.db_pool).await;
+
+    // test_users[2] is a `Reviewer` test user
+    test_server.test_users[2].store(&test_server.db_pool).await;
+
+    // test_users[3] is an `Admin` test user
+    test_server.test_users[3].store(&test_server.db_pool).await;
 
     test_server
 }

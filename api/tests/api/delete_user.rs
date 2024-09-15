@@ -32,8 +32,17 @@ async fn delete_user_successful() {
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
+    let body = json!({
+        "idempotency_key": Uuid::new_v4().to_string()
+    });
+
     let delete_user_response = server
-        .delete_request(&delete_user_url, Some(&session_id.unwrap()))
+        .delete_request(
+            &delete_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+            None,
+        )
         .await;
     assert_eq!(200, delete_user_response.status().as_u16());
 
@@ -78,8 +87,17 @@ async fn delete_user_using_invalid_role_rejected() {
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
+    let body = json!({
+        "idempotency_key": Uuid::new_v4().to_string()
+    });
+
     let delete_user_response = server
-        .delete_request(&delete_user_url, Some(&session_id.unwrap()))
+        .delete_request(
+            &delete_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+            None,
+        )
         .await;
     assert_eq!(403, delete_user_response.status().as_u16());
 }
@@ -110,8 +128,17 @@ async fn delete_user_with_invalid_id_rejected() {
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
+    let body = json!({
+        "idempotency_key": Uuid::new_v4().to_string()
+    });
+
     let delete_user_response = server
-        .delete_request(&delete_user_url, Some(&session_id.unwrap()))
+        .delete_request(
+            &delete_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+            None,
+        )
         .await;
     // Returns a 404 status code to indicate the user does not exist. Can possibly change to
     // different status code

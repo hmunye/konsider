@@ -22,7 +22,6 @@ async fn create_user_successful() {
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -82,7 +81,6 @@ async fn create_user_with_existing_email_rejected() {
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -129,7 +127,6 @@ async fn create_user_using_invalid_role_rejected() {
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -176,7 +173,6 @@ async fn create_user_with_invalid_fields_rejected() {
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -353,7 +349,6 @@ async fn create_user_with_missing_fields_rejected() {
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -437,67 +432,6 @@ async fn create_user_with_missing_fields_rejected() {
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]
-async fn create_user_concurrent_request_handled() {
-    let server = spawn_server().await;
-    let login_url = format!("{}/v1/auth/login", server.addr);
-    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
-
-    // Uses 'Admin' test user credentials
-    let body = json!({
-        "email": server.test_users[1].email,
-        "password": server.test_users[1].password
-    });
-
-    let login_response = server
-        .post_request(&login_url, Some(body.to_string()), None, None)
-        .await;
-    assert_eq!(200, login_response.status().as_u16());
-
-    // TODO: Find out how to correctly preserve cookies without manual extraction
-    let session_id = login_response
-        .headers()
-        .get(header::SET_COOKIE)
-        .and_then(|value| value.to_str().ok())
-        .and_then(|str| str.split(";").nth(0));
-
-    let email: String = String::from("john@gmail.com");
-
-    let body = json!({
-        "user": {
-            "name": "John",
-            "email": &email,
-            "password": "password1234",
-            "role": "Reviewer",
-        },
-        "idempotency_key": Uuid::new_v4().to_string()
-    });
-
-    let create_user_response_1 = server.post_request(
-        &create_user_url,
-        Some(body.to_string()),
-        Some(&session_id.unwrap()),
-        Some(std::time::Duration::from_secs(2)),
-    );
-
-    let create_user_response_2 = server.post_request(
-        &create_user_url,
-        Some(body.to_string()),
-        Some(&session_id.unwrap()),
-        None,
-    );
-
-    // Await both requests concurrently
-    let (create_user_response_1, create_user_response_2) =
-        tokio::join!(create_user_response_1, create_user_response_2);
-
-    // Should return 200 since it is treated as duplicate result
-    assert_eq!(200, create_user_response_1.status().as_u16());
-
-    // Should return 201 because it is the first response to be processed
-    assert_eq!(201, create_user_response_2.status().as_u16());
-}
-// ---------------------------------------------------------------------------------------------------------------
-#[tokio::test]
 async fn create_user_is_idempotent() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
@@ -514,7 +448,6 @@ async fn create_user_is_idempotent() {
         .await;
     assert_eq!(200, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)

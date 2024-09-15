@@ -37,8 +37,9 @@ pub async fn api_create_user(
         .try_into()
         .map_err(|_| Error::IdempotencyKeyError)?;
 
-    if let Some(user_id) = session.get_user_id().await? {
-        let key_status = get_key_status(&state.redis_pool, &idempotency_key, user_id).await?;
+    if let Some(current_user_id) = session.get_user_id().await? {
+        let key_status =
+            get_key_status(&state.redis_pool, &idempotency_key, current_user_id).await?;
 
         match key_status {
             // Request has already been processed, return early
@@ -53,7 +54,7 @@ pub async fn api_create_user(
                 insert_user(&state, &payload.user, password_hash).await?;
 
                 // Save idempotency key so duplicate requests are not processed
-                save_key_status(&state.redis_pool, &idempotency_key, user_id).await?;
+                save_key_status(&state.redis_pool, &idempotency_key, current_user_id).await?;
             }
         }
     }

@@ -1,4 +1,5 @@
 // TODO: Look into how to implement custom tracing
+// TODO: Find out how to perform log cleanups
 
 use tokio::task::JoinHandle;
 use tracing::subscriber::set_global_default;

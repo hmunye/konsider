@@ -44,34 +44,49 @@ async fn update_user_successful() {
     let test_cases = vec![
         (
             json!({
-                "name": "John",
-                "email": "test@gmail.com",
-                "password": "testing123132312",
-                "role": "Reviewer",
+                "user": {
+                    "name": "John",
+                    "email": "test@gmail.com",
+                    "password": "testing123132312",
+                    "role": "Reviewer",
+                },
+                "idempotency_key": Uuid::new_v4().to_string(),
             }),
             "updating all fields",
         ),
         (
             json!({
-                "name": "Smith",
+                "user": {
+                    "name": "Smith",
+                },
+                "idempotency_key": Uuid::new_v4().to_string(),
             }),
             "updating name",
         ),
         (
             json!({
-                "email": "newtest@gmail.com",
+                "user": {
+                    "email": "newtest@gmail.com",
+                },
+                "idempotency_key": Uuid::new_v4().to_string(),
             }),
             "updating email",
         ),
         (
             json!({
-                "password": "kjsadkjbsahkdbas",
+                "user": {
+                    "password": "kjsadkjbsahkdbas",
+                },
+                "idempotency_key": Uuid::new_v4().to_string(),
             }),
             "updating password",
         ),
         (
             json!({
-                "role": "Admin",
+                "user": {
+                    "role": "Admin",
+                },
+                "idempotency_key": Uuid::new_v4().to_string(),
             }),
             "updating role",
         ),
@@ -83,6 +98,7 @@ async fn update_user_successful() {
                 &update_user_url,
                 Some(valid_body.to_string()),
                 Some(&session_id.unwrap()),
+                None,
             )
             .await;
 
@@ -138,10 +154,13 @@ async fn update_user_using_invalid_role_rejected() {
         .and_then(|str| str.split(";").nth(0));
 
     let body = json!({
-        "name": "John",
-        "email": "test@sdsd.com",
-        "password": "password123",
-        "role": "Reviewer"
+        "user": {
+            "name": "John",
+            "email": "test@sdsd.com",
+            "password": "password123",
+            "role": "Reviewer"
+        },
+        "idempotency_key": Uuid::new_v4().to_string()
     });
 
     let update_user_response = server
@@ -149,6 +168,7 @@ async fn update_user_using_invalid_role_rejected() {
             &update_user_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
+            None,
         )
         .await;
     assert_eq!(403, update_user_response.status().as_u16());
@@ -181,10 +201,13 @@ async fn update_user_with_invalid_id_rejected() {
         .and_then(|str| str.split(";").nth(0));
 
     let body = json!({
-        "name": "John",
-        "email": "test@sdsd.com",
-        "password": "password123",
-        "role": "Reviewer"
+        "user": {
+            "name": "John",
+            "email": "test@sdsd.com",
+            "password": "password123",
+            "role": "Reviewer"
+        },
+        "idempotency_key": Uuid::new_v4().to_string()
     });
 
     let update_user_response = server
@@ -192,6 +215,7 @@ async fn update_user_with_invalid_id_rejected() {
             &update_user_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
+            None,
         )
         .await;
     assert_eq!(404, update_user_response.status().as_u16());
@@ -224,39 +248,53 @@ async fn update_user_with_invalid_fields_rejected() {
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
+    let idempotency_key = Uuid::new_v4().to_string();
+
     let test_cases = vec![
         (
             json!({
-                "name": "John)asdd$",
+                "user": {
+                    "name": "John)asdd$",
+                },
+                "idempotency_key": idempotency_key.clone(),
             }),
             "invalid name",
         ),
         (
             json!({
-                "email": "newtestgmail.com",
+                "user": {
+                    "email": "newtestgmail.com",
+                },
+                "idempotency_key": idempotency_key.clone(),
             }),
             "invalid email",
         ),
         (
             json!({
-                "password": "kj",
+                "user": {
+                    "password": "kj",
+                },
+                "idempotency_key": idempotency_key.clone(),
             }),
             "invalid password",
         ),
         (
             json!({
-                "role": "ad",
+                "user": {
+                    "role": "ad",
+                },
+                "idempotency_key": idempotency_key.clone(),
             }),
             "invalid role",
         ),
     ];
-
     for (valid_body, update_message) in test_cases {
         let update_user_response = server
             .patch_request(
                 &update_user_url,
                 Some(valid_body.to_string()),
                 Some(&session_id.unwrap()),
+                None,
             )
             .await;
 
@@ -302,7 +340,62 @@ async fn update_user_with_missing_fields_rejected() {
             &update_user_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
+            None,
         )
         .await;
     assert_eq!(400, update_user_response.status().as_u16());
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tokio::test]
+async fn update_user_is_idempotent() {
+    let server = spawn_server().await;
+    let login_url = format!("{}/v1/auth/login", server.addr);
+
+    // Uses 'Reviewer' test user id
+    let test_user_id = server.test_users[0].id;
+    let update_user_url = format!("{}/v1/admin/update-user/{}", server.addr, test_user_id);
+
+    // Uses 'Admin' test user credentials
+    let body = json!({
+        "email": server.test_users[1].email,
+        "password": server.test_users[1].password
+    });
+
+    let login_response = server
+        .post_request(&login_url, Some(body.to_string()), None, None)
+        .await;
+    assert_eq!(200, login_response.status().as_u16());
+
+    let session_id = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
+
+    let body = json!({
+        "user": {
+            "password": "kjsadkjbsahkdbas",
+        },
+        "idempotency_key": Uuid::new_v4().to_string(),
+    });
+
+    let update_user_response = server
+        .patch_request(
+            &update_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+            None,
+        )
+        .await;
+    assert_eq!(200, update_user_response.status().as_u16());
+
+    let dup_update_user_response = server
+        .patch_request(
+            &update_user_url,
+            Some(body.to_string()),
+            Some(&session_id.unwrap()),
+            None,
+        )
+        .await;
+    assert_eq!(418, dup_update_user_response.status().as_u16());
 }

@@ -28,6 +28,16 @@ impl TryFrom<String> for IdempotencyKey {
                 ),
             ));
         }
+
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$'];
+
+        if s.chars().any(|s| forbidden_chars.contains(&s)) {
+            return Err(Error::UnexpectedError(
+                std::sync::Arc::new(Error::IdempotencyKeyError),
+                "The idempotency key contains forbidden characters".into(),
+            ));
+        }
+
         Ok(Self(s))
     }
 }

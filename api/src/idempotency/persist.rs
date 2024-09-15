@@ -6,6 +6,7 @@ use crate::idempotency::IdempotencyKey;
 use crate::Result;
 
 // ---------------------------------------------------------------------------------------------------------------
+#[derive(Debug)]
 pub enum IdempotencyStatus {
     Processed,
     NotProcessed,
@@ -40,8 +41,8 @@ pub async fn save_key_status(
         .set(
             redis_key,
             "processed",
-            Some(Expiration::EX(86400)), // Set TTL to 24 hours
-            Some(SetOptions::NX),        // NX: Only set the key if it does not already exist
+            Some(Expiration::EX(300)), // Set TTL to 5 minutes
+            Some(SetOptions::NX),      // NX: Only set the key if it does not already exist
             true,
         )
         .await?;
