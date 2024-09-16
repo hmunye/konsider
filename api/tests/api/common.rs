@@ -34,17 +34,28 @@ impl TestServer {
     pub async fn get_request(
         &self,
         url: &String,
+        session_id: Option<&str>,
         delay: Option<std::time::Duration>,
     ) -> reqwest::Response {
         if let Some(delay_duration) = delay {
             tokio::time::sleep(delay_duration).await
         }
 
-        self.api_client
-            .get(url)
-            .send()
-            .await
-            .expect("Failed to execute request")
+        match session_id {
+            Some(session_id) => self
+                .api_client
+                .get(url)
+                .header(header::COOKIE, session_id)
+                .send()
+                .await
+                .expect("Failed to execute request"),
+            None => self
+                .api_client
+                .get(url)
+                .send()
+                .await
+                .expect("Failed to execute request"),
+        }
     }
 
     pub async fn post_request(

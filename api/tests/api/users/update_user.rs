@@ -402,78 +402,84 @@ async fn update_user_optimistic_concurrency_control() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let update_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
-    // -------------------------------------------------------------------------
-    // Uses 'Admin' test user credentials
+    // Uses first 'Admin' test user credentials
     let body = json!({
         "email": server.test_users[1].email,
         "password": server.test_users[1].password
     });
 
-    let login_response = server
+    let login_response_1 = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(204, login_response_1.status().as_u16());
 
-    let session_id = login_response
+    let session_id_1 = login_response_1
         .headers()
         .get(header::SET_COOKIE)
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
-    let body = json!({
-        "user": {
-            "name": "newname",
-        },
-        "idempotency_key": Uuid::new_v4().to_string(),
-    });
-
-    let update_user_response_1 = server.patch_request(
-        &update_user_url,
-        Some(body.to_string()),
-        Some(&session_id.unwrap()),
-        None,
-    );
-    // -------------------------------------------------------------------------
-    // Uses different 'Admin' test user credentials
+    // Uses second 'Admin' test user credentials
     let body = json!({
         "email": server.test_users[3].email,
         "password": server.test_users[3].password
     });
 
-    let login_response = server
+    let login_response_2 = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(204, login_response_2.status().as_u16());
 
-    let session_id = login_response
+    let session_id_2 = login_response_2
         .headers()
         .get(header::SET_COOKIE)
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
 
-    let body = json!({
+    // First `Admin` updates the user
+    let initial_body = json!({
         "user": {
-            "password": "secondpassword12345",
+            "name": "newnameinitial",
+        },
+        "idempotency_key": Uuid::new_v4().to_string(),
+    });
+
+    let update_user_response_1 = server.patch_request(
+        &user_url,
+        Some(initial_body.to_string()),
+        Some(&session_id_1.unwrap()),
+        None,
+    );
+
+    // Second `Admin` tries to update the user concurrently
+    let stale_body = json!({
+        "user": {
+            "name": "newnamestale",
         },
         "idempotency_key": Uuid::new_v4().to_string(),
     });
 
     let update_user_response_2 = server.patch_request(
-        &update_user_url,
-        Some(body.to_string()),
-        Some(&session_id.unwrap()),
+        &user_url,
+        Some(stale_body.to_string()),
+        Some(&session_id_2.unwrap()),
         None,
     );
-    // -------------------------------------------------------------------------
 
     // Await both requests concurrently
     let (update_user_response_1, update_user_response_2) =
         tokio::join!(update_user_response_1, update_user_response_2);
 
-    assert_ne!(
+    assert_eq!(
+        409,
         update_user_response_1.status().as_u16(),
-        update_user_response_2.status().as_u16()
+        "Expected conflict status for first update"
+    );
+    assert_eq!(
+        204,
+        update_user_response_2.status().as_u16(),
+        "Expected success status for second update"
     );
 }
