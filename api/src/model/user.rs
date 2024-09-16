@@ -22,6 +22,23 @@ pub enum UserRole {
     Admin,
 }
 
+#[derive(Debug, Serialize)]
+pub struct UserDTO {
+    pub name: String,
+    pub email: String,
+    pub role: UserRole,
+}
+
+impl From<&User> for UserDTO {
+    fn from(user: &User) -> Self {
+        UserDTO {
+            name: user.name.clone(),
+            email: user.email.clone(),
+            role: user.role.clone(),
+        }
+    }
+}
+
 impl std::fmt::Display for UserRole {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

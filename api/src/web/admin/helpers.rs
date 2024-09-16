@@ -4,11 +4,12 @@ use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::model::UserDTO;
 use crate::server::AppState;
 use crate::{Error, Result, User, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "fetching user role", skip(user_id, db_pool))]
+#[tracing::instrument(name = "fetching user role from database", skip(user_id, db_pool))]
 pub async fn get_user_role(user_id: Uuid, db_pool: &PgPool) -> Result<UserRole> {
     match sqlx::query!(
         r#"
@@ -33,7 +34,7 @@ pub async fn get_user_role(user_id: Uuid, db_pool: &PgPool) -> Result<UserRole> 
     .map(|row| row.role as UserRole)
 }
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "fetching user by id", skip(state, user_id))]
+#[tracing::instrument(name = "fetching user by id from database", skip(state, user_id))]
 pub async fn fetch_user_by_id(state: &AppState, user_id: &Uuid) -> Result<User> {
     match sqlx::query!(
         r#"
@@ -62,6 +63,21 @@ pub async fn fetch_user_by_id(state: &AppState, user_id: &Uuid) -> Result<User> 
         role: row.role,
         version: row.version,
     })
+}
+// ---------------------------------------------------------------------------------------------------------------
+#[tracing::instrument(name = "fetching all users from database", skip(state))]
+pub async fn fetch_all_users(state: &AppState) -> Result<Vec<UserDTO>> {
+    let records: Vec<UserDTO> = sqlx::query_as!(
+        UserDTO,
+        r#"
+        SELECT name, email, role AS "role: UserRole"
+        FROM users
+        "#,
+    )
+    .fetch_all(&state.db_pool)
+    .await?;
+
+    Ok(records)
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(

@@ -9,7 +9,7 @@ use crate::common::spawn_server;
 async fn create_user_successful() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/users", server.addr);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -68,7 +68,7 @@ async fn create_user_successful() {
 async fn create_user_with_existing_email_rejected() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/users", server.addr);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -114,7 +114,7 @@ async fn create_user_with_existing_email_rejected() {
 async fn create_user_using_invalid_role_rejected() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/users", server.addr);
 
     // Uses 'Reviewer' test user credentials
     let body = json!({
@@ -160,7 +160,7 @@ async fn create_user_using_invalid_role_rejected() {
 async fn create_user_with_invalid_fields_rejected() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/users", server.addr);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -336,7 +336,7 @@ async fn create_user_with_invalid_fields_rejected() {
 async fn create_user_with_missing_fields_rejected() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/users", server.addr);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -435,7 +435,7 @@ async fn create_user_with_missing_fields_rejected() {
 async fn create_user_is_idempotent() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
-    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/users", server.addr);
 
     // Uses 'Admin' test user credentials
     let body = json!({

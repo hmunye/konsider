@@ -14,13 +14,13 @@ use api::server::{get_db_pool, Application};
 use api::telemetry::{get_subscriber, init_subscriber};
 use api::{Config, Environment, UserRole};
 
+// ---------------------------------------------------------------------------------------------------------------
 // Ensure the subscriber is only initialized once
 static TRACING: Lazy<()> = Lazy::new(|| {
     // Using std::io::sink will not output logs
     let subscriber = get_subscriber("test".into(), "info".into(), std::io::sink);
     init_subscriber(subscriber);
 });
-
 // ---------------------------------------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct TestServer {

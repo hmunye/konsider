@@ -10,7 +10,7 @@ async fn logout_is_successful_and_clears_session() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
     let logout_url = format!("{}/v1/auth/logout", server.addr);
-    let create_user_url = format!("{}/v1/admin/create-user", server.addr);
+    let create_user_url = format!("{}/v1/admin/users", server.addr);
 
     // Uses 'Admin' test user credentials
     let body = json!({

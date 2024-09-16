@@ -12,7 +12,7 @@ async fn delete_user_successful() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let delete_user_url = format!("{}/v1/admin/delete-user/{}", server.addr, test_user_id);
+    let delete_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -66,7 +66,7 @@ async fn delete_user_using_invalid_role_rejected() {
 
     // Uses 'Reviewer' test user delete id
     let test_user_id = server.test_users[0].id;
-    let delete_user_url = format!("{}/v1/admin/delete-user/{}", server.addr, test_user_id);
+    let delete_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
     // Uses 'Reviewer' test user credentials
     let body = json!({
@@ -106,7 +106,7 @@ async fn delete_user_with_invalid_id_rejected() {
     let login_url = format!("{}/v1/auth/login", server.addr);
 
     let test_user_id = Uuid::new_v4();
-    let delete_user_url = format!("{}/v1/admin/delete-user/{}", server.addr, test_user_id);
+    let delete_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -149,7 +149,7 @@ async fn delete_user_is_idempotent() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let delete_user_url = format!("{}/v1/admin/delete-user/{}", server.addr, test_user_id);
+    let delete_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
