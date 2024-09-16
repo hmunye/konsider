@@ -23,7 +23,6 @@ async fn login_is_successful_and_returns_session_token() {
         .await;
     assert_eq!(204, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)

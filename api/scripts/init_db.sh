@@ -20,7 +20,7 @@ fi
 if ! [ -x "$(command -v psql)" ]; then
   echo >&2 "Error: psql is not installed."
   echo >&2 "Use:"
-  echo >&2 "    libpq or libpq-dev if PostgreSQL is not installed on the system"
+  echo >&2 "    libpq, libpq-dev, or postgres-client if PostgreSQL is not installed on the system"
   echo >&2 "to install it."
   exit 1
 fi

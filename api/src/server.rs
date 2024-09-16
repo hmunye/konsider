@@ -191,7 +191,7 @@ pub async fn serve(
         ]);
 
     let routes_all = Router::new()
-        .route("/v1/health", get(health_check))
+        .route("/v1/health-check", get(health_check))
         .nest("/v1/auth", auth_routes(state.clone()))
         .nest(
             "/v1/admin",

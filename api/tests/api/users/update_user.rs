@@ -34,7 +34,6 @@ async fn update_user_successful() {
         .await;
     assert_eq!(204, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -146,7 +145,6 @@ async fn update_user_using_invalid_role_rejected() {
         .await;
     assert_eq!(204, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -193,7 +191,6 @@ async fn update_user_with_invalid_id_rejected() {
         .await;
     assert_eq!(204, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -241,7 +238,6 @@ async fn update_user_with_invalid_fields_rejected() {
         .await;
     assert_eq!(204, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
@@ -326,7 +322,6 @@ async fn update_user_with_missing_fields_rejected() {
         .await;
     assert_eq!(204, login_response.status().as_u16());
 
-    // TODO: Find out how to correctly preserve cookies without manual extraction
     let session_id = login_response
         .headers()
         .get(header::SET_COOKIE)
