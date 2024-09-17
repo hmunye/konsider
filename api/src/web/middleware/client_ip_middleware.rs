@@ -1,3 +1,5 @@
+// TODO: Fix IP address extracted from X-FORWARDED-FOR header. Issue with Docker networking
+
 use axum::extract::ConnectInfo;
 use axum::extract::Request;
 use axum::middleware::Next;

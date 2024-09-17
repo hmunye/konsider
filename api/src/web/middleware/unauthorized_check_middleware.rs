@@ -18,6 +18,6 @@ pub async fn reject_unauthorized_users(mut request: Request, next: Next) -> Resu
             let response = next.run(request).await;
             Ok(response)
         }
-        None => Err(Error::NoAuthProvidedError)?,
+        None => Err(Error::NoAuthProvidedError),
     }
 }

@@ -2,7 +2,7 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
-use serde_json::json;
+use serde_json::{json, Value};
 
 use crate::server::AppState;
 use crate::web::admin::fetch_all_users;
@@ -22,8 +22,17 @@ pub async fn api_get_all_users(State(state): State<AppState>) -> Result<impl Int
 
     let users = fetch_all_users(&state).await?;
 
+    let wrapped_users: Vec<Value> = users
+        .into_iter()
+        .map(|user| {
+            json!({
+                "user": user
+            })
+        })
+        .collect();
+
     let response_body = json!({
-        "users": users
+        "users": wrapped_users
     });
 
     Ok((StatusCode::OK, Json(response_body)))
