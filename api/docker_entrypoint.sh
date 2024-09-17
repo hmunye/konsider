@@ -3,8 +3,11 @@
 set -e
 # ^ Exit immediately if any command returns a non-zero exit status
 
-if [ -f /app/.env.production ]; then
-  export $(grep -v '^#' /app/.env.production | xargs)
+ENV_FILE="/app/.env.production"
+
+if [ -f "$ENV_FILE" ]; then
+# Load environment variables from .env file
+    source "$ENV_FILE"
 fi
 
 export DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}

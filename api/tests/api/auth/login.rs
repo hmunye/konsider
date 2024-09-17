@@ -28,8 +28,7 @@ async fn login_is_successful_and_returns_session_token() {
         .get(header::SET_COOKIE)
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
-
-    assert!(session_id.is_some())
+    assert!(session_id.is_some(), "Session ID should be present");
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::test]

@@ -28,6 +28,7 @@ async fn logout_is_successful_and_clears_session() {
         .get(header::SET_COOKIE)
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
+    assert!(session_id.is_some(), "Session ID should be present");
 
     let logout_response = server
         .post_request(&logout_url, None, Some(&session_id.unwrap()), None)

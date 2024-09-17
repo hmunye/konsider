@@ -1,6 +1,3 @@
-use std::env;
-use std::path::Path;
-
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHasher, Version};
 use once_cell::sync::Lazy;
@@ -12,7 +9,7 @@ use uuid::Uuid;
 
 use api::server::{get_db_pool, Application};
 use api::telemetry::{get_subscriber, init_subscriber};
-use api::{Config, Environment, UserRole};
+use api::{Config, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Ensure the subscriber is only initialized once
@@ -272,19 +269,8 @@ impl TestUser {
 pub async fn spawn_server() -> TestServer {
     Lazy::force(&TRACING);
 
-    // Detect the running environment. Defaults to local if not provided
-    let environment: Environment = env::var("ENVIRONMENT")
-        .unwrap_or_else(|_| "local".into())
-        .try_into()
-        .unwrap();
-
-    let env_file = match environment.as_str() {
-        "production" => ".env.production",
-        _ => ".env.local",
-    };
-
-    // Load the specified .env file
-    let _ = dotenvy::from_path(Path::new(env_file));
+    // Load environment variables from .env.local file
+    let _ = dotenvy::from_path(".env.local");
 
     let config = {
         let mut config = Config::default();
@@ -302,7 +288,7 @@ pub async fn spawn_server() -> TestServer {
 
     config_database(&config).await;
 
-    let application = Application::build(config.clone(), environment.as_str())
+    let application = Application::build(config.clone(), ".env.local")
         .await
         .expect("Failed to build application");
 
@@ -314,7 +300,7 @@ pub async fn spawn_server() -> TestServer {
 
     // Use the same instance of client for each test so there is access to cookies
     let client = reqwest::Client::builder()
-        .cookie_store(true)
+        //.cookie_store(true)
         .build()
         .unwrap();
 

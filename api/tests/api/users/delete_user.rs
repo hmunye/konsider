@@ -12,7 +12,7 @@ async fn delete_user_successful() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let delete_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -30,6 +30,7 @@ async fn delete_user_successful() {
         .get(header::SET_COOKIE)
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
+    assert!(session_id.is_some(), "Session ID should be present");
 
     let body = json!({
         "idempotency_key": Uuid::new_v4().to_string()
@@ -37,7 +38,7 @@ async fn delete_user_successful() {
 
     let delete_user_response = server
         .delete_request(
-            &delete_user_url,
+            &users_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
             None,
@@ -66,7 +67,7 @@ async fn delete_user_using_invalid_role_rejected() {
 
     // Uses 'Reviewer' test user delete id
     let test_user_id = server.test_users[0].id;
-    let delete_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
     // Uses 'Reviewer' test user credentials
     let body = json!({
@@ -84,6 +85,7 @@ async fn delete_user_using_invalid_role_rejected() {
         .get(header::SET_COOKIE)
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
+    assert!(session_id.is_some(), "Session ID should be present");
 
     let body = json!({
         "idempotency_key": Uuid::new_v4().to_string()
@@ -91,7 +93,7 @@ async fn delete_user_using_invalid_role_rejected() {
 
     let delete_user_response = server
         .delete_request(
-            &delete_user_url,
+            &users_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
             None,
@@ -106,7 +108,7 @@ async fn delete_user_with_invalid_id_rejected() {
     let login_url = format!("{}/v1/auth/login", server.addr);
 
     let test_user_id = Uuid::new_v4();
-    let delete_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -124,6 +126,7 @@ async fn delete_user_with_invalid_id_rejected() {
         .get(header::SET_COOKIE)
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
+    assert!(session_id.is_some(), "Session ID should be present");
 
     let body = json!({
         "idempotency_key": Uuid::new_v4().to_string()
@@ -131,14 +134,13 @@ async fn delete_user_with_invalid_id_rejected() {
 
     let delete_user_response = server
         .delete_request(
-            &delete_user_url,
+            &users_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
             None,
         )
         .await;
-    // Returns a 404 status code to indicate the user does not exist. Can possibly change to
-    // different status code
+    // Returns a 404 status code to indicate the user does not exist
     assert_eq!(404, delete_user_response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------
@@ -149,7 +151,7 @@ async fn delete_user_is_idempotent() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let delete_user_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -167,6 +169,7 @@ async fn delete_user_is_idempotent() {
         .get(header::SET_COOKIE)
         .and_then(|value| value.to_str().ok())
         .and_then(|str| str.split(";").nth(0));
+    assert!(session_id.is_some(), "Session ID should be present");
 
     let body = json!({
         "idempotency_key": Uuid::new_v4().to_string()
@@ -174,7 +177,7 @@ async fn delete_user_is_idempotent() {
 
     let delete_user_response = server
         .delete_request(
-            &delete_user_url,
+            &users_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
             None,
@@ -184,7 +187,7 @@ async fn delete_user_is_idempotent() {
 
     let dup_delete_user_response = server
         .delete_request(
-            &delete_user_url,
+            &users_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
             None,
