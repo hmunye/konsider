@@ -1,5 +1,5 @@
 config/
-self-signed-certs/
+certs/
 .env
 
 # Misc
