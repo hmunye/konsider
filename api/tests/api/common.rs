@@ -7,8 +7,8 @@ use serde::Serialize;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 
+use api::logging::{get_subscriber, init_subscriber};
 use api::server::{get_db_pool, Application};
-use api::telemetry::{get_subscriber, init_subscriber};
 use api::{Config, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------

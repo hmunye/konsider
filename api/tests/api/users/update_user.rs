@@ -13,7 +13,7 @@ async fn update_user_successful() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/users/{}", server.addr, test_user_id);
 
     // Store test user details in Vec before update for later comparison
     let original_test_user = vec![
@@ -42,57 +42,42 @@ async fn update_user_successful() {
     assert!(session_id.is_some(), "Session ID should be present");
 
     let test_cases = vec![
-        (
-            json!({
-                "user": {
-                    "name": "John",
-                    "email": "test@gmail.com",
-                    "password": "testing123132312",
-                    "role": "Reviewer",
-                },
-                "idempotency_key": Uuid::new_v4().to_string(),
-            }),
-            "updating all fields",
-        ),
-        (
-            json!({
-                "user": {
-                    "name": "Smith",
-                },
-                "idempotency_key": Uuid::new_v4().to_string(),
-            }),
-            "updating name",
-        ),
-        (
-            json!({
-                "user": {
-                    "email": "newtest@gmail.com",
-                },
-                "idempotency_key": Uuid::new_v4().to_string(),
-            }),
-            "updating email",
-        ),
-        (
-            json!({
-                "user": {
-                    "password": "kjsadkjbsahkdbas",
-                },
-                "idempotency_key": Uuid::new_v4().to_string(),
-            }),
-            "updating password",
-        ),
-        (
-            json!({
-                "user": {
-                    "role": "Admin",
-                },
-                "idempotency_key": Uuid::new_v4().to_string(),
-            }),
-            "updating role",
-        ),
+        json!({
+            "user": {
+                "name": "John",
+                "email": "test@gmail.com",
+                "password": "testing123132312",
+                "role": "Reviewer",
+            },
+            "idempotency_key": Uuid::new_v4().to_string(),
+        }),
+        json!({
+            "user": {
+                "name": "Smith",
+            },
+            "idempotency_key": Uuid::new_v4().to_string(),
+        }),
+        json!({
+            "user": {
+                "email": "newtest@gmail.com",
+            },
+            "idempotency_key": Uuid::new_v4().to_string(),
+        }),
+        json!({
+            "user": {
+                "password": "kjsadkjbsahkdbas",
+            },
+            "idempotency_key": Uuid::new_v4().to_string(),
+        }),
+        json!({
+            "user": {
+                "role": "Admin",
+            },
+            "idempotency_key": Uuid::new_v4().to_string(),
+        }),
     ];
 
-    for (valid_body, update_message) in test_cases {
+    for valid_body in test_cases {
         let update_user_response = server
             .patch_request(
                 &users_url,
@@ -102,11 +87,7 @@ async fn update_user_successful() {
             )
             .await;
 
-        (
-            assert_eq!(204, update_user_response.status().as_u16()),
-            "API processed request with a 204 status when the payload was {}",
-            update_message,
-        );
+        assert_eq!(204, update_user_response.status().as_u16());
     }
 
     let row = sqlx::query!(
@@ -133,7 +114,7 @@ async fn update_user_using_invalid_role_rejected() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/users/{}", server.addr, test_user_id);
 
     // Uses 'Reviewer' test user credentials
     let body = json!({
@@ -180,7 +161,7 @@ async fn update_user_with_invalid_id_rejected() {
     let login_url = format!("{}/v1/auth/login", server.addr);
 
     let test_user_id = Uuid::new_v4();
-    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -229,7 +210,7 @@ async fn update_user_with_invalid_fields_rejected() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -289,11 +270,11 @@ async fn update_user_with_invalid_fields_rejected() {
             "invalid role",
         ),
     ];
-    for (valid_body, update_message) in test_cases {
+    for (invalid_body, error_message) in test_cases {
         let update_user_response = server
             .patch_request(
                 &users_url,
-                Some(valid_body.to_string()),
+                Some(invalid_body.to_string()),
                 Some(&session_id.unwrap()),
                 None,
             )
@@ -301,8 +282,8 @@ async fn update_user_with_invalid_fields_rejected() {
 
         (
             assert_eq!(400, update_user_response.status().as_u16()),
-            "API processed request with a 400 status when the payload was {}",
-            update_message,
+            "API did not fail with a 400 status when the payload was {}",
+            error_message,
         );
     }
 }
@@ -314,7 +295,7 @@ async fn update_user_with_missing_fields_rejected() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -354,7 +335,7 @@ async fn update_user_is_idempotent() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/users/{}", server.addr, test_user_id);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -402,6 +383,7 @@ async fn update_user_is_idempotent() {
     assert_eq!(418, dup_update_user_response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------
+// TODO: This test is flaky, fix it
 #[tokio::test]
 async fn update_user_optimistic_concurrency_control() {
     let server = spawn_server().await;
@@ -409,7 +391,7 @@ async fn update_user_optimistic_concurrency_control() {
 
     // Uses 'Reviewer' test user id
     let test_user_id = server.test_users[0].id;
-    let users_url = format!("{}/v1/admin/users/{}", server.addr, test_user_id);
+    let users_url = format!("{}/v1/users/{}", server.addr, test_user_id);
 
     // Uses first 'Admin' test user credentials
     let body = json!({

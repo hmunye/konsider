@@ -4,10 +4,18 @@ use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::UserDTO;
+use crate::model::{Metadata, UserDTO};
 use crate::server::AppState;
 use crate::{Error, Result, User, UserRole};
 
+// ---------------------------------------------------------------------------------------------------------------
+#[derive(Debug, sqlx::FromRow)]
+pub struct UserRecordCount {
+    pub count: i64,
+    pub name: String,
+    pub email: String,
+    pub role: UserRole,
+}
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "fetching user role from database", skip(user_id, db_pool))]
 pub async fn get_user_role(user_id: Uuid, db_pool: &PgPool) -> Result<UserRole> {
@@ -65,19 +73,45 @@ pub async fn fetch_user_by_id(state: &AppState, user_id: &Uuid) -> Result<User> 
     })
 }
 // ---------------------------------------------------------------------------------------------------------------
-#[tracing::instrument(name = "fetching all users from database", skip(state))]
-pub async fn fetch_all_users(state: &AppState) -> Result<Vec<UserDTO>> {
-    let records: Vec<UserDTO> = sqlx::query_as!(
-        UserDTO,
-        r#"
-        SELECT name, email, role AS "role: UserRole"
-        FROM users
-        "#,
-    )
-    .fetch_all(&state.db_pool)
-    .await?;
+#[tracing::instrument(name = "fetching users from database", skip(state))]
+pub async fn fetch_users(
+    state: &AppState,
+    sort_column: String,
+    sort_direction: String,
+    page: usize,
+    per_page: usize,
+) -> Result<(Vec<UserDTO>, Metadata)> {
+    let limit = per_page;
+    let offset = (page - 1) * per_page;
 
-    Ok(records)
+    let query = format!(
+        r#"
+        SELECT count(*) OVER(), name, email, role, created_at 
+        FROM users
+        ORDER BY {} {}, id ASC
+        LIMIT {} OFFSET {}
+        "#,
+        sort_column, sort_direction, limit, offset
+    );
+
+    let records = sqlx::query_as::<_, UserRecordCount>(&query)
+        .fetch_all(&state.db_pool)
+        .await?;
+
+    let total_records = records.first().map_or(0, |record| record.count);
+
+    let user_records: Vec<UserDTO> = records
+        .into_iter()
+        .map(|record| UserDTO {
+            name: record.name,
+            email: record.email,
+            role: record.role,
+        })
+        .collect();
+
+    let metadata = Metadata::calculate_metadata(total_records, page, per_page);
+
+    Ok((user_records, metadata))
 }
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(

@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::idempotency::{get_key_status, save_key_status, IdempotencyKey, IdempotencyStatus};
 use crate::model::TypedSession;
 use crate::server::AppState;
-use crate::web::admin::{compute_password_hash, fetch_user_by_id, update_user};
+use crate::web::users::{compute_password_hash, fetch_user_by_id, update_user};
 use crate::{Error, Result, UserRole};
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -30,28 +30,28 @@ pub struct UpdatePayload {
 #[tracing::instrument(
     name = "updating user details", 
     // Any values in 'skip' won't be included in logs
-    skip(state, updating_user_id, session, payload),
+    skip(state, user_id, session, payload),
     fields(
-        updating_user_id = tracing::field::Empty,
+        request_initiator = tracing::field::Empty,
     )
 )]
 pub async fn api_update_user(
     State(state): State<AppState>,
-    Path(updating_user_id): Path<Uuid>,
+    Path(user_id): Path<Uuid>,
     session: TypedSession,
     extract::Json(payload): Json<UpdatePayload>,
 ) -> Result<StatusCode> {
-    tracing::Span::current().record(
-        "updating_user_id",
-        tracing::field::display(&updating_user_id),
-    );
-
     let idempotency_key: IdempotencyKey = payload
         .idempotency_key
         .try_into()
         .map_err(|_| Error::IdempotencyKeyError)?;
 
     if let Some(current_user_id) = session.get_user_id().await? {
+        tracing::Span::current().record(
+            "request_initiator",
+            tracing::field::display(&current_user_id),
+        );
+
         let key_status =
             get_key_status(&state.redis_pool, &idempotency_key, current_user_id).await?;
 
@@ -61,7 +61,7 @@ pub async fn api_update_user(
             // New request made, handle normally
             IdempotencyStatus::NotProcessed => {
                 // Fetch user from database if a record exists
-                let mut user = fetch_user_by_id(&state, &updating_user_id).await?;
+                let mut user = fetch_user_by_id(&state, &user_id).await?;
 
                 let mut changed_password = false;
                 let mut fields_updated = false;
@@ -105,7 +105,7 @@ pub async fn api_update_user(
                     false => user.parse_without_password()?,
                 }
 
-                update_user(&state, &user, &updating_user_id).await?;
+                update_user(&state, &user, &user_id).await?;
 
                 // Save idempotency key so duplicate requests are not processed
                 save_key_status(&state.redis_pool, &idempotency_key, current_user_id).await?;

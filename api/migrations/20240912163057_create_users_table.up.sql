@@ -17,8 +17,8 @@ CREATE TABLE users (
 
 -- Constraints
 ALTER TABLE users
-    ADD CONSTRAINT check_name_length CHECK (length(name) > 0 AND length(name) <= 256),
-    ADD CONSTRAINT check_email_length CHECK (length(email) > 0 AND length(email) <= 256),
+    ADD CONSTRAINT check_name_length CHECK (length(name) > 0 AND length(name) <= 128),
+    ADD CONSTRAINT check_email_length CHECK (length(email) > 0 AND length(email) <= 128),
     ADD CONSTRAINT check_role CHECK (role IN ('Reviewer', 'Admin'));
     
 -- Ensure updated_at is always updated on modification

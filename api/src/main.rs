@@ -1,8 +1,8 @@
 use std::env;
 use std::path::Path;
 
+use api::logging::{get_subscriber, init_subscriber};
 use api::server::Application;
-use api::telemetry::{get_subscriber, init_subscriber};
 use api::{Config, Environment};
 
 // ---------------------------------------------------------------------------------------------------------------

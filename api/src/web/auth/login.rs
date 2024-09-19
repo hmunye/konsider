@@ -12,7 +12,7 @@ use crate::Result;
     // Any values in 'skip' won't be included in logs
     skip(state, session, payload),
     fields(
-        user_email = %payload.email
+        request_initiator = tracing::field::Empty,
     )
 )]
 pub async fn api_login(
@@ -21,6 +21,8 @@ pub async fn api_login(
     extract::Json(payload): extract::Json<Credentials>,
 ) -> Result<StatusCode> {
     let user_id = validate_credentials(&state, payload).await?;
+
+    tracing::Span::current().record("request_initiator", tracing::field::display(&user_id));
 
     // Rotating session id prevents session fixation attacks
     session.cycle().await?;

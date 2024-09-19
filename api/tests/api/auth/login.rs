@@ -1,4 +1,5 @@
-// TODO: Create a test to verify session token expiration
+// TODO: Test to verify session token expiration
+// TODO: Test to validate session token
 
 use reqwest::header;
 use serde_json::json;
@@ -6,7 +7,6 @@ use serde_json::json;
 use crate::common::spawn_server;
 
 // ---------------------------------------------------------------------------------------------------------------
-// TODO: Update to validate session token as well
 #[tokio::test]
 async fn login_is_successful_and_returns_session_token() {
     let server = spawn_server().await;

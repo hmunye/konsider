@@ -14,8 +14,8 @@ pub enum Error {
     #[error("{0}")]
     InvalidPasswordError(String),
 
-    #[error("Validation error occured while parsing user payload: {0}")]
-    UserValidationError(String),
+    #[error("Validation error occured while parsing payload: {0}")]
+    ValidationError(String),
 
     #[error("No session token provided for request")]
     NoAuthProvidedError,
@@ -122,7 +122,7 @@ impl Error {
 
             Self::InvalidRoleError => (StatusCode::FORBIDDEN, ClientError::INVALID_PERMISSIONS),
 
-            Self::UserValidationError(..)
+            Self::ValidationError(..)
             | Self::NoUpdatesProvidedError
             | Self::IdempotencyKeyError => (StatusCode::BAD_REQUEST, ClientError::INVALID_PARAMS),
 

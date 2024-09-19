@@ -22,7 +22,7 @@ pub enum UserRole {
     Admin,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct UserDTO {
     pub name: String,
     pub email: String,
@@ -51,22 +51,22 @@ impl std::fmt::Display for UserRole {
 impl User {
     pub fn parse(&self) -> Result<()> {
         if !Self::validate_name(&self.name) {
-            return Err(Error::UserValidationError(format!(
-                "'{}' is an invaild name",
+            return Err(Error::ValidationError(format!(
+                "'{}' is an invaild name for user",
                 &self.name
             )));
         }
 
         if !Self::validate_email(&self.email) {
-            return Err(Error::UserValidationError(format!(
-                "'{}' is an invaild email",
+            return Err(Error::ValidationError(format!(
+                "'{}' is an invaild email for user",
                 &self.email
             )));
         }
 
         if !Self::validate_password(self.password.expose_secret()) {
-            return Err(Error::UserValidationError(
-                "invaild password provided".into(),
+            return Err(Error::ValidationError(
+                "invaild password provided for user".into(),
             ));
         }
 
@@ -77,15 +77,15 @@ impl User {
     // parsed, resulting in a failure because of `forbidden_chars` contained within it
     pub fn parse_without_password(&self) -> Result<()> {
         if !Self::validate_name(&self.name) {
-            return Err(Error::UserValidationError(format!(
-                "'{}' is an invaild name",
+            return Err(Error::ValidationError(format!(
+                "'{}' is an invaild name for user",
                 &self.name
             )));
         }
 
         if !Self::validate_email(&self.email) {
-            return Err(Error::UserValidationError(format!(
-                "'{}' is an invaild email",
+            return Err(Error::ValidationError(format!(
+                "'{}' is an invaild email for user",
                 &self.email
             )));
         }

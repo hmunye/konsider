@@ -1,3 +1,5 @@
+// TODO: Test with session token that is expired
+
 use reqwest::header;
 use serde_json::json;
 use uuid::Uuid;
@@ -10,7 +12,7 @@ async fn logout_is_successful_and_clears_session() {
     let server = spawn_server().await;
     let login_url = format!("{}/v1/auth/login", server.addr);
     let logout_url = format!("{}/v1/auth/logout", server.addr);
-    let create_user_url = format!("{}/v1/admin/users", server.addr);
+    let users_url = format!("{}/v1/users", server.addr);
 
     // Uses 'Admin' test user credentials
     let body = json!({
@@ -44,10 +46,10 @@ async fn logout_is_successful_and_clears_session() {
         "role": "Reviewer"
     });
 
-    // Use the cleared session_id on an endpoint that requires a valid session
+    // Using cleared session id on an endpoint that requires a valid session
     let create_user_response = server
         .post_request(
-            &create_user_url,
+            &users_url,
             Some(body.to_string()),
             Some(&session_id.unwrap()),
             None,
@@ -56,7 +58,6 @@ async fn logout_is_successful_and_clears_session() {
     assert_eq!(401, create_user_response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------
-// TODO: Possibly test with session token that is expired as well
 #[tokio::test]
 async fn logout_with_invalid_session_token_rejected() {
     let server = spawn_server().await;

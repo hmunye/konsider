@@ -23,8 +23,7 @@ use tracing::Level;
 use uuid::Uuid;
 
 use crate::web::{
-    admin_routes, auth_routes, extract_client_ip, health_check, main_response_mapper,
-    reject_non_admin_users,
+    auth_routes, extract_client_ip, health_check, main_response_mapper, users_routes,
 };
 use crate::Config;
 
@@ -193,13 +192,7 @@ pub async fn serve(
     let routes_all = Router::new()
         .route("/v1/health-check", get(health_check))
         .nest("/v1/auth", auth_routes(state.clone()))
-        .nest(
-            "/v1/admin",
-            admin_routes(state.clone()).route_layer(axum::middleware::from_fn_with_state(
-                state.clone(),
-                reject_non_admin_users,
-            )),
-        )
+        .nest("/v1/users", users_routes(state.clone()))
         .layer(axum::middleware::map_response(main_response_mapper))
         .layer(session_layer)
         .layer(cors_layer)

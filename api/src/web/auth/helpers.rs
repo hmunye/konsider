@@ -3,8 +3,8 @@ use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
 use uuid::Uuid;
 
+use crate::logging::spawn_blocking_with_tracing;
 use crate::server::AppState;
-use crate::telemetry::spawn_blocking_with_tracing;
 use crate::{Error, Result};
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -16,7 +16,7 @@ pub struct Credentials {
 // ---------------------------------------------------------------------------------------------------------------
 #[tracing::instrument(name = "validating user credentials", skip(state, payload))]
 pub async fn validate_credentials(state: &AppState, payload: Credentials) -> Result<Uuid> {
-    // When attempting to validate credentails, passing an incorrect email and password takes
+    // When attempting to validate credentials, passing an incorrect email and password takes
     // and order of magnitude less of time then with a correct email and incorrect password
     //
     // Fallback user_id and expected_password_hash are used so that the same operations happen during

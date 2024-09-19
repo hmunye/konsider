@@ -1,9 +1,9 @@
 pub mod config;
 pub mod error;
 pub mod idempotency;
+pub mod logging;
 pub mod model;
 pub mod server;
-pub mod telemetry;
 pub mod web;
 
 pub use config::{Config, Environment};

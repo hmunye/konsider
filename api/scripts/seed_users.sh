@@ -26,6 +26,7 @@ until psql -h ${POSTGRES_HOST} -U "${POSTGRES_USER}" -p "${POSTGRES_PORT}" -d "p
 done
 
 # Fixed password hash for all users
+# everythinghastostartsomewhere
 PASSWORD_HASH='$argon2id$v=19$m=15000,t=2,p=1$OEx/rcq+3ts//WUDzGNl2g$Am8UFBA4w5NJEmAtquGvBmAlu92q/VQcaoL5AyJPfc8'
 
 NUM_USERS=50

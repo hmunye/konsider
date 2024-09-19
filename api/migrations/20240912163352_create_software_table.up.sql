@@ -1,6 +1,6 @@
 CREATE TABLE software (
     name TEXT PRIMARY KEY,
-    version NUMERIC NOT NULL, -- Version requested
+    software_version NUMERIC NOT NULL, -- Version requested
     description TEXT NOT NULL,
     developer TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -9,9 +9,10 @@ CREATE TABLE software (
 
 -- Constraints
 ALTER TABLE software
-    ADD CONSTRAINT check_name_length CHECK (length(name) > 0 AND length(name) <= 50),
-    ADD CONSTRAINT check_description_length CHECK (length(description) > 0 AND length(description) <= 255),
-    ADD CONSTRAINT check_developer_length CHECK (length(developer) > 0 AND length(developer) <= 50);
+    ADD CONSTRAINT check_name_length CHECK (length(name) > 0 AND length(name) <= 128),
+    ADD CONSTRAINT check_software_version CHECK (software_version > 0.0),
+    ADD CONSTRAINT check_description_length CHECK (length(description) > 0 AND length(description) <= 128),
+    ADD CONSTRAINT check_developer_length CHECK (length(developer) > 0 AND length(developer) <= 128);
 
 -- Ensure updated_at is always updated on modification
 CREATE OR REPLACE FUNCTION update_software_timestamp()
