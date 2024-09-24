@@ -1,15 +1,15 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
   theme: {
     extend: {
       fontFamily: {
-        "nippo-extra-light": ["Nippo-ExtraLight", "monospace"],
-        "nippo-light": ["Nippo-Light", "monospace"],
-        "nippo-regular": ["Nippo-Regular", "monospace"],
-        "nippo-medium": ["Nippo-Medium", "monospace"],
-        "nippo-bold": ["Nippo-Bold", "monospace"],
+        nippo: ["var(--font-nippo)", "sans-serif"],
       },
       colors: {
         foreground: "rgb(var(--foreground))",

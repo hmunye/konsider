@@ -1,30 +1,31 @@
-node_modules/
-dist/
-dist-ssr/
-*.local
-*.production
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
 
-# Logs
-logs/
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-# Misc 
-.vscode/*
-!.vscode/extensions.json
-.idea/
-.DS_Store
-*.pem
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# env files
+.env
+*.local
+*.production
 
-# Typescript
+# typescript
 *.tsbuildinfo
-vite-env.d.ts
+next-env.d.ts
