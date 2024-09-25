@@ -1,4 +1,5 @@
-CREATE TABLE requester (
+-- Create the requester table
+CREATE TABLE IF NOT EXISTS requester (
     request_id INTEGER PRIMARY KEY, -- From TeamDynamix ticket
     name TEXT NOT NULL, -- Full name
     email TEXT NOT NULL, -- Brockport email
@@ -7,7 +8,7 @@ CREATE TABLE requester (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Constraints
+-- Add constraints
 ALTER TABLE requester
     ADD CONSTRAINT check_name_length CHECK (length(name) > 0 AND length(name) <= 50),
     ADD CONSTRAINT check_email_length CHECK (length(email) > 0 AND length(email) <= 50),
@@ -22,7 +23,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Runs function on every update query on requester
+-- Create the trigger to update the timestamp before each update on the requester table
 CREATE TRIGGER update_requester_before_update
     BEFORE UPDATE ON requester
     FOR EACH ROW

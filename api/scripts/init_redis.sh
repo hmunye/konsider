@@ -10,11 +10,6 @@ if [ -f "$ENV_FILE" ]; then
     source "$ENV_FILE"
 fi
 
-if ! [ -x "$(command -v redis-cli)" ]; then
-  echo >&2 "Error: redis is not installed."
-  exit 1
-fi
-
 # Check if a custom host has been set, otherwise default to '127.0.0.1'
 REDIS_HOST="${REDIS_HOST:=127.0.0.1}"
 

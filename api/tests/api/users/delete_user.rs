@@ -23,7 +23,7 @@ async fn delete_user_successful() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -78,7 +78,7 @@ async fn delete_user_using_invalid_role_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -119,7 +119,7 @@ async fn delete_user_with_invalid_id_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -162,7 +162,7 @@ async fn delete_user_is_idempotent() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()

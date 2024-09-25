@@ -19,7 +19,15 @@ until psql -h postgres -U ${POSTGRES_USER} -p ${POSTGRES_PORT} -d postgres -c '\
   sleep 1
 done
 
-sqlx database create
-sqlx migrate run
+# Run migrations from SQL files
+for f in /app/migrations/*.sql; do
+    >&2 echo "Running migration: $f"
+    if ! psql -h postgres -U "${POSTGRES_USER}" -p "${POSTGRES_PORT}" -d "${POSTGRES_DB}" -f "$f"; then
+        >&2 echo "Failed to run migration: $f"
+        continue
+    fi
+done
+
+# unset PGPASSWORD
 
 exec /app/api

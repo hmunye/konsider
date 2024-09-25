@@ -1,7 +1,7 @@
+.next/
 node_modules/
 .gitignore
-.env.example
-.env.local
-.eslintrc.json
+.example.env
+.env.development
 .gitignore
 README.md

@@ -14,14 +14,14 @@ import "./globals.css";
  *
  */
 const nippoVariable = localFont({
-  src: "../assets/fonts/Nippo-Variable.woff",
+  src: "../../public/fonts/Nippo-Variable.woff",
   variable: "--font-nippo",
   weight: "200 700",
 });
 
 export const metadata: Metadata = {
   title: "Konsider",
-  description: "Vendor Risk Management Software",
+  description: "Vendor Risk Management",
 };
 
 export default function RootLayout({

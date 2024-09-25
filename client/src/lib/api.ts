@@ -1,7 +1,7 @@
-import { useFetch } from "../hooks/useFetch";
-import { LogInSchema } from "../lib/types";
+import { useFetch } from "@/src/hooks/useFetch";
+import { LogInSchema } from "@/src/lib/types";
 
-const API_URL = "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function logIn(formData: LogInSchema) {
   try {
@@ -15,7 +15,7 @@ export async function logIn(formData: LogInSchema) {
       return { error: response.error };
     }
 
-    return response;
+    return response.success;
   } catch {
     return { error: "An error occurred during login" };
   }
@@ -32,8 +32,25 @@ export async function logOut() {
       return { error: response.error };
     }
 
-    return response;
+    return response.success;
   } catch {
     return { error: "An error occurred during logout" };
+  }
+}
+
+export async function checkAuth() {
+  try {
+    const response = await useFetch({
+      url: `${API_URL}/v1/auth/check`,
+      method: "GET",
+    });
+
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    return response.success;
+  } catch {
+    return { error: "An error occurred during authentication check" };
   }
 }

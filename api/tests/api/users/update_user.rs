@@ -32,7 +32,7 @@ async fn update_user_successful() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -103,7 +103,6 @@ async fn update_user_successful() {
     .map(|row| vec![row.name, row.email, row.password_hash, row.role.to_string()])
     .unwrap();
 
-    // TODO: Updated to compare each field
     assert!(!(original_test_user == row))
 }
 // ---------------------------------------------------------------------------------------------------------------
@@ -125,7 +124,7 @@ async fn update_user_using_invalid_role_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -172,7 +171,7 @@ async fn update_user_with_invalid_id_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -221,7 +220,7 @@ async fn update_user_with_invalid_fields_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -306,7 +305,7 @@ async fn update_user_with_missing_fields_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -346,7 +345,7 @@ async fn update_user_is_idempotent() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -383,7 +382,7 @@ async fn update_user_is_idempotent() {
     assert_eq!(418, dup_update_user_response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------
-// TODO: This test is flaky, fix it
+// TODO: This test is flaky
 #[tokio::test]
 async fn update_user_optimistic_concurrency_control() {
     let server = spawn_server().await;
@@ -402,7 +401,7 @@ async fn update_user_optimistic_concurrency_control() {
     let login_response_1 = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response_1.status().as_u16());
+    assert_eq!(200, login_response_1.status().as_u16());
 
     let session_id_1 = login_response_1
         .headers()
@@ -420,7 +419,7 @@ async fn update_user_optimistic_concurrency_control() {
     let login_response_2 = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response_2.status().as_u16());
+    assert_eq!(200, login_response_2.status().as_u16());
 
     let session_id_2 = login_response_2
         .headers()
@@ -463,8 +462,8 @@ async fn update_user_optimistic_concurrency_control() {
     let (update_user_response_1, update_user_response_2) =
         tokio::join!(update_user_response_1, update_user_response_2);
 
-    // The problem is that due to concurrency, it's unclear which request will succeed
-    // and which will fail with a 409 Conflict
+    // The problem is that due to concurrent requests, it's unclear which will succeed
+    // first and which will fail with a 409 Conflict
     let status_1 = update_user_response_1.status().as_u16();
     let status_2 = update_user_response_2.status().as_u16();
 

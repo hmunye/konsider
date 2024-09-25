@@ -23,14 +23,13 @@ COPY . .
 
 ENV SQLX_OFFLINE=true
 
-# Install sqlx-cli for migrations
-RUN cargo install sqlx-cli --no-default-features --features postgres
-
 RUN cargo build --release --bin api
 ## -------------------------------------------------------------------------------------
 FROM debian:bookworm-slim AS runtime
 
 WORKDIR /app
+
+RUN groupadd -r api && useradd -r -g api api-user
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends curl postgresql-client \
@@ -39,14 +38,15 @@ RUN apt-get update -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/api /app/api
-COPY --from=builder /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
 COPY --from=builder /app/migrations /app/migrations
-
 COPY .env.production /app/.env.production
-
 COPY ./docker_entrypoint.sh /docker_entrypoint.sh
 
 RUN chmod +x /docker_entrypoint.sh
+
+RUN chown -R api-user:api /app /docker_entrypoint.sh
+
+USER api-user
 
 ENV ENVIRONMENT=production
 

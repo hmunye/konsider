@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT name, email, password_hash, role AS \"role: UserRole\" \n        FROM users\n        WHERE id = $1\n        ",
+  "query": "\n        SELECT name, email, password_hash, role AS \"role: UserRole\", version \n        FROM users\n        WHERE id = $1\n        ",
   "describe": {
     "columns": [
       {
@@ -32,6 +32,11 @@
             }
           }
         }
+      },
+      {
+        "ordinal": 4,
+        "name": "version",
+        "type_info": "Int4"
       }
     ],
     "parameters": {
@@ -43,8 +48,9 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "4cb6afc7cbc2781d3799d932fb29aa7436abd864ace9b99be0856c80ba7e33ce"
+  "hash": "68c05b0feddadfeaa7e844199372ab77523f42cdb90859399500e17e7918cdff"
 }

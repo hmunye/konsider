@@ -98,25 +98,23 @@ where
             return Ok(QueryExtractor(query_params));
         }
 
-        let expected_params: std::collections::HashSet<&str> =
-            ["page", "per_page", "sort"].iter().cloned().collect();
+        let expected_params: [&str; 3] = ["page", "per_page", "sort"];
 
         let actual_query = req.uri.query().unwrap_or("");
 
-        let actual_params: std::collections::HashSet<_> = actual_query
+        let actual_params: Vec<&str> = actual_query
             .split('&')
             .filter_map(|s| s.split('=').next())
             .collect();
 
-        let unexpected_params: std::collections::HashSet<_> =
-            actual_params.difference(&expected_params).collect();
-
-        // If unexpected parameters are present, return ValidationError
-        if !unexpected_params.is_empty() {
-            return Err(Error::ValidationError(format!(
-                "Unexpected query parameters: {:?}",
-                unexpected_params
-            )));
+        for value in actual_params.iter() {
+            if !expected_params.contains(value) {
+                // If unexpected parameters are present, return ValidationError
+                return Err(Error::ValidationError(format!(
+                    "Unexpected query parameters: {:?}",
+                    value
+                )));
+            }
         }
 
         Ok(QueryExtractor(query_params))

@@ -1,5 +1,3 @@
-// TODO: Update tests to compare response to an existing record
-
 use reqwest::header;
 use serde_json::json;
 use uuid::Uuid;
@@ -21,7 +19,7 @@ async fn get_all_users_successful() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -64,7 +62,7 @@ async fn get_all_users_with_invalid_query_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -109,6 +107,8 @@ async fn get_all_users_with_invalid_query_rejected() {
     }
 }
 // ---------------------------------------------------------------------------------------------------------------
+// TODO: The user response contains all of the correct data for the specific user
+// except name. Name is always a different UUID
 #[tokio::test]
 async fn get_user_by_id_successful() {
     let server = spawn_server().await;
@@ -127,7 +127,7 @@ async fn get_user_by_id_successful() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -157,7 +157,7 @@ async fn get_user_using_invalid_role_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
@@ -189,7 +189,7 @@ async fn get_user_invaild_id_rejected() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()

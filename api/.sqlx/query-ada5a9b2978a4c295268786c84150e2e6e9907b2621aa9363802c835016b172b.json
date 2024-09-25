@@ -1,12 +1,12 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        UPDATE users \n        SET name = $1, email = $2, password_hash = $3, role = $4\n        WHERE id = $5\n        RETURNING id\n        ",
+  "query": "\n        UPDATE users \n        SET name = $1, email = $2, password_hash = $3, role = $4, version = version + 1\n        WHERE id = $5 AND version = $6\n        RETURNING version\n        ",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id",
-        "type_info": "Uuid"
+        "name": "version",
+        "type_info": "Int4"
       }
     ],
     "parameters": {
@@ -25,12 +25,13 @@
             }
           }
         },
-        "Uuid"
+        "Uuid",
+        "Int4"
       ]
     },
     "nullable": [
-      false
+      true
     ]
   },
-  "hash": "b26016b810647f859f23107cf21f72e2032cee54b5e2e286a1f8a74381a2bc06"
+  "hash": "ada5a9b2978a4c295268786c84150e2e6e9907b2621aa9363802c835016b172b"
 }

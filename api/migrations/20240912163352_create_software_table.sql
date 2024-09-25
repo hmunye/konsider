@@ -1,4 +1,5 @@
-CREATE TABLE software (
+-- Create the software table
+CREATE TABLE IF NOT EXISTS software (
     name TEXT PRIMARY KEY,
     software_version NUMERIC NOT NULL, -- Version requested
     description TEXT NOT NULL,
@@ -7,7 +8,7 @@ CREATE TABLE software (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Constraints
+-- Add constraints
 ALTER TABLE software
     ADD CONSTRAINT check_name_length CHECK (length(name) > 0 AND length(name) <= 128),
     ADD CONSTRAINT check_software_version CHECK (software_version > 0.0),
@@ -23,7 +24,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Runs function on every update query on software
+-- Create the trigger to update the timestamp before each update on the software table
 CREATE TRIGGER update_software_before_update
     BEFORE UPDATE ON software
     FOR EACH ROW

@@ -1,9 +1,11 @@
+-- Create the review_status ENUM type
 CREATE TYPE review_status AS ENUM (
     'UnderReview',
     'Complete'
 );
 
-CREATE TABLE review (
+-- Create the review table
+CREATE TABLE IF NOT EXISTS review (
     software_name TEXT NOT NULL,
     request_id INTEGER NOT NULL,
     reviewer_email TEXT NOT NULL,
@@ -27,7 +29,7 @@ CREATE TABLE review (
     FOREIGN KEY (reviewer_email) REFERENCES users(email) ON DELETE RESTRICT
 );
 
--- Constraints
+-- Add constraints
 ALTER TABLE review
     ADD CONSTRAINT check_status CHECK (status IN ('UnderReview', 'Complete'));
 
@@ -40,7 +42,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Runs function on every update query on review
+-- Create the trigger to update the timestamp before each update on the review table
 CREATE TRIGGER update_review_before_update
     BEFORE UPDATE ON review
     FOR EACH ROW

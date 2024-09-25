@@ -23,7 +23,7 @@ async fn logout_is_successful_and_clears_session() {
     let login_response = server
         .post_request(&login_url, Some(body.to_string()), None, None)
         .await;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let session_id = login_response
         .headers()
