@@ -3,7 +3,7 @@ import { LogInSchema } from "@/src/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function logIn(formData: LogInSchema) {
+export async function LogIn(formData: LogInSchema) {
   try {
     const response = await useFetch({
       url: `${API_URL}/v1/auth/login`,
@@ -21,7 +21,7 @@ export async function logIn(formData: LogInSchema) {
   }
 }
 
-export async function logOut() {
+export async function LogOut() {
   try {
     const response = await useFetch({
       url: `${API_URL}/v1/auth/logout`,
@@ -38,10 +38,11 @@ export async function logOut() {
   }
 }
 
-export async function checkAuth() {
+export async function CheckAuth(cookie: string) {
   try {
     const response = await useFetch({
       url: `${API_URL}/v1/auth/check`,
+      cookie: cookie,
       method: "GET",
     });
 

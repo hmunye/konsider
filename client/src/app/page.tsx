@@ -7,12 +7,13 @@ import { Label } from "@/src/components/ui/form/label";
 import { SubmitButton } from "@/src/components/ui/form/submit-button";
 import Header from "@/src/components/ui/home-header";
 import Navbar from "@/src/components/ui/navbar";
-import { logIn } from "@/src/lib/api";
+import { LogIn } from "@/src/lib/api";
 import { logInSchema, LogInSchema } from "@/src/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { userStore } from "../store/user";
 
 export default function Home() {
   const {
@@ -25,16 +26,23 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<Message>();
 
   const router = useRouter();
+  const setUser = userStore((state) => state.update);
 
   const onSubmit = async (formData: LogInSchema) => {
-    const response = await logIn(formData);
-
-    console.log(response);
+    const response = await LogIn(formData);
 
     if (response.error) {
       setErrorMessage({ error: response.error });
     } else {
-      router.push("/dashboard");
+      const { name, email, role } = response.user;
+
+      setUser({
+        name,
+        email,
+        role,
+      });
+
+      router.push(role === "Admin" ? "/admin/dashboard" : "/dashboard");
     }
   };
 

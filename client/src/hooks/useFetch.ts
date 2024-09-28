@@ -20,12 +20,18 @@ class HttpError extends Error {
 }
 
 export async function useFetch(params: FetchParams): Promise<any> {
-  const { url, method, requestBody } = params;
+  const { url, method, cookie, requestBody } = params;
 
   const fetchData: RequestInit = {
     method: method.toUpperCase(),
     credentials: "include",
   };
+
+  if (cookie) {
+    fetchData.headers = {
+      Cookie: cookie,
+    };
+  }
 
   if (requestBody) {
     fetchData.headers = {

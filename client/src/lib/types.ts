@@ -3,6 +3,7 @@ import { z } from "zod";
 export type FetchParams = {
   url: string;
   method: string;
+  cookie?: string;
   requestBody?: any;
 };
 

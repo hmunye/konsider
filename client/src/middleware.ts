@@ -1,11 +1,12 @@
-// TODO: Fix this middleware authorization check
-
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { checkAuth } from "./lib/api";
+import { NextResponse } from "next/server";
+import { CheckAuth } from "./lib/api";
 
 export async function middleware(request: NextRequest) {
-  const response = await checkAuth();
+  const req_cookie = request.cookies.get("id");
+  const cookie = req_cookie ? `${req_cookie.name}=${req_cookie.value}` : "";
+
+  const response = await CheckAuth(cookie);
 
   if (response.error) {
     return NextResponse.redirect(new URL("/", request.url));
