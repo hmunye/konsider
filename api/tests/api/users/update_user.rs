@@ -382,7 +382,6 @@ async fn update_user_is_idempotent() {
     assert_eq!(418, dup_update_user_response.status().as_u16());
 }
 // ---------------------------------------------------------------------------------------------------------------
-// TODO: This test is flaky
 #[tokio::test]
 async fn update_user_optimistic_concurrency_control() {
     let server = spawn_server().await;
@@ -462,7 +461,7 @@ async fn update_user_optimistic_concurrency_control() {
     let (update_user_response_1, update_user_response_2) =
         tokio::join!(update_user_response_1, update_user_response_2);
 
-    // The problem is that due to concurrent requests, it's unclear which will succeed
+    // It's unclear which will succeed
     // first and which will fail with a 409 Conflict
     let status_1 = update_user_response_1.status().as_u16();
     let status_2 = update_user_response_2.status().as_u16();

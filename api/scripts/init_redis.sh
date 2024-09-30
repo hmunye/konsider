@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
-set -x
-set -eo pipefail
+set -x # Enable debugging
+set -eo pipefail 
+# ^ Ensures the script exits immediately if any command fails (-e) and that the exit status of a pipeline 
+# is determined by the last non-zero status
 
 ENV_FILE=".env.local"
 
 if [ -f "$ENV_FILE" ]; then
-# Load environment variables from .env file
+    # Load environment variables from .env file
     source "$ENV_FILE"
 fi
 
@@ -16,8 +18,7 @@ REDIS_HOST="${REDIS_HOST:=127.0.0.1}"
 # Check if a custom port has been set, otherwise default to '6379'
 REDIS_PORT="${REDIS_PORT:=6379}"
 
-
-# Check if a password has been set
+# Check if a password has been set, otherwise default to no password
 REDIS_PASSWORD="${REDIS_PASSWORD:=}"
 
 RUNNING_CONTAINER=$(docker ps --filter 'name=redis-local' --format '{{.ID}}')
@@ -37,4 +38,4 @@ docker run \
     redis:7-alpine \
     redis-server --requirepass "$REDIS_PASSWORD"
 
-echo >&2 "Redis is up and ready"
+echo "Redis is up and ready"

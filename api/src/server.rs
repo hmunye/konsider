@@ -176,7 +176,7 @@ pub async fn serve(
         .allow_methods([
             Method::GET,
             Method::POST,
-            Method::PUT,
+            Method::PATCH,
             Method::DELETE,
             Method::OPTIONS,
         ])

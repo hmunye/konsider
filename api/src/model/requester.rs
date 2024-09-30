@@ -1,5 +1,7 @@
+use serde::Deserialize;
+
 // ---------------------------------------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Requester {
     pub request_id: i32,
     pub name: String,

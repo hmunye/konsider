@@ -30,7 +30,7 @@ pub struct UpdatePayload {
 #[tracing::instrument(
     name = "updating user details", 
     // Any values in 'skip' won't be included in logs
-    skip(state, user_id, session, payload),
+    skip(state, session, payload),
     fields(
         request_initiator = tracing::field::Empty,
     )

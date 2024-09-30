@@ -8,29 +8,29 @@ set -eo pipefail
 ENV_FILE=".env.local"
 
 if [ -f "$ENV_FILE" ]; then
-# Load environment variables from .env file
+    # Load environment variables from .env file
     source "$ENV_FILE"
 fi
 
 if ! [ -x "$(command -v docker)" ]; then
-  echo >&2 "Error: docker is not installed."
-  exit 1
+    echo >&2 "Error: docker is not installed."
+    exit 1
 fi
 
 if ! [ -x "$(command -v psql)" ]; then
-  echo >&2 "Error: psql is not installed."
-  echo >&2 "Use:"
-  echo >&2 "    libpq, libpq-dev, or postgresql-client if PostgreSQL is not installed on the system"
-  echo >&2 "to install it."
-  exit 1
+    echo >&2 "Error: psql is not installed."
+    echo >&2 "Use:"
+    echo >&2 "    libpq, libpq-dev, or postgresql-client if PostgreSQL is not installed on the system"
+    echo >&2 "to install it."
+    exit 1
 fi
 
 if ! [ -x "$(command -v sqlx)" ]; then
-  echo >&2 "Error: sqlx is not installed."
-  echo >&2 "Use:"
-  echo >&2 "    cargo install sqlx-cli --no-default-features --features postgres"
-  echo >&2 "to install it."
-  exit 1
+    echo >&2 "Error: sqlx is not installed."
+    echo >&2 "Use:"
+    echo >&2 "    cargo install sqlx-cli --no-default-features --features postgres"
+    echo >&2 "to install it."
+    exit 1
 fi
 
 # Check if a custom user has been set, otherwise default to 'postgres'
@@ -71,11 +71,11 @@ until psql -h ${DB_HOST} -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c '\q'; 
     sleep 1 
 done
 
->&2 echo "Postgres is up on ${DB_HOST}:${DB_PORT} - running migrations"
+echo "Postgres is up on ${DB_HOST}:${DB_PORT} - running migrations"
 
 export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
 
 sqlx database create
 sqlx migrate run
 
->&2 echo "Migrated successfully"
+echo "Migrated successfully"

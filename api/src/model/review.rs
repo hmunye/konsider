@@ -1,5 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 // ---------------------------------------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Review {
     pub software_name: String,
     pub request_id: i32,
@@ -18,7 +20,7 @@ pub struct Review {
     pub status: ReviewStatus,
 }
 
-#[derive(Debug, sqlx::Type)]
+#[derive(Clone, Debug, Deserialize, Serialize, sqlx::Type)]
 #[sqlx(type_name = "review_status")]
 pub enum ReviewStatus {
     UnderReview,

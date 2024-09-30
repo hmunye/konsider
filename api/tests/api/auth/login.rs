@@ -1,5 +1,4 @@
-// TODO: Test to verify session token expiration
-// TODO: Test to validate session token
+// TODO: Test to verify session token expiration and validate session token
 
 use reqwest::header;
 use serde_json::json;

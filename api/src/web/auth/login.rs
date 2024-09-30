@@ -40,9 +40,7 @@ pub async fn api_login(
     // fields such as password_hash
     let user_dto = UserDTO::from(&user);
 
-    let response_body = json!({
-        "user": user_dto
-    });
+    let response_body = json!(user_dto);
 
     Ok((StatusCode::OK, Json(response_body)))
 }

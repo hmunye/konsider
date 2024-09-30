@@ -1,4 +1,3 @@
--- Create the requester table
 CREATE TABLE IF NOT EXISTS requester (
     request_id INTEGER PRIMARY KEY, -- From TeamDynamix ticket
     name TEXT NOT NULL, -- Full name
@@ -8,13 +7,11 @@ CREATE TABLE IF NOT EXISTS requester (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Add constraints
 ALTER TABLE requester
     ADD CONSTRAINT check_name_length CHECK (length(name) > 0 AND length(name) <= 50),
     ADD CONSTRAINT check_email_length CHECK (length(email) > 0 AND length(email) <= 50),
     ADD CONSTRAINT check_department_length CHECK (length(department) > 0 AND length(department) <= 50);
 
--- Ensure updated_at is always updated on modification
 CREATE OR REPLACE FUNCTION update_requester_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN

@@ -8,7 +8,7 @@ use api::{Config, Environment};
 // ---------------------------------------------------------------------------------------------------------------
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    // Creates an hourly rotating file appender that writes to /logs/konsider_api.YYYY-MM-DD-HH
+    // Creates an hourly rotating file appender that writes to ./logs/konsider_api.YYYY-MM-DD-HH
     // (New log file to write to every hour)
     let file_appender = tracing_appender::rolling::hourly("./logs", "konsider_api");
 
@@ -16,11 +16,12 @@ async fn main() -> Result<(), std::io::Error> {
     // _guard ensures buffered logs are flushed to their output in the case of abrupt terminations
     let (file_writer, _guard) = tracing_appender::non_blocking(file_appender);
 
-    // Change 'file_writer' to 'std::io::stdout' to view output in terminal instead
+    // Change 'file_writer' to 'std::io::stdout' to view logs in terminal instead
     let subscriber = get_subscriber("konsider_api".into(), "info".into(), file_writer);
     init_subscriber(subscriber);
 
-    // Detect the running environment. Defaults to local if not provided
+    // Detect the running environment
+    // Defaults to local if not provided
     let environment: Environment = env::var("ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())
         .try_into()

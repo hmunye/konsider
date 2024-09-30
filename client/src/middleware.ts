@@ -1,18 +1,26 @@
+import { API_URL, fetchData } from "@/src/lib/api";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { CheckAuth } from "./lib/api";
 
 export async function middleware(request: NextRequest) {
   const req_cookie = request.cookies.get("id");
   const cookie = req_cookie ? `${req_cookie.name}=${req_cookie.value}` : "";
 
-  const response = await CheckAuth(cookie);
+  try {
+    const response = await fetchData({
+      url: `${API_URL}/v1/auth/check`,
+      cookie: cookie,
+      method: "GET",
+    });
 
-  if (response.error) {
-    return NextResponse.redirect(new URL("/", request.url));
+    if (response.error) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    return NextResponse.next();
+  } catch {
+    throw new Error("An error occurred during authentication check");
   }
-
-  return NextResponse.next();
 }
 
 export const config = {
@@ -21,7 +29,7 @@ export const config = {
     // - _next/static (static files)
     // - _next/image (image optimization files)
     // - favicon.ico, sitemap.xml, robots.txt (metadata files)
-    // - /
+    // - / (home page)
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|$).*)",
   ],
 };

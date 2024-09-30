@@ -14,7 +14,7 @@ use crate::Result;
 #[tracing::instrument(
     name = "fetching user by id", 
     // Any values in 'skip' won't be included in logs
-    skip(state, session, user_id),
+    skip(state, session),
     fields(
         request_initiator = tracing::field::Empty,
     )

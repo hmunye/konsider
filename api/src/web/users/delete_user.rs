@@ -7,9 +7,8 @@ use uuid::Uuid;
 use crate::idempotency::{get_key_status, save_key_status, IdempotencyKey, IdempotencyStatus};
 use crate::model::TypedSession;
 use crate::server::AppState;
-use crate::{Error, Result};
-
 use crate::web::users::delete_user;
+use crate::{Error, Result};
 
 // ---------------------------------------------------------------------------------------------------------------
 #[derive(Debug, Deserialize)]
@@ -20,7 +19,7 @@ pub struct DeletePayload {
 #[tracing::instrument(
     name = "deleting user", 
     // Any values in 'skip' won't be included in logs
-    skip(state, user_id, session, payload),
+    skip(state, session, payload),
     fields(
         request_initiator = tracing::field::Empty,
     )

@@ -94,7 +94,7 @@ impl User {
     }
 
     fn validate_name(name: &String) -> bool {
-        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$'];
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '-'];
 
         let name_is_empty_or_whitespace = name.trim().is_empty();
 
@@ -118,7 +118,7 @@ impl User {
     }
 
     fn validate_password(password: &String) -> bool {
-        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$'];
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '-'];
 
         // TODO: Make sure multiple spaces are handled (Replace multiple spaces with single space)
         //

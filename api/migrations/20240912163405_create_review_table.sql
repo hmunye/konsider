@@ -1,10 +1,8 @@
--- Create the review_status ENUM type
 CREATE TYPE review_status AS ENUM (
     'UnderReview',
     'Complete'
 );
 
--- Create the review table
 CREATE TABLE IF NOT EXISTS review (
     software_name TEXT NOT NULL,
     request_id INTEGER NOT NULL,
@@ -29,11 +27,9 @@ CREATE TABLE IF NOT EXISTS review (
     FOREIGN KEY (reviewer_email) REFERENCES users(email) ON DELETE RESTRICT
 );
 
--- Add constraints
 ALTER TABLE review
     ADD CONSTRAINT check_status CHECK (status IN ('UnderReview', 'Complete'));
 
--- Ensure updated_at is always updated on modification
 CREATE OR REPLACE FUNCTION update_review_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN

@@ -5,7 +5,7 @@ export type Message =
   | { error: string }
   | { message: string };
 
-export default function FormMessage({
+export default function ResponseMessage({
   message,
   className,
 }: {
