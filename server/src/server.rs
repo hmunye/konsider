@@ -10,23 +10,32 @@ type ServeType = Serve<IntoMakeService<Router>, Router>;
 
 #[derive(Debug)]
 pub struct Server {
+    port: u16,
     instance: ServeType,
 }
 
 impl Server {
     // Build a new server instance
-    pub async fn build() -> Result<Server> {
-        let bind = "127.0.0.1:8080";
-
+    pub async fn build(bind: &str) -> Result<Server> {
         let tcp_listener = tokio::net::TcpListener::bind(&bind)
             .await
             .expect("failed to create tcp listener from provided address");
+
+        // Grab the assigned port from `tcp_listener`
+        let port = tcp_listener
+            .local_addr()
+            .expect("failed to get local address bound to tcp listener")
+            .port();
 
         let instance = serve(tcp_listener).await?;
 
         println!(">> LISTENING ON {bind}");
 
-        Ok(Self { instance })
+        Ok(Self { port, instance })
+    }
+
+    pub fn port(&self) -> u16 {
+        self.port
     }
 
     // Start the server and await its completion
