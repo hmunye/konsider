@@ -1,8 +1,8 @@
-use axum::http::StatusCode;
-use axum::routing::{get, IntoMakeService};
+use axum::routing::IntoMakeService;
 use axum::serve::Serve;
 use axum::Router;
 
+use crate::api::health_routes;
 use crate::Result;
 
 // Type alias for axum's serve
@@ -47,14 +47,7 @@ impl Server {
 }
 
 pub async fn serve(tcp_listener: tokio::net::TcpListener) -> Result<ServeType> {
-    let server = Router::new().nest(
-        "/api/v1",
-        Router::new().route("/health", get(api_health_check)),
-    );
+    let server = Router::new().nest("/api/v1", Router::new().nest("/health", health_routes()));
 
     Ok(axum::serve(tcp_listener, server.into_make_service()))
-}
-
-async fn api_health_check() -> StatusCode {
-    StatusCode::NO_CONTENT
 }
