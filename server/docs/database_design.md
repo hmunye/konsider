@@ -8,11 +8,11 @@ Use **3rd Normal Form** (**3NF**) ✅
 
 > Starting from no normalization, to achieve **1NF**, remove repeating groups and ensure atomic values; to reach **2NF**, eliminate partial dependencies (for composite keys); and to reach **3NF**, remove transitive dependencies
 
-Use **Constraints **✅
+Use **Constraints** ✅
 
 Define **Relationships** ✅
 
-Use **Indexing **✅
+Use **Indexing** ✅
 
 > Single-column indexing, composite indexes, etc. 
 
@@ -20,11 +20,11 @@ Use **Indexing **✅
 
 > ~~Control access to data at the row level, ensuring that users only access the data they are authorized to see~~
 
-Use **Triggers **✅
+Use **Triggers** ✅
 
 > Automatically enforce data consistency, such as updating timestamps, etc.
 
-Simple Strategy for** Database Backup** and **Recovery **✅
+Simple Strategy for **Database Backup** and **Recovery** ✅
 
 > Automated Backups, Point-in-Time Recovery, etc.
 
@@ -54,7 +54,7 @@ CREATE TABLE user_account (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name VARCHAR(100) NOT NULL CHECK (length(name) > 0), -- Full name
     email VARCHAR(255) NOT NULL UNIQUE CHECK(length(email) > 0), -- Brockport email (It is UNIQUE so an INDEX is created automatically)
-    password_hash TEXT NOT NULL,
+    password_hash BYTEA NOT NULL,
     role user_role DEFAULT 'REVIEWER', -- ENUM type ensures role can only be set to 'REVIEWER' or 'ADMIN'
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW() -- If it is the same value as created_at, you known this record has never been updated
