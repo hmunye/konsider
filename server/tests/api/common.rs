@@ -1,4 +1,4 @@
-use k6r::server::Server;
+use k6r::{get_config, server::Server};
 
 // Type alias for Result
 pub type Result<T> = std::result::Result<T, Error>;
@@ -25,17 +25,23 @@ impl TestServer {
 }
 
 pub async fn spawn_server() -> Result<TestServer> {
-    // Using port '0' will trigger the OS to scan for an available port
-    // This allows the server to continue running on port 8000
-    // while each test is executed using a different port, avoiding port conflicts
-    let bind = "127.0.0.1:0";
+    let config = {
+        let mut config = get_config().expect("failed to read config");
 
-    let server = Server::build(bind).await?;
+        // Using port '0' will trigger the OS to scan for an available port.
+        // This allows the server to continue running on port 8000 while each
+        // test is executed using a different port, avoiding port conflicts
+        config.server.port = 0;
+
+        config
+    };
+
+    let server = Server::build(config.clone()).await?;
 
     let port = server.port();
 
-    // Spawn a new asynchronous task using `tokio::spawn`
-    // Creates a non-blocking task that runs the server instance in the background
+    // Spawn a new asynchronous task using `tokio::spawn`.
+    // Creates a non-blocking task that runs the server instance in the background.
     // The server's `run` method is awaited within this task, allowing it to
     // handle incoming requests while the main thread can continue executing
     tokio::spawn(server.run());

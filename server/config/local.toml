@@ -1,0 +1,11 @@
+[server]
+port = 8080
+host = "127.0.0.1"
+jwt_secret = "T7O5aKbBIJyxvrqNxl64W+xVDS5PN0oHlrc84edDdcY="
+
+[database]
+user = "postgres"
+password = "password"
+database = "k6r"
+host = "127.0.0.1"
+require_ssl = false

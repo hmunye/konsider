@@ -6,7 +6,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone, Debug)]
 pub enum Error {
-    // -- server (unexpected errors)
+    // (unexpected errors)
     ServerError(std::sync::Arc<dyn std::error::Error + Send + Sync>),
 }
 

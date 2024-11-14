@@ -3,7 +3,7 @@ use axum::serve::Serve;
 use axum::Router;
 
 use crate::api::{auth_routes, health_routes};
-use crate::Result;
+use crate::{Config, Result};
 
 // Type alias for axum's serve
 type ServeType = Serve<IntoMakeService<Router>, Router>;
@@ -16,7 +16,9 @@ pub struct Server {
 
 impl Server {
     // Build a new server instance
-    pub async fn build(bind: &str) -> Result<Server> {
+    pub async fn build(config: Config) -> Result<Server> {
+        let bind = format!("{}:{}", config.server.host, config.server.port);
+
         let tcp_listener = tokio::net::TcpListener::bind(&bind)
             .await
             .expect("failed to create tcp listener from provided address");
@@ -29,7 +31,7 @@ impl Server {
 
         let instance = serve(tcp_listener).await?;
 
-        println!(">> LISTENING ON {bind}");
+        println!(">> LISTENING ON {}:{}", &config.server.host, &port);
 
         Ok(Self { port, instance })
     }

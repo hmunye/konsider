@@ -276,7 +276,7 @@ Type: One-to-One
 > Assuming PostgreSQL instances are running within **Docker** containers
 
 
-Using PostgreSQL's built-in **pg_dump** and **pg_dumpall **CLI tools, we can easily back up individual or all databases
+Using PostgreSQL's built-in **pg_dump** and **pg_dumpall** CLI tools, we can easily back up individual or all databases
 
 ### Backup using pg_dump:
 
