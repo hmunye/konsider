@@ -2,7 +2,7 @@ use axum::routing::IntoMakeService;
 use axum::serve::Serve;
 use axum::Router;
 
-use crate::api::health_routes;
+use crate::api::{auth_routes, health_routes};
 use crate::Result;
 
 // Type alias for axum's serve
@@ -47,7 +47,12 @@ impl Server {
 }
 
 pub async fn serve(tcp_listener: tokio::net::TcpListener) -> Result<ServeType> {
-    let server = Router::new().nest("/api/v1", Router::new().nest("/health", health_routes()));
+    let server = Router::new().nest(
+        "/api/v1",
+        Router::new()
+            .nest("/health", health_routes())
+            .nest("/auth", auth_routes()),
+    );
 
     Ok(axum::serve(tcp_listener, server.into_make_service()))
 }
