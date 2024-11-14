@@ -1,0 +1,53 @@
+# This GitHub Actions workflow runs test, linting, and formatting checks on the code 
+# whenever there is a push or pull request that modifies files in the `server` directory
+
+name: Server CI
+
+on:
+  push:
+    paths:
+      - "server/**"
+  pull_request:
+    paths:
+      - "server/**"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Run Tests
+        working-directory: server
+        run: cargo test
+
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy
+
+      - name: Lint Code
+        working-directory: server
+        run: cargo clippy -- -D warnings
+
+  fmt:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+
+      - name: Enforce Formatting
+        working-directory: server
+        run: cargo fmt --check

@@ -1,0 +1,26 @@
+# This GitHub Actions workflow performs a security audit of server dependencies
+
+# It is triggered every time there is a push that modifies Cargo.toml or Cargo.lock 
+# in the `server` directory and automatically runs every Sunday at midnight
+
+name: Server Security Audit
+
+on:
+  schedule:
+    # - cron: '0 0 * * *'  # runs daily at midnight
+    - cron: "0 0 * * 0" # runs every Sunday at midnight
+  push:
+    paths:
+      - "server/**/Cargo.toml"
+      - "server/**/Cargo.lock"
+
+jobs:
+  security_audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@cargo-deny
+
+      - name: Scan for Vulnerabilities
+        working-directory: server
+        run: cargo deny check advisories
