@@ -5,3 +5,5 @@ authors = ["Huseen Munye"]
 edition = "2021"
 
 [dependencies]
+axum = "0.7.7"
+tokio = { version = "1.41.1", features = ["full"] }
