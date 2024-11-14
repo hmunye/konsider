@@ -1,22 +1,12 @@
-use axum::http::StatusCode;
-use axum::routing::get;
-use axum::Router;
+use k6r::{Result, Server};
 
 #[tokio::main]
-async fn main() {
-    let server = Router::new().route("/", get(api_health_check));
+async fn main() -> Result<()> {
+    let server = Server::build().await?;
 
-    let bind = "127.0.0.1:8080";
+    // Spawn a new asynchronous task using `tokio::spawn`
+    // Creates a non-blocking task that runs the server instance in the background
+    let _ = tokio::spawn(server.run()).await?;
 
-    let tcp_listener = tokio::net::TcpListener::bind(&bind).await.unwrap();
-
-    println!(">> LISTENING ON {bind}");
-
-    axum::serve(tcp_listener, server.into_make_service())
-        .await
-        .unwrap();
-}
-
-async fn api_health_check() -> StatusCode {
-    StatusCode::NO_CONTENT
+    Ok(())
 }
