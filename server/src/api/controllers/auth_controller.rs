@@ -12,6 +12,13 @@ pub struct Credentials {
     pub password: String,
 }
 
+#[tracing::instrument(
+    name = "user login", 
+    skip(payload),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
 pub async fn api_login(Json(payload): Json<Credentials>) -> Result<impl IntoResponse> {
     let response_body = json!({
         "received_payload": payload

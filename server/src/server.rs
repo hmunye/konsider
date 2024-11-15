@@ -37,7 +37,10 @@ impl Server {
 
         let instance = serve(tcp_listener, db_pool, config.server.jwt_secret).await?;
 
-        println!(">> LISTENING ON {}:{}", &config.server.host, &port);
+        tracing::info!(
+            "{}",
+            format_args!("[LISTENING ON - {}:{}]", &config.server.host, &port)
+        );
 
         Ok(Self { port, instance })
     }

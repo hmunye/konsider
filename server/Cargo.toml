@@ -22,6 +22,10 @@ serde_json = "1.0.132"
 sqlx = { version = "0.8.2", features = ["runtime-tokio-rustls", "macros", "postgres", "uuid", "chrono", "migrate"] }
 thiserror = "2.0.3"
 tokio = { version = "1.41.1", features = ["full"] }
+tracing = "0.1.40"
+tracing-appender = "0.2.3"
+tracing-bunyan-formatter = "0.3.9"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 uuid = { version = "1.11.0", features = ["v4", "serde"] }
 
 [dev-dependencies]

@@ -1,4 +1,5 @@
 use k6r::config::{get_config, DatabaseConfig};
+use k6r::log::{get_subscriber, init_subscriber};
 use k6r::server::{get_db_pool, Server};
 use secrecy::SecretString;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
@@ -8,6 +9,19 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 // Using `Box<dyn std::error::Error>` for flexibility in error handling
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
+
+// Ensure the `tracing` stack is only initialized once
+static TRACING: std::sync::LazyLock<()> = std::sync::LazyLock::new(|| {
+    // Using std::io::sink will not output logs, std::io::stdout outputs to stdout
+    // Depends on the presence of the environment variable `TEST_LOG`
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber("test".into(), "info".into(), std::io::stdout);
+        init_subscriber(subscriber);
+    } else {
+        let subscriber = get_subscriber("test".into(), "info".into(), std::io::sink);
+        init_subscriber(subscriber);
+    };
+});
 
 #[derive(Debug)]
 #[allow(unused)]
@@ -30,6 +44,8 @@ impl TestServer {
 }
 
 pub async fn spawn_server() -> Result<TestServer> {
+    std::sync::LazyLock::force(&TRACING);
+
     let config = {
         let mut config = get_config().expect("failed to read config");
 

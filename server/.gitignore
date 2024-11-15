@@ -1,6 +1,9 @@
 # build
 /target
 
+# logs
+/logs
+
 # configuration
 /config/*
 !config/local.toml

@@ -1,6 +1,7 @@
 pub mod api;
 pub mod config;
 pub mod error;
+pub mod log;
 pub mod server;
 
 pub use config::{get_config, Config};
