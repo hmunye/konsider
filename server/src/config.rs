@@ -21,6 +21,7 @@ pub struct DatabaseConfig {
     pub password: String,
     pub database: String,
     pub host: String,
+    pub db_port: u16,
     pub require_ssl: bool,
 }
 

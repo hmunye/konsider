@@ -18,24 +18,46 @@ if ! [ -x "$(command -v sqlx)" ]; then
     exit 1
 fi
 
+TOML_FILE="$PWD/config/local.toml"
+
+if [ ! -f "$TOML_FILE" ]; then
+    echo >&2 "local config file not found: $TOML_FILE"
+    exit 1
+fi
+
+# Function to extract value from TOML file
+get_toml_value() {
+    local key="$1"
+
+    local line=$(grep -E "^\s*${key}\s*=" "$TOML_FILE")
+
+    if [[ -z "$line" ]]; then
+        echo >&2 "key '$key' not found in $TOML_FILE"
+        return 1
+    fi
+
+    local value=$(echo "$line" | cut -d '=' -f 2 | tr -d ' "')
+
+    echo "$value"
+}
+
 # Check if a custom superuser has been set, otherwise default to 'postgres'
+# Would be passed as an environment variable
 SUPERUSER="${SUPERUSER:=postgres}"
 
 # Check if a custom superuser password has been set, otherwise default to 'password'
+# Would be passed as an environment variable
 SUPERUSER_PWD="${SUPERUSER_PWD:=password}"
 
-# Check if a custom user has been set, otherwise default to 'k6r_user'
-DB_USER="${DB_USER:=k6r_user}"
+# Reads values from the `local.toml` configuration file
+export DB_USER=$(get_toml_value "user")
 
-# Check if a custom user password has been set, otherwise default to 'secret'
-DB_USER_PWD="${DB_USER_PWD:=secret}"
+export DB_USER_PWD=$(get_toml_value "password")
 
-# Check if a custom database name has been set, otherwise default to 'k6r'
-DB_NAME="${DB_NAME:=k6r}"
+export DB_NAME=$(get_toml_value "database")
 
-# Check if a custom port has been set, otherwise default to '5432'
 # This is the port the host machine will use to connect to the container
-DB_PORT="${DB_PORT:=5432}"
+export DB_PORT=$(get_toml_value "db_port")
 
 # Allow to skip Docker if a dockerized Postgres database is already running
 if [[ -z "${SKIP_DOCKER}" ]]
