@@ -37,6 +37,7 @@ impl DatabaseConfig {
             .host(&self.host)
             .username(&self.user)
             .password(&self.password)
+            .port(self.db_port)
             .ssl_mode(ssl_mode)
             .database(&self.database)
     }
