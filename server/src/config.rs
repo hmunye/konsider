@@ -1,3 +1,4 @@
+use secrecy::{ExposeSecret, SecretString};
 use serde::Deserialize;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use std::convert::{TryFrom, TryInto};
@@ -12,13 +13,13 @@ pub struct Config {
 pub struct ServerConfig {
     pub port: u16,
     pub host: String,
-    pub jwt_secret: String,
+    pub jwt_secret: SecretString,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct DatabaseConfig {
     pub user: String,
-    pub password: String,
+    pub password: SecretString,
     pub database: String,
     pub host: String,
     pub db_port: u16,
@@ -36,7 +37,7 @@ impl DatabaseConfig {
         PgConnectOptions::new()
             .host(&self.host)
             .username(&self.user)
-            .password(&self.password)
+            .password(&self.password.expose_secret())
             .port(self.db_port)
             .ssl_mode(ssl_mode)
             .database(&self.database)

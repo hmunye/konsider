@@ -1,4 +1,7 @@
-use k6r::{get_config, server::Server};
+use k6r::config::{get_config, DatabaseConfig};
+use k6r::server::{get_db_pool, Server};
+use secrecy::SecretString;
+use sqlx::{Connection, Executor, PgConnection, PgPool};
 
 // Type alias for Result
 pub type Result<T> = std::result::Result<T, Error>;
@@ -7,8 +10,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 
 #[derive(Debug)]
+#[allow(unused)]
 pub struct TestServer {
     pub addr: String,
+    pub db_pool: PgPool,
     pub client: reqwest::Client,
 }
 
@@ -28,13 +33,18 @@ pub async fn spawn_server() -> Result<TestServer> {
     let config = {
         let mut config = get_config().expect("failed to read config");
 
-        // Using port '0' will trigger the OS to scan for an available port.
-        // This allows the server to continue running on port 8000 while each
-        // test is executed using a different port, avoiding port conflicts
+        // Use a different database for each test case
+        config.database.database = uuid::Uuid::new_v4().to_string();
+
+        // Using port '0' will trigger the OS to scan for an available port
+        // This allows the server to continue running on port 8000 while each test is executed using
+        // a different port. Avoids port conflicts
         config.server.port = 0;
 
         config
     };
+
+    config_database(&config.database).await?;
 
     let server = Server::build(config.clone()).await?;
 
@@ -50,8 +60,31 @@ pub async fn spawn_server() -> Result<TestServer> {
 
     let test_server = TestServer {
         addr: format!("http://127.0.0.1:{}", port),
+        db_pool: get_db_pool(&config.database)?,
         client,
     };
 
     Ok(test_server)
+}
+
+// Create a new database for each test with a unique name for better test isolation
+async fn config_database(config: &DatabaseConfig) -> Result<PgPool> {
+    let default_config = DatabaseConfig {
+        user: "postgres".into(),
+        password: SecretString::new("password".into()),
+        database: "postgres".into(),
+        ..config.clone()
+    };
+
+    let mut connection = PgConnection::connect_with(&default_config.connect_options()).await?;
+
+    connection
+        .execute(format!(r#"CREATE DATABASE "{}";"#, config.database).as_str())
+        .await?;
+
+    let connection_pool = PgPool::connect_with(config.connect_options()).await?;
+
+    sqlx::migrate!("./migrations").run(&connection_pool).await?;
+
+    Ok(connection_pool)
 }

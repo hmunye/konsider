@@ -21,7 +21,7 @@ pub struct Server {
 impl Server {
     // Build a new server instance
     pub async fn build(config: Config) -> Result<Server> {
-        let db_pool = get_db_pool(&config.database);
+        let db_pool = get_db_pool(&config.database)?;
 
         let bind = format!("{}:{}", config.server.host, config.server.port);
 
@@ -35,9 +35,7 @@ impl Server {
             .expect("failed to get local address bound to tcp listener")
             .port();
 
-        let jwt_secret = SecretString::new(config.server.jwt_secret.into());
-
-        let instance = serve(tcp_listener, db_pool, jwt_secret).await?;
+        let instance = serve(tcp_listener, db_pool, config.server.jwt_secret).await?;
 
         println!(">> LISTENING ON {}:{}", &config.server.host, &port);
 
@@ -56,9 +54,9 @@ impl Server {
     }
 }
 
-pub fn get_db_pool(config: &DatabaseConfig) -> PgPool {
+pub fn get_db_pool(config: &DatabaseConfig) -> Result<PgPool> {
     // Using PgPool allows for concurrency by borrowing a PgConncection from the pool for executing queries
-    PgPoolOptions::new()
+    Ok(PgPoolOptions::new()
         // Set the minimum number of connections to maintain at all times
         .min_connections(10)
         // Set the maximum number of connections that this pool should maintain
@@ -67,7 +65,7 @@ pub fn get_db_pool(config: &DatabaseConfig) -> PgPool {
         .acquire_timeout(std::time::Duration::from_secs(10))
         // The amount of time a connection can stay idle in the pool before it is closed
         .idle_timeout(std::time::Duration::from_secs(900)) // Set to 15 minutes
-        .connect_lazy_with(config.connect_options())
+        .connect_lazy_with(config.connect_options()))
 }
 
 #[derive(Clone)]

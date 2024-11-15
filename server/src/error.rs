@@ -4,23 +4,16 @@ use axum::response::{IntoResponse, Response};
 // Type alias for Result
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, thiserror::Error)]
 pub enum Error {
     // (unexpected errors)
-    ServerError(std::sync::Arc<dyn std::error::Error + Send + Sync>),
+    #[error(transparent)]
+    ServerError(std::sync::Arc<anyhow::Error>),
 }
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(fmt, "{self:?}")
-    }
-}
-
-impl std::error::Error for Error {}
 
 impl From<tokio::task::JoinError> for Error {
     fn from(err: tokio::task::JoinError) -> Self {
-        Error::ServerError(std::sync::Arc::new(err))
+        Error::ServerError(std::sync::Arc::new(err.into()))
     }
 }
 
