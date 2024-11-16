@@ -1,11 +1,15 @@
+use axum::http::Request;
 use axum::routing::IntoMakeService;
 use axum::serve::Serve;
 use axum::Router;
 use secrecy::SecretString;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use tower::ServiceBuilder;
+use tower_http::classify::StatusInRangeAsFailures;
+use tower_http::trace::TraceLayer;
 
-use crate::api::{auth_routes, health_routes};
+use crate::api::{auth_routes, health_routes, main_response_mapper};
 use crate::config::DatabaseConfig;
 use crate::{Config, Result};
 
@@ -87,13 +91,38 @@ pub async fn serve(
         jwt_secret,
     };
 
-    let server = Router::new().nest(
-        "/api/v1",
-        Router::<ServerState>::new()
-            .nest("/health", health_routes())
-            .nest("/auth", auth_routes())
-            .with_state(state),
-    );
+    let server = Router::new()
+        .nest(
+            "/api/v1",
+            Router::<ServerState>::new()
+                .nest("/health", health_routes())
+                .nest("/auth", auth_routes())
+                .with_state(state),
+        )
+        .layer(axum::middleware::map_response(main_response_mapper))
+        .layer(
+            ServiceBuilder::new().layer(
+                TraceLayer::new(
+                    // By default, the `new_for_http` method for TraceLayer
+                    // only classifies `5xx` errors as failures.
+                    // Now, any error with status from 400 to 599 is classified as an error
+                    StatusInRangeAsFailures::new(400..=599).into_make_classifier(),
+                )
+                .make_span_with(|request: &Request<_>| {
+                    let request_id = uuid::Uuid::new_v4().to_string();
+
+                    // Will be included with every request log
+                    tracing::span!(
+                        tracing::Level::INFO,
+                        "request",
+                        %request_id,
+                        method = ?request.method(),
+                        uri = %request.uri(),
+                        version = ?request.version(),
+                    )
+                }),
+            ),
+        );
 
     Ok(axum::serve(tcp_listener, server.into_make_service()))
 }

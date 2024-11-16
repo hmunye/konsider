@@ -14,21 +14,69 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+  SQLX_VERSION: 0.8.0
+  SQLX_FEATURES: "rustls,postgres"
+
+  DB_USER: k6r_user
+  DB_USER_PWD: password
+  DB_NAME: k6r
+
 jobs:
   test:
     name: Testing
     runs-on: ubuntu-latest
+    # Service container to run alongside the `test` container job
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install sqlx-cli
+        working-directory: server
+        run:
+          cargo install sqlx-cli
+          --version=${{ env.SQLX_VERSION }}
+          --features ${{ env.SQLX_FEATURES }}
+          --no-default-features
+          --locked
+
+      - name: Create user in Postgres
+        working-directory: server
+        run: |
+          sudo apt-get update
+          sudo apt-get install postgresql-client
+
+          CREATE_QUERY="CREATE USER ${{ env.DB_USER }} WITH ENCRYPTED PASSWORD '${{ env.DB_USER_PWD }}';"
+          PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${CREATE_QUERY}"
+
+          GRANT_QUERY="ALTER USER ${{ env.DB_USER }} CREATEDB;"
+          PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${GRANT_QUERY}"
+
+      - name: Migrate Database
+        working-directory: server
+        run: SKIP_DOCKER=true ./scripts/init_db.sh
 
       - name: Run Tests
         working-directory: server
         run: cargo test
 
+      - name: Ensure sqlx queries are fresh
+        working-directory: server
+        run: cargo sqlx prepare --check -- --all-targets
+
   lint:
     name: Linting
     runs-on: ubuntu-latest
+    env:
+      SQLX_OFFLINE: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
