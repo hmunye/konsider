@@ -61,12 +61,6 @@ impl From<sqlx::Error> for Error {
     }
 }
 
-impl From<jsonwebtoken::errors::Error> for Error {
-    fn from(err: jsonwebtoken::errors::Error) -> Self {
-        Error::ServerError(std::sync::Arc::new(err.into()))
-    }
-}
-
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         // Just a placeholder response

@@ -44,7 +44,8 @@ pub fn generate_jwt(user_id: &Uuid, user_role: UserRole, secret: &SecretString) 
             jti: Uuid::new_v4(),
         },
         &EncodingKey::from_secret(secret.expose_secret().as_bytes()),
-    )?;
+    )
+    .map_err(|err| Error::ServerError(std::sync::Arc::new(err.into())))?;
 
     Ok(token)
 }

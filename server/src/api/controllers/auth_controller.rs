@@ -43,5 +43,5 @@ pub async fn api_login(
 
     let headers = AppendHeaders([(SET_COOKIE, cookie.build_header())]);
 
-    Ok((StatusCode::OK, headers))
+    Ok((StatusCode::NO_CONTENT, headers))
 }

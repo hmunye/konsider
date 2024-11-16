@@ -1,9 +1,9 @@
+use reqwest::header;
 use serde_json::json;
 
 use crate::common::{spawn_server, Result};
 
 #[tokio::test]
-// TODO: After implementing JWT, make sure there is a check after login
 async fn login_is_successful() -> Result<()> {
     let server = spawn_server().await?;
     let login_url = format!("{}/api/v1/auth/login", server.addr);
@@ -17,7 +17,14 @@ async fn login_is_successful() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()))
         .await?;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
+
+    let token = login_response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|str| str.split(";").nth(0));
+    assert!(token.is_some(), "JWT should be present");
 
     Ok(())
 }
