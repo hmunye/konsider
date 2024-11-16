@@ -84,8 +84,8 @@ impl Cookie {
 #[derive(Clone, Debug, Default)]
 pub enum SameSite {
     #[default]
-    Lax,
     Strict,
+    Lax,
     None,
 }
 

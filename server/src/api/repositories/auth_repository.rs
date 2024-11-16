@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use crate::api::UserRole;
 use crate::{Error, Result};
 
-#[tracing::instrument(name = "fetching user credentials", skip(db_pool, email))]
+#[tracing::instrument(name = "fetching user credentials from database", skip(db_pool, email))]
 pub async fn fetch_credentials<'a>(
     db_pool: &PgPool,
     email: &'a str,

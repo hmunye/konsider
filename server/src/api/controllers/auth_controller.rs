@@ -5,7 +5,7 @@ use axum::response::{AppendHeaders, IntoResponse};
 use secrecy::SecretString;
 use serde::Deserialize;
 
-use crate::api::services::validate_credentials;
+use crate::api::services::{save_user_token, validate_credentials};
 use crate::api::{generate_jwt, Cookie, Json, SameSite};
 use crate::server::ServerState;
 use crate::Result;
@@ -31,7 +31,9 @@ pub async fn api_login(
 
     tracing::Span::current().record("request_initiator", tracing::field::display(&user_id));
 
-    let token = generate_jwt(&user_id, user_role, &state.jwt_secret)?;
+    let (token, jti) = generate_jwt(&user_id, user_role, &state.jwt_secret)?;
+
+    save_user_token(jti, &user_id, &state.db_pool).await?;
 
     let mut cookie = Cookie::new(token);
 

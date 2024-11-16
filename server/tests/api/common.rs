@@ -31,7 +31,6 @@ static TRACING: std::sync::LazyLock<()> = std::sync::LazyLock::new(|| {
 });
 
 #[derive(Debug)]
-#[allow(unused)]
 pub struct TestServer {
     pub addr: String,
     pub db_pool: PgPool,

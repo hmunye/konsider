@@ -27,7 +27,13 @@ pub fn decode_jwt(token: &str, secret: &SecretString) -> Result<TokenData<Claims
     Ok(token_data)
 }
 
-pub fn generate_jwt(user_id: &Uuid, user_role: UserRole, secret: &SecretString) -> Result<String> {
+pub fn generate_jwt(
+    user_id: &Uuid,
+    user_role: UserRole,
+    secret: &SecretString,
+) -> Result<(String, Uuid)> {
+    let jti = Uuid::new_v4();
+
     let header = Header {
         alg: Algorithm::HS256,
         ..Default::default()
@@ -41,11 +47,11 @@ pub fn generate_jwt(user_id: &Uuid, user_role: UserRole, secret: &SecretString) 
             iat: (chrono::Utc::now()).timestamp() as usize,
             exp: (chrono::Utc::now() + chrono::Duration::minutes(TOKEN_VALIDITY_DURATION))
                 .timestamp() as usize,
-            jti: Uuid::new_v4(),
+            jti,
         },
         &EncodingKey::from_secret(secret.expose_secret().as_bytes()),
     )
     .map_err(|err| Error::ServerError(std::sync::Arc::new(err.into())))?;
 
-    Ok(token)
+    Ok((token, jti))
 }

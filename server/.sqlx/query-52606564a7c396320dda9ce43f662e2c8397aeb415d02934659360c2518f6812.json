@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT jti\n        FROM user_token\n        WHERE revoked = TRUE\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "jti",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "52606564a7c396320dda9ce43f662e2c8397aeb415d02934659360c2518f6812"
+}

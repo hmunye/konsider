@@ -19,6 +19,12 @@ pub enum Error {
     #[error("request is missing a valid token")]
     AuthMissingTokenError,
 
+    // -- database
+    #[error("database record already exists")]
+    PgRecordExists,
+    #[error("database key violation occured")]
+    PgKeyViolation,
+
     // -- other
     #[error("error occured parsing JSON payload from request: {0}")]
     PayloadExtractorError(JsonError),
