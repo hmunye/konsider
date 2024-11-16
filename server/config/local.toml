@@ -4,7 +4,7 @@ host = "127.0.0.1"
 jwt_secret = "T7O5aKbBIJyxvrqNxl64W+xVDS5PN0oHlrc84edDdcY="
 
 [database]
-user = "postgres"
+user = "k6r_user"
 password = "password"
 database = "k6r"
 host = "127.0.0.1"
