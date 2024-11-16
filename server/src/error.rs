@@ -10,10 +10,14 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Clone, thiserror::Error)]
 pub enum Error {
     // -- auth
-    #[error("failed to find email associated with user")]
+    #[error("no account found associated with the provided email")]
     AuthEmailNotFoundError,
-    #[error("invaild password provided")]
+    #[error("provided password is invalid")]
     AuthInvalidPasswordError,
+    #[error("the provided token for the request is invalid")]
+    AuthInvalidTokenError,
+    #[error("request is missing a valid token")]
+    AuthMissingTokenError,
 
     // -- other
     #[error("error occured parsing JSON payload from request: {0}")]
@@ -57,6 +61,12 @@ impl From<sqlx::Error> for Error {
     }
 }
 
+impl From<jsonwebtoken::errors::Error> for Error {
+    fn from(err: jsonwebtoken::errors::Error) -> Self {
+        Error::ServerError(std::sync::Arc::new(err.into()))
+    }
+}
+
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         // Just a placeholder response
@@ -77,6 +87,16 @@ impl Error {
                 ClientError::InvalidCredentials.to_string(),
             ),
 
+            Self::AuthInvalidTokenError => (
+                StatusCode::UNAUTHORIZED,
+                ClientError::InvalidToken.to_string(),
+            ),
+
+            Self::AuthMissingTokenError => (
+                StatusCode::UNAUTHORIZED,
+                ClientError::MissingToken.to_string(),
+            ),
+
             Self::PayloadExtractorError(..) => (
                 StatusCode::BAD_REQUEST,
                 ClientError::InvalidPayload.to_string(),
@@ -95,16 +115,20 @@ impl Error {
 pub enum ClientError {
     InvalidCredentials,
     InvalidPayload,
+    InvalidToken,
+    MissingToken,
     ServiceError,
 }
 
 impl std::fmt::Display for ClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let error_message = match self {
-            ClientError::InvalidCredentials => "The provided credentials are invalid or incorrect",
+            ClientError::InvalidCredentials => "The provided credentials are invalid",
             ClientError::InvalidPayload => {
-                "The submitted payload is invalid or does not meet the required format"
+                "The submitted payload is invalid or does not conform to the expected format"
             }
+            ClientError::InvalidToken => "The provided token for the request is invalid",
+            ClientError::MissingToken => "The request is missing a valid token",
             _ => "An internal server error has occurred. Please try again later",
         };
 
