@@ -6,7 +6,7 @@ use serde::Serialize;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 
-use k6r::api::UserRole;
+use k6r::api::{poll_and_update_token_cache, TokenCache, UserRole};
 use k6r::config::{get_config, DatabaseConfig};
 use k6r::log::{get_subscriber, init_subscriber};
 use k6r::server::{get_db_pool, Server};
@@ -157,15 +157,23 @@ pub async fn spawn_server() -> Result<TestServer> {
 
     config_database(&config.database).await?;
 
-    let server = Server::build(config.clone()).await?;
+    // Initialize cache to store revoked tokens in-memory
+    let token_cache = TokenCache::new();
+
+    let server = Server::build(config.clone(), token_cache.clone()).await?;
 
     let port = server.port();
 
-    // Spawn a new asynchronous task using `tokio::spawn`.
-    // Creates a non-blocking task that runs the server instance in the background.
-    // The server's `run` method is awaited within this task, allowing it to
-    // handle incoming requests while the main thread can continue executing
+    // Spawns two new asynchronous task using `tokio::spawn`.
+    // Creates a non-blocking task that runs the server instance and worker
+    // in the background. The server's `run` method is awaited within this task,
+    // allowing it to handle incoming requests while the main thread can
+    // continue executing
     tokio::spawn(server.run());
+    tokio::spawn(poll_and_update_token_cache(
+        token_cache,
+        config.database.clone(),
+    ));
 
     let client = reqwest::Client::builder().build()?;
 
@@ -213,15 +221,15 @@ async fn config_database(config: &DatabaseConfig) -> Result<PgPool> {
         ..config.clone()
     };
 
-    // Step 1: Connect as the superuser (postgres)
+    // Connect as the superuser (postgres)
     let mut connection = PgConnection::connect_with(&default_config.connect_options()).await?;
 
-    // Step 2: Create the new database using the superuser
+    // Create the new database using the superuser
     connection
         .execute(format!(r#"CREATE DATABASE "{}";"#, config.database).as_str())
         .await?;
 
-    // Step 3: Change the owner of the newly created database to k6r user
+    // Change the owner of the newly created database to k6r user
     connection
         .execute(
             format!(
@@ -232,10 +240,10 @@ async fn config_database(config: &DatabaseConfig) -> Result<PgPool> {
         )
         .await?;
 
-    // Step 4: Create connection pool using k6r user
+    // Create connection pool using k6r user
     let connection_pool = PgPool::connect_with(config.connect_options()).await?;
 
-    // Step 5: Run migrations on the new database
+    // Run migrations on the new database
     sqlx::migrate!("./migrations").run(&connection_pool).await?;
 
     Ok(connection_pool)

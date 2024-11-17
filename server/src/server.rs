@@ -9,9 +9,9 @@ use tower::ServiceBuilder;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::trace::TraceLayer;
 
-use crate::api::{auth_routes, health_routes, main_response_mapper};
-use crate::config::DatabaseConfig;
-use crate::{Config, Result};
+use crate::api::{auth_routes, health_routes, main_response_mapper, TokenCache};
+use crate::config::{Config, DatabaseConfig};
+use crate::Result;
 
 // Type alias for axum's serve
 type ServeType = Serve<IntoMakeService<Router>, Router>;
@@ -24,7 +24,7 @@ pub struct Server {
 
 impl Server {
     // Build a new server instance
-    pub async fn build(config: Config) -> Result<Server> {
+    pub async fn build(config: Config, token_cache: TokenCache) -> Result<Server> {
         let db_pool = get_db_pool(&config.database)?;
 
         let bind = format!("{}:{}", config.server.host, config.server.port);
@@ -39,7 +39,7 @@ impl Server {
             .expect("failed to get local address bound to tcp listener")
             .port();
 
-        let instance = serve(tcp_listener, db_pool, config.server.jwt_secret).await?;
+        let instance = serve(tcp_listener, db_pool, config.server.jwt_secret, token_cache).await?;
 
         tracing::info!(
             "{}",
@@ -79,16 +79,19 @@ pub fn get_db_pool(config: &DatabaseConfig) -> Result<PgPool> {
 pub struct ServerState {
     pub db_pool: PgPool,
     pub jwt_secret: SecretString,
+    pub token_cache: TokenCache,
 }
 
 pub async fn serve(
     tcp_listener: tokio::net::TcpListener,
     db_pool: PgPool,
     jwt_secret: SecretString,
+    token_cache: TokenCache,
 ) -> Result<ServeType> {
     let state = ServerState {
         db_pool,
         jwt_secret,
+        token_cache,
     };
 
     let server = Router::new()

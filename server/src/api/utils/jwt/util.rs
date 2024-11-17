@@ -8,8 +8,8 @@ use crate::api::utils::jwt::Claims;
 use crate::api::UserRole;
 use crate::{Error, Result};
 
-// Define the validity duration in minutes. Approximately 1 month
-const TOKEN_VALIDITY_DURATION: i64 = 43_800;
+// 24 hours = 24 * 60 minutes = 1440 minutes
+const TOKEN_VALIDITY_DURATION: i64 = 1440;
 
 // Returns the header and claims of JWT
 pub fn decode_jwt(token: &str, secret: &SecretString) -> Result<TokenData<Claims>> {
@@ -27,6 +27,7 @@ pub fn decode_jwt(token: &str, secret: &SecretString) -> Result<TokenData<Claims
     Ok(token_data)
 }
 
+// Returns JWT and unique identifier
 pub fn generate_jwt(
     user_id: &Uuid,
     user_role: UserRole,

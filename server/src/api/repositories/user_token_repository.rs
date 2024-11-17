@@ -8,10 +8,13 @@ use crate::{Error, Result};
     skip(jti, user_id, db_pool)
 )]
 pub async fn insert_user_token(jti: Uuid, user_id: &Uuid, db_pool: &PgPool) -> Result<()> {
+    // Replace jti if token exists for user
     match sqlx::query!(
         r#"
         INSERT INTO user_token (jti, user_id)
         VALUES ($1, $2)
+        ON CONFLICT (user_id) DO UPDATE
+        SET jti = $1
         "#,
         jti,
         user_id
@@ -28,20 +31,21 @@ pub async fn insert_user_token(jti: Uuid, user_id: &Uuid, db_pool: &PgPool) -> R
     }
 }
 
-#[tracing::instrument(name = "fetching revoked tokens from database", skip(db_pool))]
-pub async fn fetch_revoked_tokens(db_pool: &PgPool) -> Result<Vec<Uuid>> {
+#[tracing::instrument(name = "fetching valid tokens from database", skip(db_pool))]
+pub async fn fetch_valid_tokens(db_pool: &PgPool) -> Result<Vec<(Uuid, Uuid)>> {
     let rows = sqlx::query!(
         r#"
-        SELECT jti
+        SELECT jti, user_id
         FROM user_token
-        WHERE revoked = TRUE
+        WHERE revoked = FALSE
         "#
     )
     .fetch_all(db_pool)
     .await
     .map_err(Error::from)?;
 
-    let revoked_tokens: Vec<Uuid> = rows.into_iter().map(|row| row.jti).collect();
+    let valid_tokens: Vec<(Uuid, Uuid)> =
+        rows.into_iter().map(|row| (row.jti, row.user_id)).collect();
 
-    Ok(revoked_tokens)
+    Ok(valid_tokens)
 }

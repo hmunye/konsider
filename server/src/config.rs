@@ -1,7 +1,8 @@
+use std::convert::{TryFrom, TryInto};
+
 use secrecy::{ExposeSecret, SecretString};
 use serde::Deserialize;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
-use std::convert::{TryFrom, TryInto};
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {

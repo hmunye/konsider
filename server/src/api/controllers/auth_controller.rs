@@ -34,6 +34,7 @@ pub async fn api_login(
     let (token, jti) = generate_jwt(&user_id, user_role, &state.jwt_secret)?;
 
     save_user_token(jti, &user_id, &state.db_pool).await?;
+    state.token_cache.insert_token(jti, user_id).await;
 
     let mut cookie = Cookie::new(token);
 

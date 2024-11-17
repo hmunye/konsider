@@ -79,14 +79,14 @@ I prefer an approach that doesn’t burden the client with token management. Ins
 
 ##### Revocation Flow:
 1. Long-Lived JWTs: Each JWT has a 24-hour expiration (`exp`), minimizing frequent renewals while keeping users logged in
-2. Database Polling: A background process runs every 10–15 minutes to check the database for tokens flagged as revoked. After each polling cycle, it updates an in-memory cache of revoked tokens
-3. Request Handling: For each incoming request, the server first validates the token normally, then checks the `jti` of the token against the in-memory cache:
+2. Database Polling: A background process runs every 10–15 minutes to check the database for tokens not flagged as revoked (valid tokens). After each polling cycle, it updates an in-memory cache of valid tokens
+3. Request Handling: For each incoming request, the server first validates the token normally, then checks the `jti` and `user_id` of the token against the in-memory cache:
 - If the token is initially invalid, the request is rejected 
-- If the token is valid but found in the cache, the request is rejected 
-- If the token is valid and not found in the cache, the request proceeds as usual
+- If the token is valid but not found in the cache, the request is rejected 
+- If the token is valid and found in the cache, the request proceeds as usual
 ##### Logout Flow:
 - Token Revocation: When a user logs out, their JWT is marked as revoked in the database
-- Cache Update: To ensure immediate effect, the revoked token is also added to the in-memory cache, preventing the delay of the next polling cycle
+- Cache Update: To ensure immediate effect, the revoked token is also removed from the in-memory cache, preventing the delay of the next polling cycle
 ##### Pros:
 - Efficient Authorization: Caching revoked tokens minimizes database queries by allowing quick lookup, reducing load
 - Client Simplicity: Long-lived JWTs and server-managed revocation eliminate client-side token handling, simplifying the user experience
