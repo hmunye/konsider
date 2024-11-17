@@ -15,7 +15,7 @@ async fn login_is_successful() -> Result<()> {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(login_body.to_string()))
+        .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
     assert_eq!(204, login_response.status().as_u16());
 
@@ -40,7 +40,7 @@ async fn login_with_invalid_credentials_rejected() -> Result<()> {
     });
 
     let login_response = server
-        .post_request(&login_url, Some(login_body.to_string()))
+        .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
     assert_eq!(401, login_response.status().as_u16());
 
@@ -70,7 +70,7 @@ async fn login_with_missing_fields_rejected() -> Result<()> {
 
     for (invalid_body, error_message) in test_cases {
         let login_response = server
-            .post_request(&login_url, Some(invalid_body.to_string()))
+            .post_request(&login_url, Some(invalid_body.to_string()), None)
             .await?;
         (
             assert_eq!(400, login_response.status().as_u16()),
@@ -127,7 +127,7 @@ async fn sql_injection_login_attempts_rejected() -> Result<()> {
 
     for (invalid_body, error_message) in test_cases {
         let login_response = server
-            .post_request(&login_url, Some(invalid_body.to_string()))
+            .post_request(&login_url, Some(invalid_body.to_string()), None)
             .await?;
         (
             assert_eq!(401, login_response.status().as_u16()),

@@ -1,6 +1,4 @@
-use jsonwebtoken::{
-    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
-};
+use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use secrecy::{ExposeSecret, SecretString};
 use uuid::Uuid;
 
@@ -10,22 +8,6 @@ use crate::{Error, Result};
 
 // 24 hours = 24 * 60 minutes = 1440 minutes
 const TOKEN_VALIDITY_DURATION: i64 = 1440;
-
-// Returns the header and claims of JWT
-pub fn decode_jwt(token: &str, secret: &SecretString) -> Result<TokenData<Claims>> {
-    let mut validation = Validation::new(Algorithm::HS256);
-
-    validation.set_required_spec_claims(&["sub", "iat", "exp"]);
-
-    let token_data = decode::<Claims>(
-        token,
-        &DecodingKey::from_secret(secret.expose_secret().as_bytes()),
-        &validation,
-    )
-    .map_err(|_| Error::AuthInvalidTokenError)?;
-
-    Ok(token_data)
-}
 
 // Returns JWT and unique identifier
 pub fn generate_jwt(

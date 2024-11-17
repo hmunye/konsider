@@ -5,8 +5,8 @@ use axum::response::{AppendHeaders, IntoResponse};
 use secrecy::SecretString;
 use serde::Deserialize;
 
-use crate::api::services::{save_user_token, validate_credentials};
-use crate::api::{generate_jwt, Cookie, Json, SameSite};
+use crate::api::services::{revoke_user_token, save_user_token, validate_credentials};
+use crate::api::{generate_jwt, Cookie, Json, SameSite, Token};
 use crate::server::ServerState;
 use crate::Result;
 
@@ -18,7 +18,7 @@ pub struct Credentials {
 
 #[tracing::instrument(
     name = "user login", 
-    skip(payload, state),
+    skip(state, payload),
     fields(
         request_initiator = tracing::field::Empty,
     )
@@ -47,4 +47,24 @@ pub async fn api_login(
     let headers = AppendHeaders([(SET_COOKIE, cookie.build_header())]);
 
     Ok((StatusCode::NO_CONTENT, headers))
+}
+
+#[tracing::instrument(
+    name = "user logout", 
+    skip(token, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_logout(
+    Token(token): Token,
+    State(state): State<ServerState>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    revoke_user_token(token.jti, &state.db_pool).await?;
+
+    state.token_cache.remove_token(token.jti, token.sub).await;
+
+    Ok(StatusCode::NO_CONTENT)
 }

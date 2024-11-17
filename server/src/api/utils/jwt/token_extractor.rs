@@ -19,21 +19,28 @@ where
 {
     type Rejection = Error;
 
-    // Checks for JWT in request, validate JWT, and return the claims of JWT
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let token = parts
             .headers
             .get(header::COOKIE)
             .and_then(|value| value.to_str().ok())
-            .and_then(|str| str.split("=").nth(1));
+            .and_then(|str| str.split(';').next())
+            .and_then(|cookie| cookie.split('=').nth(1));
 
         match token {
             Some(token) => {
                 let state = ServerState::from_ref(state);
 
-                let decoded_token = decode_jwt(token, &state.jwt_secret)?;
+                let claims = decode_jwt(token, &state.jwt_secret)?.claims;
 
-                Ok(Token(decoded_token.claims))
+                match state
+                    .token_cache
+                    .is_token_valid(claims.jti, claims.sub)
+                    .await
+                {
+                    true => Ok(Token(claims)),
+                    false => Err(Error::AuthInvalidTokenError),
+                }
             }
 
             None => Err(Error::AuthMissingTokenError),

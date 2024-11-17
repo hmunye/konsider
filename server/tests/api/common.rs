@@ -1,6 +1,6 @@
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHasher, Version};
-use axum::http::header;
+use reqwest::header;
 use secrecy::SecretString;
 use serde::Serialize;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
@@ -54,22 +54,46 @@ impl TestServer {
         &self,
         url: &String,
         body: Option<String>,
+        token: Option<&str>,
     ) -> Result<reqwest::Response> {
-        match body {
-            Some(body) => Ok(self
+        match (body, token) {
+            // Both body and token provided
+            (Some(body_content), Some(token_value)) => Ok(self
                 .client
                 .post(url)
                 .header(header::CONTENT_TYPE, "application/json")
-                .body(body)
+                .header(header::COOKIE, token_value)
+                .body(body_content)
                 .send()
                 .await
-                .map_err(|err| format!("failed to execute request. cause: {err}"))?),
-            None => Ok(self
+                .map_err(|err| format!("failed to execute request: cause {err}"))?),
+
+            // Only body provided, no token
+            (Some(body_content), None) => Ok(self
+                .client
+                .post(url)
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(body_content)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request: cause {err}"))?),
+
+            // Only token provided, no body
+            (None, Some(token_value)) => Ok(self
+                .client
+                .post(url)
+                .header(header::COOKIE, token_value)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request: cause {err}"))?),
+
+            // Neither body nor token provided
+            (None, None) => Ok(self
                 .client
                 .post(url)
                 .send()
                 .await
-                .map_err(|err| format!("failed to execute request. cause: {err}"))?),
+                .map_err(|err| format!("failed to execute request: cause {err}"))?),
         }
     }
 }

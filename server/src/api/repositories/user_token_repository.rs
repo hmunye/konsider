@@ -31,7 +31,7 @@ pub async fn insert_user_token(jti: Uuid, user_id: &Uuid, db_pool: &PgPool) -> R
     }
 }
 
-#[tracing::instrument(name = "fetching valid tokens from database", skip(db_pool))]
+#[tracing::instrument(name = "fetching valid user tokens from database", skip(db_pool))]
 pub async fn fetch_valid_tokens(db_pool: &PgPool) -> Result<Vec<(Uuid, Uuid)>> {
     let rows = sqlx::query!(
         r#"
@@ -48,4 +48,25 @@ pub async fn fetch_valid_tokens(db_pool: &PgPool) -> Result<Vec<(Uuid, Uuid)>> {
         rows.into_iter().map(|row| (row.jti, row.user_id)).collect();
 
     Ok(valid_tokens)
+}
+
+#[tracing::instrument(name = "updating user token in database", skip(jti, db_pool))]
+pub async fn update_user_token(jti: Uuid, db_pool: &PgPool) -> Result<()> {
+    let result = sqlx::query!(
+        r#"
+        UPDATE user_token
+        SET revoked = TRUE
+        WHERE jti = $1 AND revoked = FALSE
+        "#,
+        jti
+    )
+    .execute(db_pool)
+    .await
+    .map_err(Error::from)?;
+
+    if result.rows_affected() == 0 {
+        return Err(Error::AuthMissingTokenError);
+    }
+
+    Ok(())
 }
