@@ -20,6 +20,8 @@ pub enum Error {
     AuthMissingTokenError,
 
     // -- database
+    #[error("database record could not be found")]
+    PgNotFoundError,
     #[error("database record already exists")]
     PgRecordExists,
     #[error("database key violation occured")]
@@ -102,6 +104,12 @@ impl Error {
                 ClientError::InvalidPayload.to_string(),
             ),
 
+            Self::PgKeyViolation => (StatusCode::CONFLICT, ClientError::Conflict.to_string()),
+
+            Self::PgRecordExists => (StatusCode::CONFLICT, ClientError::RecordExists.to_string()),
+
+            Self::PgNotFoundError => (StatusCode::NOT_FOUND, ClientError::NotFound.to_string()),
+
             // -- Fallback
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,
@@ -117,6 +125,9 @@ pub enum ClientError {
     InvalidPayload,
     InvalidToken,
     MissingToken,
+    NotFound,
+    RecordExists,
+    Conflict,
     ServiceError,
 }
 
@@ -129,6 +140,9 @@ impl std::fmt::Display for ClientError {
             }
             ClientError::InvalidToken => "The provided token for the request is invalid",
             ClientError::MissingToken => "The request is missing a valid token",
+            ClientError::NotFound => "The requested resource could not be found",
+            ClientError::Conflict => "The request could not be completed due to a conflict",
+            ClientError::RecordExists => "A record with the specified details already exists",
             _ => "An internal server error has occurred. Please try again later",
         };
 

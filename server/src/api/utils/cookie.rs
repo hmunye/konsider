@@ -52,7 +52,7 @@ impl Cookie {
         self.same_site = same_site;
     }
 
-    pub fn build_header(&self) -> String {
+    pub fn build(&self) -> String {
         let mut cookie_header = format!("{}={}", COOKIE_ID, self.value);
 
         cookie_header.push_str(&format!("; Domain={}", self.domain));

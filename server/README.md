@@ -34,9 +34,9 @@
 │   │       │   ├── claims.rs           		# Defines the structure for JWT claims
 │   │       │   ├── decode.rs           		# Function for decoding and validating JWT tokens
 │   │       │   ├── generate.rs         		# Function for generating JWT tokens
-│   │       │   ├── poll_database_worker.rs 	# Background worker that periodically checks the database for valid tokens and updates token cache
-│   │       │   ├── token_cache.rs              # In-memory cache for storing active, valid JWT tokens
-│   │       │   └── token_extractor.rs          # Extracts JWT tokens from Cookie header in requests
+│   │       │   ├── poll_database_worker.rs 	        # Background worker that periodically checks the database for valid tokens and updates token cache
+│   │       │   ├── token_cache.rs                      # In-memory cache for storing active, valid JWT tokens
+│   │       │   └── token_extractor.rs                  # Extracts JWT tokens from Cookie header in requests
 │   │       └── mod.rs
 │   ├── config.rs                       		# Code for loading and managing application configuration
 │   ├── error.rs                        		# Defines server and client error types and handling logic
@@ -53,3 +53,24 @@
 ```
 
 ## Usage
+
+### 1. **Prerequisites**
+
+Before starting, ensure the following tools are installed:
+
+- **Rust**: Install Rust and Cargo using the [rustup](https://www.rust-lang.org/tools/install) tool.
+- **Docker**: Install Docker by following the instructions on [Get Docker](https://docs.docker.com/get-started/get-docker/).
+- **sqlx-cli**: Install the [sqlx-cli](https://github.com/launchbadge/sqlx) tool using Cargo with the following command:
+
+```bash
+cargo install sqlx-cli --no-default-features --features postgres
+```
+
+### 2. **Clone the Repository**
+
+```bash
+git clone https://github.com/hmunye/konsider.git
+```
+```bash
+cd konsider/server
+```

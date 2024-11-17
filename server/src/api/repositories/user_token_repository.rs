@@ -8,24 +8,24 @@ use crate::{Error, Result};
     skip(jti, user_id, db_pool)
 )]
 pub async fn insert_user_token(jti: Uuid, user_id: &Uuid, db_pool: &PgPool) -> Result<()> {
-    // Replace jti if token exists for user
     match sqlx::query!(
         r#"
         INSERT INTO user_token (jti, user_id)
         VALUES ($1, $2)
         ON CONFLICT (user_id) DO UPDATE
-        SET jti = $1
+        SET jti = $1, revoked = FALSE
+        RETURNING jti
         "#,
         jti,
         user_id
     )
-    .execute(db_pool)
+    .fetch_optional(db_pool)
     .await
     {
-        Ok(_) => Ok(()),
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
             Some(code) if code == "23503" => Err(Error::PgKeyViolation),
-            Some(code) if code == "23505" => Err(Error::PgRecordExists),
             _ => Err(Error::from(err)),
         },
     }
@@ -52,21 +52,20 @@ pub async fn fetch_valid_tokens(db_pool: &PgPool) -> Result<Vec<(Uuid, Uuid)>> {
 
 #[tracing::instrument(name = "updating user token in database", skip(jti, db_pool))]
 pub async fn update_user_token(jti: Uuid, db_pool: &PgPool) -> Result<()> {
-    let result = sqlx::query!(
+    match sqlx::query!(
         r#"
         UPDATE user_token
         SET revoked = TRUE
         WHERE jti = $1 AND revoked = FALSE
+        RETURNING jti
         "#,
         jti
     )
-    .execute(db_pool)
+    .fetch_optional(db_pool)
     .await
-    .map_err(Error::from)?;
-
-    if result.rows_affected() == 0 {
-        return Err(Error::AuthMissingTokenError);
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => Err(Error::from(err)),
     }
-
-    Ok(())
 }

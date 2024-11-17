@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO user_token (jti, user_id)\n        VALUES ($1, $2)\n        ON CONFLICT (user_id) DO UPDATE\n        SET jti = $1, revoked = FALSE\n        RETURNING jti\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "jti",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "99a6a13e04e5b2f6812c5ac0dbee5a8cb229a7caccc3704a5970223b79280ed7"
+}

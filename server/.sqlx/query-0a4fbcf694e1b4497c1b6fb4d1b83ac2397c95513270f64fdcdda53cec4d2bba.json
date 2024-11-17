@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE user_token\n        SET revoked = TRUE\n        WHERE jti = $1 AND revoked = FALSE\n        RETURNING jti\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "jti",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "0a4fbcf694e1b4497c1b6fb4d1b83ac2397c95513270f64fdcdda53cec4d2bba"
+}
