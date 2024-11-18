@@ -5,8 +5,10 @@ use secrecy::SecretString;
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::api::models::UserRole;
-use crate::api::services::{change_user_password, get_all_users, get_user, revoke_user_token};
+use crate::api::models::{User, UserRole};
+use crate::api::services::{
+    change_user_password, create_user, get_all_users, get_user, revoke_user_token,
+};
 use crate::api::utils::{Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::{Error, Result};
@@ -110,4 +112,32 @@ pub async fn api_get_user(
     });
 
     Ok((StatusCode::OK, Json(response_body)))
+}
+
+#[tracing::instrument(
+    name = "create user", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, state, payload),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_create_user(
+    Token(token): Token,
+    State(state): State<ServerState>,
+    Json(payload): Json<User>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    // Only allow `ADMIN` users to access this endpoint
+    match token.role {
+        UserRole::ADMIN => (),
+        _ => return Err(Error::AuthInvalidRoleError)?,
+    }
+
+    payload.parse()?;
+
+    create_user(&state.db_pool, &payload).await?;
+
+    Ok(StatusCode::CREATED)
 }

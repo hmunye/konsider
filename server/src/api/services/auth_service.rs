@@ -69,7 +69,7 @@ pub fn verify_password_hash(
 }
 
 #[tracing::instrument(name = "computing password hash", skip(password))]
-pub fn compute_password_hash(password: SecretString) -> Result<SecretString> {
+pub fn compute_password_hash(password: &SecretString) -> Result<SecretString> {
     let salt = SaltString::generate(&mut rand::thread_rng());
 
     let password_hash = Argon2::default()

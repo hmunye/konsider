@@ -127,7 +127,7 @@ impl TestUser {
         Self {
             id: Uuid::new_v4(),
             name: Uuid::new_v4().to_string(),
-            email: format!("{}brockport.edu", Uuid::new_v4().to_string()),
+            email: format!("{}@brockport.edu", Uuid::new_v4().to_string()),
             password: Uuid::new_v4().to_string(),
             role: user_role as UserRole,
         }
@@ -139,7 +139,7 @@ impl TestUser {
         Self {
             id: Uuid::new_v4(),
             name: Uuid::new_v4().to_string(),
-            email: format!("{}brockport.edu", Uuid::new_v4().to_string()),
+            email: format!("{}@brockport.edu", Uuid::new_v4().to_string()),
             password: Uuid::new_v4().to_string(),
             role: user_role as UserRole,
         }

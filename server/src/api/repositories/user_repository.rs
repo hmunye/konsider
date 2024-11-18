@@ -147,3 +147,33 @@ pub async fn fetch_user_by_id(user_id: Uuid, db_pool: &PgPool) -> Result<User> {
         None => Err(Error::PgNotFoundError),
     }
 }
+
+#[tracing::instrument(name = "inserting user into database", skip())]
+pub async fn insert_user(
+    payload: &User,
+    password_hash: SecretString,
+    db_pool: &PgPool,
+) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        INSERT INTO user_account (name, email, password_hash, role)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id
+        "#,
+        payload.name,
+        payload.email,
+        password_hash.expose_secret(),
+        payload.role.clone() as UserRole,
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    }
+}

@@ -5,7 +5,8 @@ use uuid::Uuid;
 
 use crate::api::models::User;
 use crate::api::repositories::{
-    fetch_all_users, fetch_credentials_by_user_id, fetch_user_by_id, update_user_password,
+    fetch_all_users, fetch_credentials_by_user_id, fetch_user_by_id, insert_user,
+    update_user_password,
 };
 use crate::api::services::{compute_password_hash, verify_password_hash};
 use crate::api::utils::{Metadata, QueryParams};
@@ -48,7 +49,7 @@ pub async fn change_user_password(
     })
     .await??;
 
-    let password_hash = compute_password_hash(new_password)?;
+    let password_hash = compute_password_hash(&new_password)?;
 
     update_user_password(user_id, password_hash, db_pool).await
 }
@@ -121,9 +122,16 @@ pub async fn get_all_users(
     Ok((wrapped_users, metadata))
 }
 
-#[tracing::instrument(name = "get user by id", skip(user_id, db_pool))]
+#[tracing::instrument(name = "getting user by id", skip(user_id, db_pool))]
 pub async fn get_user(user_id: Uuid, db_pool: &PgPool) -> Result<UserDTO> {
     let user = fetch_user_by_id(user_id, db_pool).await?;
 
     Ok(UserDTO::from(&user))
+}
+
+#[tracing::instrument(name = "creating user", skip(db_pool, payload))]
+pub async fn create_user(db_pool: &PgPool, payload: &User) -> Result<()> {
+    let password_hash = compute_password_hash(&payload.password)?;
+
+    insert_user(payload, password_hash, db_pool).await
 }
