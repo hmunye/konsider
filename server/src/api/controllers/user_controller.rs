@@ -6,8 +6,8 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::api::models::UserRole;
-use crate::api::services::{change_user_password, get_all_users, revoke_user_token};
-use crate::api::utils::{Json, QueryExtractor, Token};
+use crate::api::services::{change_user_password, get_all_users, get_user, revoke_user_token};
+use crate::api::utils::{Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::{Error, Result};
 
@@ -19,6 +19,7 @@ pub struct ChangePasswordPayload {
 
 #[tracing::instrument(
     name = "user change password", 
+    // Any values in 'skip' won't be included in logs
     skip(token, state, payload),
     fields(
         request_initiator = tracing::field::Empty,
@@ -76,6 +77,36 @@ pub async fn api_get_all_users(
             json!(metadata)
         },
         "users": users
+    });
+
+    Ok((StatusCode::OK, Json(response_body)))
+}
+
+#[tracing::instrument(
+    name = "get user", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, user_id, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_get_user(
+    Token(token): Token,
+    Path(user_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+) -> Result<impl IntoResponse> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    // Only allow `ADMIN` users to access this endpoint
+    match token.role {
+        UserRole::ADMIN => (),
+        _ => return Err(Error::AuthInvalidRoleError)?,
+    }
+
+    let user = get_user(user_id, &state.db_pool).await?;
+
+    let response_body = json!({
+        "user": user
     });
 
     Ok((StatusCode::OK, Json(response_body)))

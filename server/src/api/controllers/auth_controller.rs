@@ -18,6 +18,7 @@ pub struct CredentialsPayload {
 
 #[tracing::instrument(
     name = "user login", 
+    // Any values in 'skip' won't be included in logs
     skip(state, payload),
     fields(
         request_initiator = tracing::field::Empty,
@@ -52,6 +53,7 @@ pub async fn api_login(
 
 #[tracing::instrument(
     name = "user logout", 
+    // Any values in 'skip' won't be included in logs
     skip(token, state),
     fields(
         request_initiator = tracing::field::Empty,

@@ -6,7 +6,7 @@ use serde::Serialize;
 
 use crate::Error;
 
-// Define Json extractor to change errors from `axum::Json`
+// Define our own `Json` extractor that customizes the error from `axum::Json`
 #[derive(Debug)]
 pub struct Json<T>(pub T);
 

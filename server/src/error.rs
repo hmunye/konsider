@@ -2,7 +2,7 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 
-use crate::api::JsonError;
+use crate::api::{JsonError, PathError};
 
 // Type alias for Result
 pub type Result<T> = std::result::Result<T, Error>;
@@ -38,6 +38,8 @@ pub enum Error {
     // -- other
     #[error("error occured parsing JSON payload from request: {0}")]
     PayloadExtractorError(JsonError),
+    #[error("error occured parsing path parameters from request: {0}")]
+    PathExtractorError(PathError),
 
     // (unexpected errors)
     #[error(transparent)]
@@ -111,7 +113,7 @@ impl Error {
                 (StatusCode::FORBIDDEN, ClientError::InvalidRole.to_string())
             }
 
-            Self::QueryParamValidationError(..) => (
+            Self::QueryParamValidationError(..) | Self::PathExtractorError(..) => (
                 StatusCode::BAD_REQUEST,
                 ClientError::InvalidParams.to_string(),
             ),

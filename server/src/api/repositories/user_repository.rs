@@ -2,7 +2,7 @@ use secrecy::{ExposeSecret, SecretString};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::api::models::{UserDTO, UserRole};
+use crate::api::models::{User, UserDTO, UserRole};
 use crate::api::utils::Metadata;
 use crate::{Error, Result};
 
@@ -118,4 +118,32 @@ pub async fn fetch_all_users(
     let metadata = Metadata::calculate_metadata(total_records, page, per_page);
 
     Ok((user_records, metadata))
+}
+
+#[tracing::instrument(name = "fetching user by id from database", skip(user_id, db_pool))]
+pub async fn fetch_user_by_id(user_id: Uuid, db_pool: &PgPool) -> Result<User> {
+    let row = sqlx::query!(
+        r#"
+        SELECT id, name, email, password_hash, role AS "role: UserRole", created_at, updated_at 
+        FROM user_account
+        WHERE id = $1
+        "#,
+        user_id
+    )
+    .fetch_optional(db_pool)
+    .await
+    .map_err(Error::from)?;
+
+    match row {
+        Some(row) => Ok(User {
+            id: Some(row.id),
+            name: row.name,
+            email: row.email,
+            password: SecretString::new(row.password_hash.into()),
+            role: row.role.unwrap(),
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+        }),
+        None => Err(Error::PgNotFoundError),
+    }
 }

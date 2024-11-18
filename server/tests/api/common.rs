@@ -41,13 +41,26 @@ pub struct TestServer {
 // Provides methods for sending various types of HTTP requests: (GET, POST)
 // to a specified URL with optional request body
 impl TestServer {
-    pub async fn get_request(&self, url: &String) -> Result<reqwest::Response> {
-        Ok(self
-            .client
-            .get(url)
-            .send()
-            .await
-            .map_err(|err| format!("failed to execute request. cause: {err}"))?)
+    pub async fn get_request(
+        &self,
+        url: &String,
+        token: Option<&str>,
+    ) -> Result<reqwest::Response> {
+        match token {
+            Some(token) => Ok(self
+                .client
+                .get(url)
+                .header(header::COOKIE, token)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request. cause: {err}"))?),
+            None => Ok(self
+                .client
+                .get(url)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request. cause: {err}"))?),
+        }
     }
 
     pub async fn post_request(
@@ -58,31 +71,31 @@ impl TestServer {
     ) -> Result<reqwest::Response> {
         match (body, token) {
             // Both body and token provided
-            (Some(body_content), Some(token_value)) => Ok(self
+            (Some(body), Some(token)) => Ok(self
                 .client
                 .post(url)
                 .header(header::CONTENT_TYPE, "application/json")
-                .header(header::COOKIE, token_value)
-                .body(body_content)
+                .header(header::COOKIE, token)
+                .body(body)
                 .send()
                 .await
                 .map_err(|err| format!("failed to execute request: cause {err}"))?),
 
             // Only body provided, no token
-            (Some(body_content), None) => Ok(self
+            (Some(body), None) => Ok(self
                 .client
                 .post(url)
                 .header(header::CONTENT_TYPE, "application/json")
-                .body(body_content)
+                .body(body)
                 .send()
                 .await
                 .map_err(|err| format!("failed to execute request: cause {err}"))?),
 
             // Only token provided, no body
-            (None, Some(token_value)) => Ok(self
+            (None, Some(token)) => Ok(self
                 .client
                 .post(url)
-                .header(header::COOKIE, token_value)
+                .header(header::COOKIE, token)
                 .send()
                 .await
                 .map_err(|err| format!("failed to execute request: cause {err}"))?),
