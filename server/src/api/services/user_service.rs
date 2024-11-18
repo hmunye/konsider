@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::api::models::User;
 use crate::api::repositories::{
-    fetch_all_users, fetch_credentials_by_user_id, fetch_user_by_id, insert_user,
+    delete_user, fetch_all_users, fetch_credentials_by_user_id, fetch_user_by_id, insert_user,
     update_user_password,
 };
 use crate::api::services::{compute_password_hash, verify_password_hash};
@@ -134,4 +134,9 @@ pub async fn create_user(db_pool: &PgPool, payload: &User) -> Result<()> {
     let password_hash = compute_password_hash(&payload.password)?;
 
     insert_user(payload, password_hash, db_pool).await
+}
+
+#[tracing::instrument(name = "remove user", skip(user_id, db_pool))]
+pub async fn remove_user(user_id: Uuid, db_pool: &PgPool) -> Result<()> {
+    delete_user(user_id, db_pool).await
 }

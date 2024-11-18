@@ -7,7 +7,7 @@ use serde_json::json;
 
 use crate::api::models::{User, UserRole};
 use crate::api::services::{
-    change_user_password, create_user, get_all_users, get_user, revoke_user_token,
+    change_user_password, create_user, get_all_users, get_user, remove_user, revoke_user_token,
 };
 use crate::api::utils::{Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
@@ -140,4 +140,30 @@ pub async fn api_create_user(
     create_user(&state.db_pool, &payload).await?;
 
     Ok(StatusCode::CREATED)
+}
+
+#[tracing::instrument(
+    name = "delete user", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, user_id, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_delete_user(
+    Token(token): Token,
+    Path(user_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    // Only allow `ADMIN` users to access this endpoint
+    match token.role {
+        UserRole::ADMIN => (),
+        _ => return Err(Error::AuthInvalidRoleError)?,
+    }
+
+    remove_user(user_id, &state.db_pool).await?;
+
+    Ok(StatusCode::NO_CONTENT)
 }

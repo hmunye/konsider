@@ -38,7 +38,7 @@ pub struct TestServer {
     pub client: reqwest::Client,
 }
 
-// Provides methods for sending various types of HTTP requests: (GET, POST)
+// Provides methods for sending various types of HTTP requests: (GET, POST, DELETE)
 // to a specified URL with optional request body
 impl TestServer {
     pub async fn get_request(
@@ -107,6 +107,28 @@ impl TestServer {
                 .send()
                 .await
                 .map_err(|err| format!("failed to execute request: cause {err}"))?),
+        }
+    }
+
+    pub async fn delete_request(
+        &self,
+        url: &String,
+        token: Option<&str>,
+    ) -> Result<reqwest::Response> {
+        match token {
+            Some(token) => Ok(self
+                .client
+                .delete(url)
+                .header(header::COOKIE, token)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request. cause: {err}"))?),
+            None => Ok(self
+                .client
+                .delete(url)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request. cause: {err}"))?),
         }
     }
 }
