@@ -8,8 +8,10 @@ use serde_json::json;
 use crate::api::models::{User, UserRole};
 use crate::api::services::{
     change_user_password, create_user, get_all_users, get_user, remove_user, revoke_user_token,
+    update_user_details,
 };
 use crate::api::utils::{Json, Path, QueryExtractor, Token};
+use crate::api::UserDTO;
 use crate::server::ServerState;
 use crate::{Error, Result};
 
@@ -108,7 +110,7 @@ pub async fn api_get_user(
     let user = get_user(user_id, &state.db_pool).await?;
 
     let response_body = json!({
-        "user": user
+        "user": UserDTO::from(&user)
     });
 
     Ok((StatusCode::OK, Json(response_body)))
@@ -137,7 +139,7 @@ pub async fn api_create_user(
 
     payload.parse()?;
 
-    create_user(&state.db_pool, &payload).await?;
+    create_user(&payload, &state.db_pool).await?;
 
     Ok(StatusCode::CREATED)
 }
@@ -164,6 +166,40 @@ pub async fn api_delete_user(
     }
 
     remove_user(user_id, &state.db_pool).await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateUserPayload {
+    pub name: Option<String>,
+    pub email: Option<String>,
+    pub role: Option<UserRole>,
+}
+
+#[tracing::instrument(
+    name = "update user details", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, user_id, state, payload),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_update_user(
+    Token(token): Token,
+    Path(user_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+    Json(payload): Json<UpdateUserPayload>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    // Only allow `ADMIN` users to access this endpoint
+    match token.role {
+        UserRole::ADMIN => (),
+        _ => return Err(Error::AuthInvalidRoleError)?,
+    }
+
+    update_user_details(payload, user_id, &state.db_pool).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }

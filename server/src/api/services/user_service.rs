@@ -3,14 +3,14 @@ use serde_json::{json, Value};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::api::controllers::UpdateUserPayload;
 use crate::api::models::User;
 use crate::api::repositories::{
     delete_user, fetch_all_users, fetch_credentials_by_user_id, fetch_user_by_id, insert_user,
-    update_user_password,
+    update_user, update_user_password,
 };
 use crate::api::services::{compute_password_hash, verify_password_hash};
 use crate::api::utils::{Metadata, QueryParams};
-use crate::api::UserDTO;
 use crate::log::spawn_blocking_with_tracing;
 use crate::{Error, Result};
 
@@ -123,14 +123,12 @@ pub async fn get_all_users(
 }
 
 #[tracing::instrument(name = "getting user by id", skip(user_id, db_pool))]
-pub async fn get_user(user_id: Uuid, db_pool: &PgPool) -> Result<UserDTO> {
-    let user = fetch_user_by_id(user_id, db_pool).await?;
-
-    Ok(UserDTO::from(&user))
+pub async fn get_user(user_id: Uuid, db_pool: &PgPool) -> Result<User> {
+    fetch_user_by_id(user_id, db_pool).await
 }
 
-#[tracing::instrument(name = "creating user", skip(db_pool, payload))]
-pub async fn create_user(db_pool: &PgPool, payload: &User) -> Result<()> {
+#[tracing::instrument(name = "creating user", skip(payload, db_pool))]
+pub async fn create_user(payload: &User, db_pool: &PgPool) -> Result<()> {
     let password_hash = compute_password_hash(&payload.password)?;
 
     insert_user(payload, password_hash, db_pool).await
@@ -139,4 +137,41 @@ pub async fn create_user(db_pool: &PgPool, payload: &User) -> Result<()> {
 #[tracing::instrument(name = "remove user", skip(user_id, db_pool))]
 pub async fn remove_user(user_id: Uuid, db_pool: &PgPool) -> Result<()> {
     delete_user(user_id, db_pool).await
+}
+
+#[tracing::instrument(name = "update user", skip(payload, user_id, db_pool))]
+pub async fn update_user_details(
+    payload: UpdateUserPayload,
+    user_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    // Fetch user from database if a record exists
+    let mut user = fetch_user_by_id(user_id, db_pool).await?;
+
+    let mut fields_updated = false;
+
+    // Apply any updates to the `User` entity locally
+    if let Some(name) = &payload.name {
+        user.name = name.clone();
+        fields_updated = true;
+    }
+
+    if let Some(email) = &payload.email {
+        user.email = email.clone();
+        fields_updated = true;
+    }
+
+    if let Some(role) = &payload.role {
+        user.role = role.clone();
+        fields_updated = true;
+    }
+
+    // Return an error if no fields were updated
+    if !fields_updated {
+        return Err(Error::NoUpdatesProvidedError);
+    }
+
+    user.parse_without_password()?;
+
+    update_user(user, user_id, db_pool).await
 }

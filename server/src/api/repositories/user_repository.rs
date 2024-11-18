@@ -124,7 +124,7 @@ pub async fn fetch_all_users(
 pub async fn fetch_user_by_id(user_id: Uuid, db_pool: &PgPool) -> Result<User> {
     let row = sqlx::query!(
         r#"
-        SELECT id, name, email, password_hash, role AS "role: UserRole", created_at, updated_at 
+        SELECT id, name, email, password_hash, role AS "role: UserRole", created_at, updated_at, version
         FROM user_account
         WHERE id = $1
         "#,
@@ -143,12 +143,16 @@ pub async fn fetch_user_by_id(user_id: Uuid, db_pool: &PgPool) -> Result<User> {
             role: row.role.unwrap(),
             created_at: row.created_at,
             updated_at: row.updated_at,
+            version: row.version,
         }),
         None => Err(Error::PgNotFoundError),
     }
 }
 
-#[tracing::instrument(name = "inserting user into database", skip())]
+#[tracing::instrument(
+    name = "inserting user into database",
+    skip(payload, password_hash, db_pool)
+)]
 pub async fn insert_user(
     payload: &User,
     password_hash: SecretString,
@@ -193,5 +197,35 @@ pub async fn delete_user(user_id: Uuid, db_pool: &PgPool) -> Result<()> {
         Ok(Some(_)) => Ok(()),
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => Err(Error::from(err)),
+    }
+}
+
+#[tracing::instrument(
+    name = "updating user details in database",
+    skip(user, user_id, db_pool)
+)]
+pub async fn update_user(user: User, user_id: Uuid, db_pool: &PgPool) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        UPDATE user_account
+        SET name = $1, email = $2, role = $3, version = version + 1
+        WHERE id = $4 AND version = $5
+        RETURNING version
+        "#,
+        user.name,
+        user.email,
+        user.role.clone() as UserRole,
+        user_id,
+        user.version
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::ServerError(std::sync::Arc::new(err.into()))),
+        },
     }
 }

@@ -110,6 +110,53 @@ impl TestServer {
         }
     }
 
+    pub async fn patch_request(
+        &self,
+        url: &String,
+        body: Option<String>,
+        token: Option<&str>,
+    ) -> Result<reqwest::Response> {
+        match (body, token) {
+            // Both body and token provided
+            (Some(body), Some(token)) => Ok(self
+                .client
+                .patch(url)
+                .header(header::CONTENT_TYPE, "application/json")
+                .header(header::COOKIE, token)
+                .body(body)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request: cause {err}"))?),
+
+            // Only body provided, no token
+            (Some(body), None) => Ok(self
+                .client
+                .patch(url)
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(body)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request: cause {err}"))?),
+
+            // Only token provided, no body
+            (None, Some(token)) => Ok(self
+                .client
+                .patch(url)
+                .header(header::COOKIE, token)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request: cause {err}"))?),
+
+            // Neither body nor token provided
+            (None, None) => Ok(self
+                .client
+                .patch(url)
+                .send()
+                .await
+                .map_err(|err| format!("failed to execute request: cause {err}"))?),
+        }
+    }
+
     pub async fn delete_request(
         &self,
         url: &String,

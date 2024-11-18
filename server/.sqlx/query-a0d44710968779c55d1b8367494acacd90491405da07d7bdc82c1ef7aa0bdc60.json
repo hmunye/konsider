@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE user_account\n        SET name = $1, email = $2, role = $3, version = version + 1\n        WHERE id = $4 AND version = $5\n        RETURNING version\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "user_role",
+            "kind": {
+              "Enum": [
+                "REVIEWER",
+                "ADMIN"
+              ]
+            }
+          }
+        },
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "a0d44710968779c55d1b8367494acacd90491405da07d7bdc82c1ef7aa0bdc60"
+}

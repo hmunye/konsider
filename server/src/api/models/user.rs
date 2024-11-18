@@ -14,6 +14,7 @@ pub struct User {
     pub role: UserRole,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub version: Option<i32>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, sqlx::Type)]
@@ -75,6 +76,26 @@ impl User {
             return Err(Error::ValidationError(
                 "user payload: invaild password provided for user".into(),
             ));
+        }
+
+        Ok(())
+    }
+
+    // When handling partial updates on users, their password hash is
+    // parsed, resulting in a failure because of `forbidden_chars` contained within it
+    pub fn parse_without_password(&self) -> Result<()> {
+        if !Self::validate_name(&self.name) {
+            return Err(Error::ValidationError(format!(
+                "user payload: '{}' is an invaild name for user",
+                &self.name
+            )));
+        }
+
+        if !Self::validate_email(&self.email) {
+            return Err(Error::ValidationError(format!(
+                "user payload: '{}' is an invaild email for user",
+                &self.email
+            )));
         }
 
         Ok(())

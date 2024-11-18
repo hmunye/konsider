@@ -36,6 +36,8 @@ pub enum Error {
     PgKeyViolation,
 
     // -- other
+    #[error("no details provided to update resource")]
+    NoUpdatesProvidedError,
     #[error("error occured parsing JSON payload from request: {0}")]
     PayloadExtractorError(JsonError),
     #[error("error occured parsing path parameters from request: {0}")]
@@ -118,7 +120,9 @@ impl Error {
                 ClientError::InvalidParams.to_string(),
             ),
 
-            Self::PayloadExtractorError(..) | Self::ValidationError(..) => (
+            Self::PayloadExtractorError(..)
+            | Self::ValidationError(..)
+            | Self::NoUpdatesProvidedError => (
                 StatusCode::BAD_REQUEST,
                 ClientError::InvalidPayload.to_string(),
             ),
