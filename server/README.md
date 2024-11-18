@@ -37,7 +37,7 @@
 │   │       │   ├── poll_database_worker.rs 	        # Background worker that periodically checks the database for valid tokens and updates token cache
 │   │       │   ├── token_cache.rs                      # In-memory cache for storing active, valid JWT tokens
 │   │       │   └── token_extractor.rs                  # Extracts JWT tokens from Cookie header in requests
-│   │       └── mod.rs
+│   │       └── query_extractor.rs                      # Wrapper for axum Query extractor to extract custom query params
 │   ├── config.rs                       		# Code for loading and managing application configuration
 │   ├── error.rs                        		# Defines server and client error types and handling logic
 │   ├── lib.rs                     
@@ -49,8 +49,8 @@
         ├── auth
         ├── common.rs
         ├── health
-        ├── users
-        └── main.rs       
+        ├── main.rs
+        └── users
 ```
 
 ## Usage

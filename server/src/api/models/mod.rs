@@ -1,3 +1,3 @@
 mod user;
 
-pub use user::{User, UserRole};
+pub use user::{User, UserDTO, UserRole};

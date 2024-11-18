@@ -18,10 +18,14 @@ pub enum Error {
     AuthInvalidTokenError,
     #[error("request is missing a valid token")]
     AuthMissingTokenError,
+    #[error("user role is invaild for the requested endpoint")]
+    AuthInvalidRoleError,
 
     // -- validation
     #[error("validation error occured while parsing {0}")]
     ValidationError(String),
+    #[error("validation error occured while parsing query parameters: {0}")]
+    QueryParamValidationError(String),
 
     // -- database
     #[error("database record could not be found")]
@@ -103,6 +107,15 @@ impl Error {
                 ClientError::MissingToken.to_string(),
             ),
 
+            Self::AuthInvalidRoleError => {
+                (StatusCode::FORBIDDEN, ClientError::InvalidRole.to_string())
+            }
+
+            Self::QueryParamValidationError(..) => (
+                StatusCode::BAD_REQUEST,
+                ClientError::InvalidParams.to_string(),
+            ),
+
             Self::PayloadExtractorError(..) | Self::ValidationError(..) => (
                 StatusCode::BAD_REQUEST,
                 ClientError::InvalidPayload.to_string(),
@@ -127,6 +140,8 @@ impl Error {
 pub enum ClientError {
     InvalidCredentials,
     InvalidPayload,
+    InvalidParams,
+    InvalidRole,
     InvalidToken,
     MissingToken,
     NotFound,
@@ -142,6 +157,10 @@ impl std::fmt::Display for ClientError {
             ClientError::InvalidPayload => {
                 "The submitted payload is invalid or does not conform to the expected format"
             }
+            ClientError::InvalidRole => {
+                "You do not have sufficient permissions to perform this action"
+            }
+            ClientError::InvalidParams => "The supplied parameters are invalid for this request",
             ClientError::InvalidToken => "The provided token for the request is invalid",
             ClientError::MissingToken => "The request is missing a valid token",
             ClientError::NotFound => "The requested resource could not be found",

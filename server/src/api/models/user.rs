@@ -33,6 +33,28 @@ impl std::fmt::Display for UserRole {
     }
 }
 
+// Data Transfer Object (DTO) for Users
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct UserDTO {
+    pub id: Option<uuid::Uuid>,
+    pub name: String,
+    pub email: String,
+    pub role: UserRole,
+    pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+impl From<&User> for UserDTO {
+    fn from(user: &User) -> Self {
+        UserDTO {
+            id: user.id,
+            name: user.name.clone(),
+            email: user.email.clone(),
+            role: user.role.clone(),
+            created_at: user.created_at,
+        }
+    }
+}
+
 impl User {
     pub fn parse(&self) -> Result<()> {
         if !Self::validate_name(&self.name) {
