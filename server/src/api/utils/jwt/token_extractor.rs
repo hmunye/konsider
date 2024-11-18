@@ -31,8 +31,10 @@ where
             Some(token) => {
                 let state = ServerState::from_ref(state);
 
+                // Validate JWT and decode claims
                 let claims = decode_jwt(token, &state.jwt_secret)?.claims;
 
+                // Check if `jti` is found in token cache
                 match state
                     .token_cache
                     .is_token_valid(claims.jti, claims.sub)

@@ -2,8 +2,8 @@ use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use secrecy::{ExposeSecret, SecretString};
 use uuid::Uuid;
 
+use crate::api::models::UserRole;
 use crate::api::utils::jwt::Claims;
-use crate::api::UserRole;
 use crate::{Error, Result};
 
 // 24 hours = 24 * 60 minutes = 1440 minutes

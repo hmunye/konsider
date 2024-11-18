@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use crate::api::services::get_valid_tokens;
-use crate::api::TokenCache;
+use crate::api::utils::jwt::TokenCache;
 use crate::config::DatabaseConfig;
 use crate::server::get_db_pool;
 use crate::Result;

@@ -181,7 +181,7 @@ pub async fn spawn_server() -> Result<TestServer> {
 
     config_database(&config.database).await?;
 
-    // Initialize cache to store revoked tokens in-memory
+    // Initialize cache to store valid tokens in-memory
     let token_cache = TokenCache::new();
 
     let server = Server::build(config.clone(), token_cache.clone()).await?;

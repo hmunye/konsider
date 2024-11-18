@@ -19,6 +19,10 @@ pub enum Error {
     #[error("request is missing a valid token")]
     AuthMissingTokenError,
 
+    // -- validation
+    #[error("validation error occured while parsing {0}")]
+    ValidationError(String),
+
     // -- database
     #[error("database record could not be found")]
     PgNotFoundError,
@@ -99,7 +103,7 @@ impl Error {
                 ClientError::MissingToken.to_string(),
             ),
 
-            Self::PayloadExtractorError(..) => (
+            Self::PayloadExtractorError(..) | Self::ValidationError(..) => (
                 StatusCode::BAD_REQUEST,
                 ClientError::InvalidPayload.to_string(),
             ),

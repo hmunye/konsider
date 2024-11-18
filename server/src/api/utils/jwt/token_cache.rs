@@ -1,4 +1,4 @@
-// Manages the in-memory cache of JWTs stored in Postgres
+// Manages the in-memory cache of JWTs (jti) stored in Postgres
 
 use std::collections::HashSet;
 

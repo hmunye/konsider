@@ -49,6 +49,7 @@
         ├── auth
         ├── common.rs
         ├── health
+        ├── users
         └── main.rs       
 ```
 
@@ -73,4 +74,39 @@ git clone https://github.com/hmunye/konsider.git
 ```
 ```bash
 cd konsider/server
+```
+
+## Testing
+
+To run the API tests, follow these steps:
+
+1. Initialize the database by running the `init_db.sh` script:
+
+```bash
+./scripts/init_db.sh
+```
+
+2. Execute the unit and integration tests with the following command:
+
+```bash
+cargo test
+```
+
+3. Enable logging during tests with:
+
+```bash
+TEST_LOG=true cargo test
+```
+
+## Logging
+
+This project uses structured logging in JSON format following Bunyan-style conventions.
+By default, it logs to files with hourly rotation
+
+## sqlx
+
+To update cached query metadata for sqlx offline usage, run the following command:
+
+```bash
+cargo sqlx prepare -- --all-targets
 ```

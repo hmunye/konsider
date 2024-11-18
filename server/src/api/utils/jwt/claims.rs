@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::UserRole;
+use crate::api::models::UserRole;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Claims {

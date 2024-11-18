@@ -1,3 +1,3 @@
-mod user_account;
+mod user;
 
-pub use user_account::{User, UserRole};
+pub use user::{User, UserRole};

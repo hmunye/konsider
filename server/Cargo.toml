@@ -31,7 +31,10 @@ tracing = "0.1.40"
 tracing-appender = "0.2.3"
 tracing-bunyan-formatter = "0.3.9"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
+unicode-segmentation = "1.12.0"
 uuid = { version = "1.11.0", features = ["v4", "serde"] }
+validator = "0.19.0"
 
 [dev-dependencies]
+fake = "3.0.1"
 reqwest = "0.12.9"

@@ -46,9 +46,9 @@ async fn logout_with_invalid_token_rejected() -> Result<()> {
     let server = spawn_server().await?;
     let logout_url = format!("{}/api/v1/auth/logout", server.addr);
 
-    let token = Uuid::new_v4().to_string();
-
-    let logout_response = server.post_request(&logout_url, None, Some(&token)).await?;
+    let logout_response = server
+        .post_request(&logout_url, None, Some(&Uuid::new_v4().to_string()))
+        .await?;
     assert_eq!(401, logout_response.status().as_u16());
 
     Ok(())

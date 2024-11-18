@@ -18,7 +18,7 @@ async fn main() -> k6r::Result<()> {
 
     let config = get_config().expect("failed to read config file");
 
-    // Initialize cache to store revoked tokens in-memory
+    // Initialize cache to store valid tokens in-memory
     let token_cache = TokenCache::new();
 
     let server = Server::build(config.clone(), token_cache.clone()).await?;

@@ -9,7 +9,7 @@ use tower::ServiceBuilder;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::trace::TraceLayer;
 
-use crate::api::{auth_routes, health_routes, main_response_mapper, TokenCache};
+use crate::api::{auth_routes, health_routes, main_response_mapper, user_routes, TokenCache};
 use crate::config::{Config, DatabaseConfig};
 use crate::Result;
 
@@ -100,6 +100,7 @@ pub async fn serve(
             Router::<ServerState>::new()
                 .nest("/health", health_routes())
                 .nest("/auth", auth_routes())
+                .nest("/users", user_routes())
                 .with_state(state),
         )
         .layer(axum::middleware::map_response(main_response_mapper))
