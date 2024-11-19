@@ -112,7 +112,7 @@ Use the `init_db.sh` script to spin up a PostgreSQL database container via Docke
 ```bash
 ./scripts/init_db.sh
 ```
-> By default, the script will read values from `local.toml` configuration file
+> Note: By default, the script will read values from `local.toml` configuration file
 
 #### Step 3: Start the API
 
@@ -134,7 +134,7 @@ Ensure the API is up and running by sending a health check request:
 ```bash
 curl -v http://<your_host>:<your_port>/api/v1/health
 ```
-> A `204 No Content` response confirms the server is operational
+> Note: A `204 No Content` response confirms the server is operational
 
 ## Testing
 
@@ -145,7 +145,7 @@ To run the API tests, follow these steps:
 ```bash
 ./scripts/init_db.sh
 ```
-> By default, the script will read values from `local.toml` configuration file
+> Note: By default, the script will read values from `local.toml` configuration file
 
 #### Step 2: Run unit and integration tests:
 

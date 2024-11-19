@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::api::models::RequesterDTO;
+use crate::api::models::{Requester, RequesterDTO};
 use crate::api::utils::Metadata;
 use crate::{Error, Result};
 
@@ -89,4 +89,59 @@ pub async fn fetch_all_requesters(
     let metadata = Metadata::calculate_metadata(total_records, page, per_page);
 
     Ok((requester_records, metadata))
+}
+
+#[tracing::instrument(
+    name = "fetching requester by id from database",
+    skip(requester_id, db_pool)
+)]
+pub async fn fetch_requester_by_id(requester_id: Uuid, db_pool: &PgPool) -> Result<Requester> {
+    let row = sqlx::query!(
+        r#"
+        SELECT id, name, email, department, created_at, updated_at, version
+        FROM requester
+        WHERE id = $1
+        "#,
+        requester_id
+    )
+    .fetch_optional(db_pool)
+    .await
+    .map_err(Error::from)?;
+
+    match row {
+        Some(row) => Ok(Requester {
+            id: Some(row.id),
+            name: row.name,
+            email: row.email,
+            department: row.department,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            version: row.version,
+        }),
+        None => Err(Error::PgNotFoundError),
+    }
+}
+
+#[tracing::instrument(name = "inserting requester into database", skip(payload, db_pool))]
+pub async fn insert_requester(payload: &Requester, db_pool: &PgPool) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        INSERT INTO requester (name, email, department)
+        VALUES ($1, $2, $3)
+        RETURNING id
+        "#,
+        payload.name,
+        payload.email,
+        payload.department,
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    }
 }

@@ -1,7 +1,8 @@
 use serde_json::{json, Value};
 use sqlx::PgPool;
 
-use crate::api::repositories::fetch_all_requesters;
+use crate::api::models::Requester;
+use crate::api::repositories::{fetch_all_requesters, insert_requester};
 use crate::api::utils::{Metadata, QueryParams};
 use crate::Result;
 
@@ -75,4 +76,9 @@ pub async fn get_all_requesters(
         .collect();
 
     Ok((wrapped_requesters, metadata))
+}
+
+#[tracing::instrument(name = "creating requester", skip(payload, db_pool))]
+pub async fn create_requester(payload: &Requester, db_pool: &PgPool) -> Result<()> {
+    insert_requester(payload, db_pool).await
 }

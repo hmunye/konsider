@@ -3,7 +3,8 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use serde_json::json;
 
-use crate::api::services::get_all_requesters;
+use crate::api::models::Requester;
+use crate::api::services::{create_requester, get_all_requesters};
 use crate::api::utils::{Json, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::Result;
@@ -35,4 +36,26 @@ pub async fn api_get_all_requesters(
     });
 
     Ok((StatusCode::OK, Json(response_body)))
+}
+
+#[tracing::instrument(
+    name = "create requester", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, state, payload),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_create_requester(
+    Token(token): Token,
+    State(state): State<ServerState>,
+    Json(payload): Json<Requester>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    payload.parse()?;
+
+    create_requester(&payload, &state.db_pool).await?;
+
+    Ok(StatusCode::CREATED)
 }

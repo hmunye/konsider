@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO requester (name, email, department)\n        VALUES ($1, $2, $3)\n        RETURNING id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "ba3d97f0606329fe81327ac15a7eaad438044320df7569f4ab1512032e855bda"
+}

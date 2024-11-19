@@ -4,7 +4,7 @@ mod user_service;
 mod user_token_service;
 
 pub use auth_service::{compute_password_hash, validate_credentials, verify_password_hash};
-pub use requester_repository::get_all_requesters;
+pub use requester_repository::{create_requester, get_all_requesters};
 pub use user_service::{
     change_user_password, create_user, get_all_users, remove_user, update_user_details,
 };

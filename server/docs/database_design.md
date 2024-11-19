@@ -71,6 +71,7 @@ CREATE TABLE requester (
     department VARCHAR(100) NOT NULL CHECK (length(department) > 0), -- Department of requester
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you known this record has never been updated
+    version INT DEFAULT 1
 );
 ```
 ### 3. Software:
@@ -83,7 +84,7 @@ CREATE TABLE software (
     developer_name VARCHAR(100) NOT NULL CHECK (length(developer_name) > 0), -- Developer/Vendor of the software
     description VARCHAR(255) NOT NULL CHECK (length(description) > 0), -- Description of the software
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you known this record has never been updated
+    updated_at TIMESTAMPTZ DEFAULT NOW() -- If it is the same value as created_at, you known this record has never been updated
 );
 ```
 ### 4. Software Request:
