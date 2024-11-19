@@ -1,5 +1,7 @@
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHasher, Version};
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use reqwest::header;
 use secrecy::SecretString;
 use serde::Serialize;
@@ -38,7 +40,7 @@ pub struct TestServer {
     pub client: reqwest::Client,
 }
 
-// Provides methods for sending various types of HTTP requests: (GET, POST, DELETE)
+// Provides methods for sending various types of HTTP requests: (GET, POST, PATCH, DELETE)
 // to a specified URL with optional request body
 impl TestServer {
     pub async fn get_request(
@@ -195,7 +197,11 @@ impl TestUser {
 
         Self {
             id: Uuid::new_v4(),
-            name: Uuid::new_v4().to_string(),
+            name: rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(10)
+                .map(char::from)
+                .collect(),
             email: format!("{}@brockport.edu", Uuid::new_v4().to_string()),
             password: Uuid::new_v4().to_string(),
             role: user_role as UserRole,
@@ -207,7 +213,11 @@ impl TestUser {
 
         Self {
             id: Uuid::new_v4(),
-            name: Uuid::new_v4().to_string(),
+            name: rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(10)
+                .map(char::from)
+                .collect(),
             email: format!("{}@brockport.edu", Uuid::new_v4().to_string()),
             password: Uuid::new_v4().to_string(),
             role: user_role as UserRole,

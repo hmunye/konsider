@@ -51,7 +51,8 @@
         ├── common.rs
         ├── health
         ├── main.rs
-        └── users
+        ├── requester
+        └── user
 ```
 
 ## Usage

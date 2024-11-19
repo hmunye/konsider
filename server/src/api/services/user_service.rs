@@ -122,11 +122,6 @@ pub async fn get_all_users(
     Ok((wrapped_users, metadata))
 }
 
-#[tracing::instrument(name = "getting user by id", skip(user_id, db_pool))]
-pub async fn get_user(user_id: Uuid, db_pool: &PgPool) -> Result<User> {
-    fetch_user_by_id(user_id, db_pool).await
-}
-
 #[tracing::instrument(name = "creating user", skip(payload, db_pool))]
 pub async fn create_user(payload: &User, db_pool: &PgPool) -> Result<()> {
     let password_hash = compute_password_hash(&payload.password)?;

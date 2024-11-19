@@ -69,16 +69,18 @@ async fn update_user_successful() -> Result<()> {
         );
     }
 
+    let get_user_url = format!("{}/api/v1/users?filter=name:{}", server.addr, "Smith");
+
     let get_user_response = server
-        .get_request(&users_url, Some(&token.unwrap()))
+        .get_request(&get_user_url, Some(&token.unwrap()))
         .await?;
     assert_eq!(200, get_user_response.status().as_u16());
 
-    let user = get_user_response.text().await.unwrap();
+    let users = get_user_response.text().await.unwrap();
 
-    let parsed_user: Value = serde_json::from_str(&user).unwrap();
+    let parsed_user: Value = serde_json::from_str(&users).unwrap();
 
-    let user = &parsed_user["user"];
+    let user = &parsed_user["users"][0]["user"];
 
     let user_vec = vec![
         user["name"].as_str().unwrap_or_default().to_string(),
