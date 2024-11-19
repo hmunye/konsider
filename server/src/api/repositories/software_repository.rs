@@ -117,3 +117,22 @@ pub async fn insert_software(payload: &Software, db_pool: &PgPool) -> Result<()>
         },
     }
 }
+
+#[tracing::instrument(name = "deleting software from database", skip(software_id, db_pool))]
+pub async fn delete_software(software_id: Uuid, db_pool: &PgPool) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        DELETE FROM software
+        WHERE id = $1
+        RETURNING id
+        "#,
+        software_id,
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => Err(Error::from(err)),
+    }
+}

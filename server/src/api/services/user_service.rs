@@ -129,12 +129,12 @@ pub async fn create_user(payload: &User, db_pool: &PgPool) -> Result<()> {
     insert_user(payload, password_hash, db_pool).await
 }
 
-#[tracing::instrument(name = "remove user", skip(user_id, db_pool))]
+#[tracing::instrument(name = "removing user", skip(user_id, db_pool))]
 pub async fn remove_user(user_id: Uuid, db_pool: &PgPool) -> Result<()> {
     delete_user(user_id, db_pool).await
 }
 
-#[tracing::instrument(name = "update user", skip(payload, user_id, db_pool))]
+#[tracing::instrument(name = "updating user", skip(payload, user_id, db_pool))]
 pub async fn update_user_details(
     payload: UpdateUserPayload,
     user_id: Uuid,

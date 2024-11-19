@@ -88,12 +88,12 @@ pub async fn create_requester(payload: &Requester, db_pool: &PgPool) -> Result<(
     insert_requester(payload, db_pool).await
 }
 
-#[tracing::instrument(name = "remove requester", skip(requester_id, db_pool))]
+#[tracing::instrument(name = "removing requester", skip(requester_id, db_pool))]
 pub async fn remove_requester(requester_id: Uuid, db_pool: &PgPool) -> Result<()> {
     delete_requester(requester_id, db_pool).await
 }
 
-#[tracing::instrument(name = "update requester", skip(payload, requester_id, db_pool))]
+#[tracing::instrument(name = "updating requester", skip(payload, requester_id, db_pool))]
 pub async fn update_requester_details(
     payload: UpdateRequesterPayload,
     requester_id: Uuid,
