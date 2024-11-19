@@ -68,12 +68,6 @@ impl Requester {
 
         let name_is_empty_or_whitespace = name.trim().is_empty();
 
-        // A grapheme is defined by the Unicode standard as a "user-perceived"
-        // character: `å` is a single grapheme, but it is composed of two characters
-        // (`a` and `̊`)
-        //
-        // `graphemes` returns an iterator over the graphemes in the input
-        // `true` specifies that we want to use the extended grapheme definition set
         let name_too_long = name.graphemes(true).count() > 100;
         let name_contains_forbidden_chars = name.chars().any(|c| forbidden_chars.contains(&c));
 
