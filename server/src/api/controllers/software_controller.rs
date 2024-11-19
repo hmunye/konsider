@@ -1,10 +1,13 @@
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
+use serde::Deserialize;
 use serde_json::json;
 
 use crate::api::models::Software;
-use crate::api::services::{create_software, get_all_software, remove_software};
+use crate::api::services::{
+    create_software, get_all_software, remove_software, update_software_details,
+};
 use crate::api::utils::{Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::Result;
@@ -76,6 +79,35 @@ pub async fn api_delete_software(
     tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
 
     remove_software(software_id, &state.db_pool).await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateSoftwarePayload {
+    pub software_name: Option<String>,
+    pub software_version: Option<String>,
+    pub developer_name: Option<String>,
+    pub description: Option<String>,
+}
+
+#[tracing::instrument(
+    name = "update software details", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, software_id, state, payload),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_update_software(
+    Token(token): Token,
+    Path(software_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+    Json(payload): Json<UpdateSoftwarePayload>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    update_software_details(payload, software_id, &state.db_pool).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }

@@ -93,6 +93,38 @@ pub async fn fetch_all_software(
     Ok((software_records, metadata))
 }
 
+#[tracing::instrument(
+    name = "fetching software by id from database",
+    skip(software_id, db_pool)
+)]
+pub async fn fetch_software_by_id(software_id: Uuid, db_pool: &PgPool) -> Result<Software> {
+    let row = sqlx::query!(
+        r#"
+        SELECT id, software_name, software_version, developer_name, description, created_at, updated_at, version
+        FROM software
+        WHERE id = $1
+        "#,
+        software_id
+    )
+    .fetch_optional(db_pool)
+    .await
+    .map_err(Error::from)?;
+
+    match row {
+        Some(row) => Ok(Software {
+            id: Some(row.id),
+            software_name: row.software_name,
+            software_version: row.software_version,
+            developer_name: row.developer_name,
+            description: row.description,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            version: row.version,
+        }),
+        None => Err(Error::PgNotFoundError),
+    }
+}
+
 #[tracing::instrument(name = "inserting software into database", skip(payload, db_pool))]
 pub async fn insert_software(payload: &Software, db_pool: &PgPool) -> Result<()> {
     match sqlx::query!(
@@ -134,5 +166,40 @@ pub async fn delete_software(software_id: Uuid, db_pool: &PgPool) -> Result<()> 
         Ok(Some(_)) => Ok(()),
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => Err(Error::from(err)),
+    }
+}
+
+#[tracing::instrument(
+    name = "updating software details in database",
+    skip(software, software_id, db_pool)
+)]
+pub async fn update_software(
+    software: Software,
+    software_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        UPDATE software
+        SET software_name = $1, software_version = $2, developer_name = $3, description = $4, version = version + 1
+        WHERE id = $5 AND version = $6
+        RETURNING version
+        "#,
+        software.software_name,
+        software.software_version,
+        software.developer_name,
+        software.description,
+        software_id,
+        software.version
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
     }
 }

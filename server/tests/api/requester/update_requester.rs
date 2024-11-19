@@ -10,7 +10,7 @@ async fn update_requester_successful() -> Result<()> {
     let login_url = format!("{}/api/v1/auth/login", server.addr);
     let requesters_url = format!("{}/api/v1/requesters", server.addr);
 
-    // Uses 'Admin' test requester credentials
+    // Uses 'Admin' test user credentials
     let login_body = json!({
         "email": server.test_users[1].email,
         "password": server.test_users[1].password
@@ -154,7 +154,7 @@ async fn update_requester_with_invalid_id_rejected() -> Result<()> {
     let login_url = format!("{}/api/v1/auth/login", server.addr);
     let requesters_url = format!("{}/api/v1/requesters/{}", server.addr, Uuid::new_v4());
 
-    // Uses 'Admin' test requester credentials
+    // Uses 'Admin' test user credentials
     let login_body = json!({
         "email": server.test_users[1].email,
         "password": server.test_users[1].password
@@ -196,7 +196,7 @@ async fn update_requester_with_invalid_fields_rejected() -> Result<()> {
     let login_url = format!("{}/api/v1/auth/login", server.addr);
     let requesters_url = format!("{}/api/v1/requesters", server.addr);
 
-    // Uses 'Admin' test requester credentials
+    // Uses 'Admin' test user credentials
     let login_body = json!({
         "email": server.test_users[1].email,
         "password": server.test_users[1].password
@@ -263,6 +263,7 @@ async fn update_requester_with_invalid_fields_rejected() -> Result<()> {
             "invalid department",
         ),
     ];
+
     for (invalid_body, error_message) in test_cases {
         let update_requester_response = server
             .patch_request(
@@ -288,7 +289,7 @@ async fn update_requester_with_missing_fields_rejected() -> Result<()> {
     let login_url = format!("{}/api/v1/auth/login", server.addr);
     let requesters_url = format!("{}/api/v1/requesters", server.addr);
 
-    // Uses 'Admin' test requester credentials
+    // Uses 'Admin' test user credentials
     let login_body = json!({
         "email": server.test_users[1].email,
         "password": server.test_users[1].password
