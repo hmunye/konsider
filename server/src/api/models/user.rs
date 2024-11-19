@@ -112,7 +112,7 @@ impl User {
         //
         // `graphemes` returns an iterator over the graphemes in the input
         // `true` specifies that we want to use the extended grapheme definition set
-        let name_too_long = name.graphemes(true).count() > 128;
+        let name_too_long = name.graphemes(true).count() > 100;
         let name_contains_forbidden_chars = name.chars().any(|c| forbidden_chars.contains(&c));
 
         // Return false if any of the above conditions are met
@@ -162,14 +162,14 @@ mod name_tests {
     // Returns true is field is vaild, false if invalid
 
     #[test]
-    fn a_128_grapheme_name_is_vaild() {
-        let name = "a".repeat(128);
+    fn a_100_grapheme_name_is_vaild() {
+        let name = "a".repeat(100);
         assert_eq!(User::validate_name(&name), true);
     }
 
     #[test]
-    fn a_129_grapheme_name_is_invaild() {
-        let name = "a".repeat(129);
+    fn a_101_grapheme_name_is_invaild() {
+        let name = "a".repeat(101);
         assert_eq!(User::validate_name(&name), false);
     }
 
@@ -247,13 +247,13 @@ mod password_tests {
     // Returns true is field is vaild, false if invalid
 
     #[test]
-    fn a_12_grapheme_password_is_vaild() {
+    fn a_8_grapheme_password_is_vaild() {
         let password = "a".repeat(8);
         assert_eq!(User::validate_password(&password), true);
     }
 
     #[test]
-    fn a_11_grapheme_password_is_invaild() {
+    fn a_7_grapheme_password_is_invaild() {
         let password = "a".repeat(7);
         assert_eq!(User::validate_password(&password), false);
     }
