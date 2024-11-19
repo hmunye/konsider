@@ -151,11 +151,12 @@ async fn change_password_using_invalid_password_rejected() -> Result<()> {
                 Some(token.unwrap()),
             )
             .await?;
-        (
-            assert_eq!(400, change_password_response.status().as_u16()),
+        (assert_eq!(
+            400,
+            change_password_response.status().as_u16(),
             "API did not fail with a 400 status when the payload was {}",
             error_message,
-        );
+        ),);
     }
 
     Ok(())
@@ -207,11 +208,12 @@ async fn change_password_using_missing_fields_rejected() -> Result<()> {
                 Some(token.unwrap()),
             )
             .await?;
-        (
-            assert_eq!(400, change_password_response.status().as_u16()),
+        (assert_eq!(
+            400,
+            change_password_response.status().as_u16(),
             "API did not fail with a 400 status when the payload was {}",
             error_message,
-        );
+        ),);
     }
 
     Ok(())

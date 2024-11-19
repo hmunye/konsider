@@ -1,7 +1,8 @@
 use serde_json::{json, Value};
 use sqlx::PgPool;
 
-use crate::api::repositories::fetch_all_software;
+use crate::api::models::Software;
+use crate::api::repositories::{fetch_all_software, insert_software};
 use crate::api::utils::{Metadata, QueryParams};
 use crate::Result;
 
@@ -69,4 +70,9 @@ pub async fn get_all_software(
         .collect();
 
     Ok((wrapped_software, metadata))
+}
+
+#[tracing::instrument(name = "creating software", skip(payload, db_pool))]
+pub async fn create_software(payload: &Software, db_pool: &PgPool) -> Result<()> {
+    insert_software(payload, db_pool).await
 }

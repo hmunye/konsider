@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::api::models::SoftwareDTO;
+use crate::api::models::{Software, SoftwareDTO};
 use crate::api::utils::Metadata;
 use crate::{Error, Result};
 
@@ -91,4 +91,29 @@ pub async fn fetch_all_software(
     let metadata = Metadata::calculate_metadata(total_records, page, per_page);
 
     Ok((software_records, metadata))
+}
+
+#[tracing::instrument(name = "inserting software into database", skip(payload, db_pool))]
+pub async fn insert_software(payload: &Software, db_pool: &PgPool) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        INSERT INTO software (software_name, software_version, developer_name, description)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id
+        "#,
+        payload.software_name,
+        payload.software_version,
+        payload.developer_name,
+        payload.description,
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    }
 }

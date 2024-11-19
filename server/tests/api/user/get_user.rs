@@ -106,11 +106,12 @@ async fn get_all_users_with_invalid_query_rejected() -> Result<()> {
         let get_user_response = server
             .get_request(&invaild_url, Some(&token.unwrap()))
             .await?;
-        (
-            assert_eq!(400, get_user_response.status().as_u16()),
+        (assert_eq!(
+            400,
+            get_user_response.status().as_u16(),
             "API did not fail with a 400 status when the payload was {}",
             error_message,
-        );
+        ),);
     }
 
     Ok(())
@@ -252,11 +253,12 @@ async fn sql_injection_get_users_rejected() -> Result<()> {
         let get_user_response = server
             .get_request(&invaild_url, Some(&token.unwrap()))
             .await?;
-        (
-            assert_eq!(400, get_user_response.status().as_u16()),
+        (assert_eq!(
+            400,
+            get_user_response.status().as_u16(),
             "API did not fail with a 400 status when the payload was {}",
             error_message,
-        );
+        ),);
     }
 
     Ok(())

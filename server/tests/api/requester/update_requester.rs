@@ -271,11 +271,12 @@ async fn update_requester_with_invalid_fields_rejected() -> Result<()> {
                 Some(&token.unwrap()),
             )
             .await?;
-        (
-            assert_eq!(400, update_requester_response.status().as_u16()),
+        (assert_eq!(
+            400,
+            update_requester_response.status().as_u16(),
             "API did not fail with a 400 status when the payload was {}",
             error_message,
-        );
+        ),);
     }
 
     Ok(())
