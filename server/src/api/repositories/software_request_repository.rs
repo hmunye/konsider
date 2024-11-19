@@ -2,7 +2,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::api::utils::Metadata;
-use crate::api::{RequesterDTO, SoftwareDTO, SoftwareRequestDTO};
+use crate::api::{RequesterDTO, SoftwareDTO, SoftwareRequest, SoftwareRequestDTO};
 use crate::{Error, Result};
 
 #[derive(Debug, sqlx::FromRow)]
@@ -144,4 +144,32 @@ pub async fn fetch_all_software_requests(
     let metadata = Metadata::calculate_metadata(total_records, page, per_page);
 
     Ok((software_requests_records, metadata))
+}
+
+#[tracing::instrument(
+    name = "inserting software request into database",
+    skip(payload, db_pool)
+)]
+pub async fn insert_software_request(payload: &SoftwareRequest, db_pool: &PgPool) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        INSERT INTO software_request (td_request_id, software_id, requester_id)
+        VALUES ($1, $2, $3)
+        RETURNING id
+        "#,
+        payload.td_request_id,
+        payload.software_id,
+        payload.requester_id
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    }
 }

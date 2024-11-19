@@ -39,7 +39,11 @@ async fn get_all_software_requests_successful() -> Result<()> {
         let get_software_requests_response = server
             .get_request(&valid_url, Some(&token.unwrap()))
             .await?;
-        assert_eq!(200, get_software_requests_response.status().as_u16());
+        (
+            assert_eq!(200, get_software_requests_response.status().as_u16()),
+            "API did not succeed with a 200 status when the url was {}",
+            valid_url,
+        );
     }
 
     Ok(())

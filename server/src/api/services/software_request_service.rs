@@ -1,8 +1,9 @@
 use serde_json::{json, Value};
 use sqlx::PgPool;
 
-use crate::api::repositories::fetch_all_software_requests;
+use crate::api::repositories::{fetch_all_software_requests, insert_software_request};
 use crate::api::utils::{Metadata, QueryParams};
+use crate::api::SoftwareRequest;
 use crate::Result;
 
 #[tracing::instrument(name = "getting all software_requests", skip(query_params, db_pool))]
@@ -39,12 +40,17 @@ pub async fn get_all_software_requests(
 
     let wrapped_software_requests: Vec<Value> = software_requests
         .into_iter()
-        .map(|software_requests| {
+        .map(|software_request| {
             json!({
-                "software_requests": software_requests
+                "software_request": software_request
             })
         })
         .collect();
 
     Ok((wrapped_software_requests, metadata))
+}
+
+#[tracing::instrument(name = "creating software request", skip(payload, db_pool))]
+pub async fn create_software_request(payload: &SoftwareRequest, db_pool: &PgPool) -> Result<()> {
+    insert_software_request(payload, db_pool).await
 }
