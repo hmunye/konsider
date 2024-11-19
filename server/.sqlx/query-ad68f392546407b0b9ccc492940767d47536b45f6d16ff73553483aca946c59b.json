@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE requester\n        SET name = $1, email = $2, department = $3, version = version + 1\n        WHERE id = $4 AND version = $5\n        RETURNING version\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "ad68f392546407b0b9ccc492940767d47536b45f6d16ff73553483aca946c59b"
+}

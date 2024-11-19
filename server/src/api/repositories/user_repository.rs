@@ -225,7 +225,7 @@ pub async fn update_user(user: User, user_id: Uuid, db_pool: &PgPool) -> Result<
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
             Some(code) if code == "23505" => Err(Error::PgRecordExists),
-            _ => Err(Error::ServerError(std::sync::Arc::new(err.into()))),
+            _ => Err(Error::from(err)),
         },
     }
 }

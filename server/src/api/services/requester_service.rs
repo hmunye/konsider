@@ -2,10 +2,14 @@ use serde_json::{json, Value};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::api::controllers::UpdateRequesterPayload;
 use crate::api::models::Requester;
-use crate::api::repositories::{delete_requester, fetch_all_requesters, insert_requester};
+use crate::api::repositories::{
+    delete_requester, fetch_all_requesters, fetch_requester_by_id, insert_requester,
+    update_requester,
+};
 use crate::api::utils::{Metadata, QueryParams};
-use crate::Result;
+use crate::{Error, Result};
 
 #[tracing::instrument(name = "getting all requesters", skip(query_params, db_pool))]
 pub async fn get_all_requesters(
@@ -87,4 +91,41 @@ pub async fn create_requester(payload: &Requester, db_pool: &PgPool) -> Result<(
 #[tracing::instrument(name = "remove requester", skip(requester_id, db_pool))]
 pub async fn remove_requester(requester_id: Uuid, db_pool: &PgPool) -> Result<()> {
     delete_requester(requester_id, db_pool).await
+}
+
+#[tracing::instrument(name = "update requester", skip(payload, requester_id, db_pool))]
+pub async fn update_requester_details(
+    payload: UpdateRequesterPayload,
+    requester_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    // Fetch requester from database if a record exists
+    let mut requester = fetch_requester_by_id(requester_id, db_pool).await?;
+
+    let mut fields_updated = false;
+
+    // Apply any updates to the `Requester` entity locally
+    if let Some(name) = &payload.name {
+        requester.name = name.clone();
+        fields_updated = true;
+    }
+
+    if let Some(email) = &payload.email {
+        requester.email = email.clone();
+        fields_updated = true;
+    }
+
+    if let Some(department) = &payload.department {
+        requester.department = department.clone();
+        fields_updated = true;
+    }
+
+    // Return an error if no fields were updated
+    if !fields_updated {
+        return Err(Error::NoUpdatesProvidedError);
+    }
+
+    requester.parse()?;
+
+    update_requester(requester, requester_id, db_pool).await
 }

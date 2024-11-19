@@ -164,3 +164,37 @@ pub async fn delete_requester(requester_id: Uuid, db_pool: &PgPool) -> Result<()
         Err(err) => Err(Error::from(err)),
     }
 }
+
+#[tracing::instrument(
+    name = "updating requester details in database",
+    skip(requester, requester_id, db_pool)
+)]
+pub async fn update_requester(
+    requester: Requester,
+    requester_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        UPDATE requester
+        SET name = $1, email = $2, department = $3, version = version + 1
+        WHERE id = $4 AND version = $5
+        RETURNING version
+        "#,
+        requester.name,
+        requester.email,
+        requester.department,
+        requester_id,
+        requester.version
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    }
+}

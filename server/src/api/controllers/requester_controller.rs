@@ -1,10 +1,13 @@
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
+use serde::Deserialize;
 use serde_json::json;
 
 use crate::api::models::Requester;
-use crate::api::services::{create_requester, get_all_requesters, remove_requester};
+use crate::api::services::{
+    create_requester, get_all_requesters, remove_requester, update_requester_details,
+};
 use crate::api::utils::{Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::Result;
@@ -76,6 +79,34 @@ pub async fn api_delete_requester(
     tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
 
     remove_requester(requester_id, &state.db_pool).await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateRequesterPayload {
+    pub name: Option<String>,
+    pub email: Option<String>,
+    pub department: Option<String>,
+}
+
+#[tracing::instrument(
+    name = "update requester details", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, requester_id, state, payload),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_update_requester(
+    Token(token): Token,
+    Path(requester_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+    Json(payload): Json<UpdateRequesterPayload>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    update_requester_details(payload, requester_id, &state.db_pool).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }

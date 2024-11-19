@@ -82,13 +82,13 @@ async fn update_user_successful() -> Result<()> {
 
     let user = &parsed_user["users"][0]["user"];
 
-    let user_vec = vec![
+    let updated_user = vec![
         user["name"].as_str().unwrap_or_default().to_string(),
         user["email"].as_str().unwrap_or_default().to_string(),
         user["role"].as_str().unwrap_or_default().to_string(),
     ];
 
-    assert!(!(original_test_user == user_vec));
+    assert!(!(original_test_user == updated_user));
 
     Ok(())
 }
