@@ -77,23 +77,82 @@ git clone https://github.com/hmunye/konsider.git
 cd konsider/server
 ```
 
-## Testing
+### 3. **Running the API**
 
-To run the API tests, follow these steps:
+#### Step 1: Configuration
 
-1. Initialize the database by running the `init_db.sh` script:
+For a production environment, start by creating a `production.toml` file, otherwise skip this step:
+
+```bash
+touch ./config/production.toml
+```
+
+Edit this file to suit your production configuration. Here's an example setup:
+
+```toml
+[server]
+port = 8443
+host = "0.0.0.0"
+jwt_secret = ""
+
+[database]
+user = "k6r_user"
+password = ""
+database = "k6r"
+host = "postgres"
+db_port = 5432
+require_ssl = true
+```
+
+#### Step 2: Initialize Database
+
+Use the `init_db.sh` script to spin up a PostgreSQL database container via Docker and apply migrations:
 
 ```bash
 ./scripts/init_db.sh
 ```
+> By default, the script will read values from `local.toml` configuration file
 
-2. Execute the unit and integration tests with the following command:
+#### Step 3: Start the API
+
+Local Environment:
+
+```bash
+cargo run
+```
+Production Environment:
+
+```bash
+ENVIRONMENT=production cargo run
+```
+
+#### Step 4: Health Check
+
+Ensure the API is up and running by sending a health check request:
+
+```bash
+curl -v http://<your_host>:<your_port>/api/v1/health
+```
+> A `204 No Content` response confirms the server is operational
+
+## Testing
+
+To run the API tests, follow these steps:
+
+#### Step 1: Initialize Database
+
+```bash
+./scripts/init_db.sh
+```
+> By default, the script will read values from `local.toml` configuration file
+
+#### Step 2: Run unit and integration tests:
 
 ```bash
 cargo test
 ```
 
-3. Enable logging during tests with:
+Enable logging during tests with:
 
 ```bash
 TEST_LOG=true cargo test
