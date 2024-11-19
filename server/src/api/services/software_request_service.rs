@@ -1,7 +1,9 @@
 use serde_json::{json, Value};
 use sqlx::PgPool;
 
-use crate::api::repositories::{fetch_all_software_requests, insert_software_request};
+use crate::api::repositories::{
+    delete_software_request, fetch_all_software_requests, insert_software_request,
+};
 use crate::api::utils::{Metadata, QueryParams};
 use crate::api::SoftwareRequest;
 use crate::Result;
@@ -53,4 +55,9 @@ pub async fn get_all_software_requests(
 #[tracing::instrument(name = "creating software request", skip(payload, db_pool))]
 pub async fn create_software_request(payload: &SoftwareRequest, db_pool: &PgPool) -> Result<()> {
     insert_software_request(payload, db_pool).await
+}
+
+#[tracing::instrument(name = "removing software reqeust", skip(request_id, db_pool))]
+pub async fn remove_software_request(request_id: uuid::Uuid, db_pool: &PgPool) -> Result<()> {
+    delete_software_request(request_id, db_pool).await
 }

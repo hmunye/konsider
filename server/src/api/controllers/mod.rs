@@ -15,7 +15,9 @@ pub use software_controller::{
     api_create_software, api_delete_software, api_get_all_software, api_update_software,
     UpdateSoftwarePayload,
 };
-pub use software_request_controller::{api_create_software_request, api_get_all_software_requests};
+pub use software_request_controller::{
+    api_create_software_request, api_delete_software_request, api_get_all_software_requests,
+};
 pub use user_controller::{
     api_change_password, api_create_user, api_delete_user, api_get_all_users, api_update_user,
     UpdateUserPayload,

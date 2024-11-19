@@ -173,3 +173,28 @@ pub async fn insert_software_request(payload: &SoftwareRequest, db_pool: &PgPool
         },
     }
 }
+
+#[tracing::instrument(
+    name = "deleting software request from database",
+    skip(request_id, db_pool)
+)]
+pub async fn delete_software_request(request_id: Uuid, db_pool: &PgPool) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        DELETE FROM software_request
+        WHERE id = $1
+        RETURNING id
+        "#,
+        request_id,
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            _ => Err(Error::from(err)),
+        },
+    }
+}

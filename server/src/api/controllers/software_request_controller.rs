@@ -4,8 +4,10 @@ use axum::response::IntoResponse;
 use serde_json::json;
 
 use crate::api::models::SoftwareRequest;
-use crate::api::services::{create_software_request, get_all_software_requests};
-use crate::api::utils::{Json, QueryExtractor, Token};
+use crate::api::services::{
+    create_software_request, get_all_software_requests, remove_software_request,
+};
+use crate::api::utils::{Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::Result;
 
@@ -59,4 +61,24 @@ pub async fn api_create_software_request(
     create_software_request(&payload, &state.db_pool).await?;
 
     Ok(StatusCode::CREATED)
+}
+
+#[tracing::instrument(
+    name = "delete software request", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, request_id, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_delete_software_request(
+    Token(token): Token,
+    Path(request_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    remove_software_request(request_id, &state.db_pool).await?;
+
+    Ok(StatusCode::NO_CONTENT)
 }
