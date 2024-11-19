@@ -16,7 +16,7 @@ pub struct Software {
 }
 
 // Data Transfer Object (DTO) for Software
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, sqlx::Type)]
 pub struct SoftwareDTO {
     pub id: Option<uuid::Uuid>,
     pub software_name: String,
@@ -95,7 +95,7 @@ impl Software {
         // Return false if any of the above conditions are met
         parts
             .iter()
-            .all(|&part| part.len() == 1 && part.chars().all(char::is_numeric))
+            .all(|&part| !part.is_empty() && part.len() <= 4 && part.chars().all(char::is_numeric))
     }
 
     fn validate_developer_name(developer: &String) -> bool {

@@ -16,7 +16,7 @@ pub struct Requester {
 }
 
 // Data Transfer Object (DTO) for Requester
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, sqlx::Type)]
 pub struct RequesterDTO {
     pub id: Option<uuid::Uuid>,
     pub name: String,

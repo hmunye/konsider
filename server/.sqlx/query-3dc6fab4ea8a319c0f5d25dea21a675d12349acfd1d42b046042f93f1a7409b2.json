@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        UPDATE software\n        SET software_name = $1, software_version = $2, developer_name = $3, description = $4, version = version + 1\n        WHERE id = $5 AND version = $6\n        RETURNING version\n        ",
+  "query": "\n        UPDATE software\n        SET software_name = $1, software_version = $2, developer_name = $3, description = $4, version = version + 1\n        WHERE id = $5 AND version = $6\n        RETURNING version\n    ",
   "describe": {
     "columns": [
       {
@@ -23,5 +23,5 @@
       true
     ]
   },
-  "hash": "4349fcaa2eb142e5f18b27a15ee9d66a504bb7498c59b2cf31f51de7402dc49f"
+  "hash": "3dc6fab4ea8a319c0f5d25dea21a675d12349acfd1d42b046042f93f1a7409b2"
 }

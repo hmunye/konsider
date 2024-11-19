@@ -29,7 +29,7 @@ pub async fn fetch_credentials_by_email<'a>(
             SecretString::new(row.password_hash.into()),
             // Should be safe to unwrap, since role will always have a value
             // Will return `None` if invalid email is used
-            row.role.unwrap(),
+            row.role.expect("BUG: role for user_account not found"),
         )
     });
 
@@ -60,7 +60,7 @@ pub async fn fetch_credentials_by_user_id(
             SecretString::new(row.password_hash.into()),
             // Should be safe to unwrap, since role will always have a value
             // Will return `None` if invalid email is used
-            row.role.unwrap(),
+            row.role.expect("BUG: role for user_account not found"),
         )
     });
 

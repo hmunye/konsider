@@ -184,7 +184,7 @@ pub async fn update_software(
         SET software_name = $1, software_version = $2, developer_name = $3, description = $4, version = version + 1
         WHERE id = $5 AND version = $6
         RETURNING version
-        "#,
+    "#,
         software.software_name,
         software.software_version,
         software.developer_name,

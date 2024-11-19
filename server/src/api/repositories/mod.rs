@@ -1,6 +1,7 @@
 mod auth_repository;
 mod requester_repository;
 mod software_repository;
+mod software_request_repository;
 mod user_repository;
 mod user_token_repository;
 
@@ -12,6 +13,7 @@ pub use requester_repository::{
 pub use software_repository::{
     delete_software, fetch_all_software, fetch_software_by_id, insert_software, update_software,
 };
+pub use software_request_repository::fetch_all_software_requests;
 pub use user_repository::{
     delete_user, fetch_all_users, fetch_user_by_id, insert_user, update_user, update_user_password,
 };

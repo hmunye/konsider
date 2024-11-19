@@ -2,6 +2,7 @@ mod auth_controller;
 mod health_controller;
 mod requester_controller;
 mod software_controller;
+mod software_request_controller;
 mod user_controller;
 
 pub use auth_controller::{api_login, api_logout};
@@ -14,6 +15,7 @@ pub use software_controller::{
     api_create_software, api_delete_software, api_get_all_software, api_update_software,
     UpdateSoftwarePayload,
 };
+pub use software_request_controller::api_get_all_software_requests;
 pub use user_controller::{
     api_change_password, api_create_user, api_delete_user, api_get_all_users, api_update_user,
     UpdateUserPayload,

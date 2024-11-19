@@ -140,7 +140,7 @@ pub async fn fetch_user_by_id(user_id: Uuid, db_pool: &PgPool) -> Result<User> {
             name: row.name,
             email: row.email,
             password: SecretString::new(row.password_hash.into()),
-            role: row.role.unwrap(),
+            role: row.role.expect("BUG: role for user_account not found"),
             created_at: row.created_at,
             updated_at: row.updated_at,
             version: row.version,
