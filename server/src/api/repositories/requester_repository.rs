@@ -145,3 +145,22 @@ pub async fn insert_requester(payload: &Requester, db_pool: &PgPool) -> Result<(
         },
     }
 }
+
+#[tracing::instrument(name = "deleting requester from database", skip(requester_id, db_pool))]
+pub async fn delete_requester(requester_id: Uuid, db_pool: &PgPool) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        DELETE FROM requester
+        WHERE id = $1
+        RETURNING id
+        "#,
+        requester_id,
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => Err(Error::from(err)),
+    }
+}

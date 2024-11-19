@@ -4,8 +4,8 @@ use axum::response::IntoResponse;
 use serde_json::json;
 
 use crate::api::models::Requester;
-use crate::api::services::{create_requester, get_all_requesters};
-use crate::api::utils::{Json, QueryExtractor, Token};
+use crate::api::services::{create_requester, get_all_requesters, remove_requester};
+use crate::api::utils::{Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::Result;
 
@@ -58,4 +58,24 @@ pub async fn api_create_requester(
     create_requester(&payload, &state.db_pool).await?;
 
     Ok(StatusCode::CREATED)
+}
+
+#[tracing::instrument(
+    name = "delete requester", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, requester_id, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_delete_requester(
+    Token(token): Token,
+    Path(requester_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    remove_requester(requester_id, &state.db_pool).await?;
+
+    Ok(StatusCode::NO_CONTENT)
 }

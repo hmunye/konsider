@@ -1,8 +1,9 @@
 use serde_json::{json, Value};
 use sqlx::PgPool;
+use uuid::Uuid;
 
 use crate::api::models::Requester;
-use crate::api::repositories::{fetch_all_requesters, insert_requester};
+use crate::api::repositories::{delete_requester, fetch_all_requesters, insert_requester};
 use crate::api::utils::{Metadata, QueryParams};
 use crate::Result;
 
@@ -68,9 +69,9 @@ pub async fn get_all_requesters(
 
     let wrapped_requesters: Vec<Value> = requesters
         .into_iter()
-        .map(|user| {
+        .map(|requester| {
             json!({
-                "user": user
+                "requester": requester
             })
         })
         .collect();
@@ -81,4 +82,9 @@ pub async fn get_all_requesters(
 #[tracing::instrument(name = "creating requester", skip(payload, db_pool))]
 pub async fn create_requester(payload: &Requester, db_pool: &PgPool) -> Result<()> {
     insert_requester(payload, db_pool).await
+}
+
+#[tracing::instrument(name = "remove requester", skip(requester_id, db_pool))]
+pub async fn remove_requester(requester_id: Uuid, db_pool: &PgPool) -> Result<()> {
+    delete_requester(requester_id, db_pool).await
 }
