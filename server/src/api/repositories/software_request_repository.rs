@@ -38,8 +38,19 @@ pub async fn fetch_all_software_requests(
     let limit = per_page;
     let offset = (page - 1) * per_page;
 
+    // Mutate filter_field before query construction
+    let (field, mut column) = (filter_field.clone(), None);
+
+    if let Some(ref filter_field) = field {
+        column = match filter_field.as_str() {
+            "software_name" => Some("s.software_name"),
+            "requester_email" => Some("r.email"),
+            _ => Some("td_request_id"),
+        };
+    }
+
     // Build the query with joins to get data from related tables
-    let query = if let (Some(field), Some(_)) = (filter_field.as_ref(), filter_value.as_ref()) {
+    let query = if let (Some(_), Some(_)) = (filter_field.as_ref(), filter_value.as_ref()) {
         format!(
             r#"
         SELECT 
@@ -70,7 +81,9 @@ pub async fn fetch_all_software_requests(
             sr.id ASC
         LIMIT {} OFFSET {}
         "#,
-            field, limit, offset
+            column.unwrap_or_default(),
+            limit,
+            offset
         )
     } else {
         format!(
@@ -147,6 +160,40 @@ pub async fn fetch_all_software_requests(
 }
 
 #[tracing::instrument(
+    name = "fetching software request by id from database",
+    skip(request_id, db_pool)
+)]
+pub async fn fetch_software_request_by_id(
+    request_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<SoftwareRequest> {
+    let row = sqlx::query!(
+        r#"
+        SELECT id, td_request_id, software_id, requester_id, created_at, updated_at, version
+        FROM software_request
+        WHERE id = $1
+        "#,
+        request_id
+    )
+    .fetch_optional(db_pool)
+    .await
+    .map_err(Error::from)?;
+
+    match row {
+        Some(row) => Ok(SoftwareRequest {
+            id: Some(row.id),
+            td_request_id: row.td_request_id,
+            software_id: row.software_id,
+            requester_id: row.requester_id,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            version: row.version,
+        }),
+        None => Err(Error::PgNotFoundError),
+    }
+}
+
+#[tracing::instrument(
     name = "inserting software request into database",
     skip(payload, db_pool)
 )]
@@ -194,6 +241,38 @@ pub async fn delete_software_request(request_id: Uuid, db_pool: &PgPool) -> Resu
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
             Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            _ => Err(Error::from(err)),
+        },
+    }
+}
+
+#[tracing::instrument(
+    name = "updating software request details in database",
+    skip(software_request, request_id, db_pool)
+)]
+pub async fn update_software_request(
+    software_request: SoftwareRequest,
+    request_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        UPDATE software_request
+        SET td_request_id = $1, version = version + 1
+        WHERE id = $2 AND version = $3
+        RETURNING version
+    "#,
+        software_request.td_request_id,
+        request_id,
+        software_request.version
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
             _ => Err(Error::from(err)),
         },
     }

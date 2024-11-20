@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE software_request\n        SET td_request_id = $1, version = version + 1\n        WHERE id = $2 AND version = $3\n        RETURNING version\n    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "a60a680210c88f708758fbcc43ea27b62f578aa09adeb258f1ab6f1dbc45bf62"
+}

@@ -11,6 +11,7 @@ pub use requester_service::{
 };
 pub use software_request_service::{
     create_software_request, get_all_software_requests, remove_software_request,
+    update_software_request_details,
 };
 pub use software_service::{
     create_software, get_all_software, remove_software, update_software_details,

@@ -97,7 +97,8 @@ CREATE TABLE software_request (
     software_id UUID NOT NULL UNIQUE REFERENCES software(id) ON DELETE RESTRICT, -- Foreign key to software. Will error if trying to delete the software being referenced. One-to-one relationship enforced through UNIQUE
     requester_id UUID NOT NULL REFERENCES requester(id) ON DELETE RESTRICT, -- Foreign key to requester. Will error if trying to delete the requester being referenced
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW() -- If it is the same value as created_at, you known this record has never been updated
+    updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you known this record has never been updated
+    version INT DEFAULT 1
 );
 ```
 ### 5. Review Factor:

@@ -33,6 +33,11 @@ async fn get_all_software_requests_successful() -> Result<()> {
             "{}/api/v1/requests?filter=td_request_id:36472091",
             server.addr
         ),
+        format!("{}/api/v1/requests?filter=software_name:Zoom", server.addr),
+        format!(
+            "{}/api/v1/requests?filter=requester_email:john@example.com",
+            server.addr
+        ),
     ];
 
     for valid_url in test_cases {
