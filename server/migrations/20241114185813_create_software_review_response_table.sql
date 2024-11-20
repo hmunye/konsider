@@ -1,4 +1,4 @@
-CREATE TYPE review_options AS ENUM ('TRUE', 'FALSE', 'NOT SURE');
+CREATE TYPE review_options AS ENUM ('TRUE', 'FALSE', 'NOT_SURE');
 
 CREATE TABLE software_review_response (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
