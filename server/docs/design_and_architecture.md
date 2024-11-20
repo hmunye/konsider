@@ -1,7 +1,5 @@
 # K6R Design & Architecture
 
----
-
 ## Objective
 
 Konsider (K6R) allows users to create and manage software reviews for software requests submitted through TeamDynamix. Each review captures details about the software and requester, and includes the option to export as PDFs for easy attachment to the corresponding TeamDynamix request. By centralizing all reviews in one location, it prevents duplicate reviews from being created, as users can quickly reference existing records. In the past, reviews were stored as individual documents, making it hard to track reviews made. Now, all review data is kept in one location, ensuring it's availability and streamlining the creation process

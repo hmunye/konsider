@@ -1,5 +1,5 @@
 # K6R Database Design (PostgreSQL)
----
+
 ## Goals
 
 Use **3rd Normal Form** (**3NF**) ✅
@@ -101,56 +101,32 @@ CREATE TABLE software_request (
     version INT DEFAULT 1
 );
 ```
-### 5. Review Factor:
-
-```sql
--- Current factors:
---  is_supported (Is the software still supported by the developer?)
---  is_current_version (Is the latest version of the software being requested?)
---  is_reputation_good (Does the developer have a good reputation?)
---  is_installation_from_developer (Is the installation package from the developer/vendor?)
---  is_local_admin_required (Is a local administrator required for daily use?)
---  is_connected_to_brockport_cloud (Does the software need to connect to Brockport cloud?)
---  is_connected_to_cloud_services_or_client (Does the software need to connect to other cloud services or is a client for a cloud service?)
---  is_security_or_optimization_software (Is the software for security or system optimization?)
---  is_supported_by_current_os (Is the software supported by current OS used by devices on campus?)
-
-CREATE TABLE review_factor (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE, -- Factor name, e.g., 'is_supported' (It is UNIQUE so an INDEX is created automatically)
-    description VARCHAR(255) NOT NULL, -- Description providing context for each review factor
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-### 6. Software Review:
-
-```sql
-CREATE TABLE software_review (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    software_request_id UUID NOT NULL UNIQUE REFERENCES software_request(id) ON DELETE RESTRICT, -- Foreign key to software request. Will error if trying to delete the software request being referenced, One-to-one relationship enforced through UNIQUE
-    reviewer_id UUID NOT NULL REFERENCES user_account(id) ON DELETE RESTRICT, -- Foreign key to user account. Will error if trying to delete the user account being referenced
-    exported BOOLEAN DEFAULT FALSE, -- Has the review been exported?
-    review_notes VARCHAR(255) DEFAULT 'NOT PROVIDED', -- Additional notes for the software review
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you known this record has never been updated
-    CONSTRAINT unique_software_review UNIQUE (software_request_id, reviewer_id) -- Ensure each review is unique per software request and reviewer pair
-);
-```
-### 7. Software Review Response:
+### 5. Software Review:
 
 ```sql
 CREATE TYPE review_options AS ENUM ('TRUE', 'FALSE', 'NOT_SURE');
 
-CREATE TABLE software_review_response (
+CREATE TABLE software_review (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    software_review_id UUID NOT NULL REFERENCES software_review(id) ON DELETE RESTRICT, -- Foreign key to software review. Will error if trying to delete the software review being referenced
-    review_factor_id UUID NOT NULL REFERENCES review_factor(id) ON DELETE RESTRICT, -- Foreign key to review factor. Will error if trying to delete the review factor being referenced
-    response review_options NOT NULL, -- Answer to the specific review factor. ENUM type ensures response can only be set to 'TRUE', 'FALSE', or 'NOT SURE'
-    CONSTRAINT unique_review_factor_per_review UNIQUE (software_review_id, review_factor_id) -- Ensure each software review response is unique per software review and review factor
+    software_request_id UUID NOT NULL UNIQUE REFERENCES software_request(id) ON DELETE RESTRICT, -- Foreign key to software request. Will error if trying to delete the software request being referenced. One-to-one relationship enforced through UNIQUE
+    reviewer_id UUID NOT NULL REFERENCES user_account(id) ON DELETE RESTRICT, -- Foreign key to user account. Will error if trying to delete the user account being referenced
+    is_supported review_options NOT NULL, -- Is the software supported by the developer?
+    is_current_version review_options NOT NULL, -- Is it the current version of the software?
+    is_reputation_good review_options NOT NULL, -- Does the developer have a good reputation?
+    is_installation_from_developer review_options NOT NULL, -- Was the software installation obtained from the developer?
+    is_local_admin_required review_options NOT NULL, -- Does the software require local admin privileges?
+    is_connected_to_brockport_cloud review_options NOT NULL, -- Is the software connected to the Brockport cloud?
+    is_connected_to_cloud_services_or_client review_options NOT NULL, -- Is the software connected to cloud services or clients?
+    is_security_or_optimization_software review_options NOT NULL, -- Is this security or optimization software?
+    is_supported_by_current_os review_options NOT NULL, -- Is the software supported by the current OS?
+    exported BOOLEAN DEFAULT FALSE, -- Has the review been exported?
+    review_notes VARCHAR(255) DEFAULT 'NOT PROVIDED', -- Additional notes for the software review
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you know this record has never been updated
+    CONSTRAINT unique_software_review UNIQUE (software_request_id, reviewer_id) -- Ensure each review is unique per software request and reviewer pair
 );
 ```
-
-### 8. User Token:
+### 6. User Token:
 
 ```sql
 CREATE TABLE user_token (
@@ -221,10 +197,6 @@ CREATE INDEX idx_user_account_role ON user_account(role);
 CREATE INDEX idx_software_review_software_request_id ON software_review(software_request_id);
 CREATE INDEX idx_software_review_reviewer_id ON software_review(reviewer_id);
 
--- software review response
-CREATE INDEX idx_software_review_response_software_review_id ON software_review_response(software_review_id);
-CREATE INDEX idx_software_review_response_review_factor_id ON software_review_response(review_factor_id);
-
 -- user token
 CREATE INDEX idx_user_token_revoked ON user_token(revoked);
 ```
@@ -254,18 +226,6 @@ CREATE INDEX idx_user_token_revoked ON user_token(revoked);
 **Type**: One-to-One
 
 > Each software request can have only one associated review, and each software review is linked to only one software request. This is to avoid multiple reviews for a single request
-
-### Software Review to Software Review Response:
-
-**Type**: One-to-Many
-
-> Each software review can have multiple review responses, where each response corresponds to a different review factor. Each software review response is linked to one software review
-
-### Review Factor to Software Review Response:
-
-**Type**: One-to-Many
-
-> Each review factor can be used in multiple software review responses, but each response links to only one factor
 
 ### User Account to User Token:
 
@@ -435,5 +395,73 @@ services:
       - ./path-to-your-certs:/etc/ssl/certs
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 ```
+---
 
+## Future Improvements and Considerations
+
+If additional review factors are anticipated in the future, you should consider reorganizing the `software_review` table as follows:
+
+
+### Review Factor:
+
+```sql
+-- Current factors:
+--  is_supported (Is the software still supported by the developer?)
+--  is_current_version (Is the latest version of the software being requested?)
+--  is_reputation_good (Does the developer have a good reputation?)
+--  is_installation_from_developer (Is the installation package from the developer/vendor?)
+--  is_local_admin_required (Is a local administrator required for daily use?)
+--  is_connected_to_brockport_cloud (Does the software need to connect to Brockport cloud?)
+--  is_connected_to_cloud_services_or_client (Does the software need to connect to other cloud services or is a client for a cloud service?)
+--  is_security_or_optimization_software (Is the software for security or system optimization?)
+--  is_supported_by_current_os (Is the software supported by current OS used by devices on campus?)
+
+CREATE TABLE review_factor (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE, -- Factor name, e.g., 'is_supported' (It is UNIQUE so an INDEX is created automatically)
+    description VARCHAR(255) NOT NULL, -- Description providing context for each review factor
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+### Software Review:
+
+```sql
+CREATE TABLE software_review (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    software_request_id UUID NOT NULL UNIQUE REFERENCES software_request(id) ON DELETE RESTRICT, -- Foreign key to software request. Will error if trying to delete the software request being referenced, One-to-one relationship enforced through UNIQUE
+    reviewer_id UUID NOT NULL REFERENCES user_account(id) ON DELETE RESTRICT, -- Foreign key to user account. Will error if trying to delete the user account being referenced
+    exported BOOLEAN DEFAULT FALSE, -- Has the review been exported?
+    review_notes VARCHAR(255) DEFAULT 'NOT PROVIDED', -- Additional notes for the software review
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you known this record has never been updated
+    CONSTRAINT unique_software_review UNIQUE (software_request_id, reviewer_id) -- Ensure each review is unique per software request and reviewer pair
+);
+```
+### Software Review Response:
+
+```sql
+CREATE TYPE review_options AS ENUM ('TRUE', 'FALSE', 'NOT_SURE');
+
+CREATE TABLE software_review_response (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    software_review_id UUID NOT NULL REFERENCES software_review(id) ON DELETE RESTRICT, -- Foreign key to software review. Will error if trying to delete the software review being referenced
+    review_factor_id UUID NOT NULL REFERENCES review_factor(id) ON DELETE RESTRICT, -- Foreign key to review factor. Will error if trying to delete the review factor being referenced
+    response review_options NOT NULL, -- Answer to the specific review factor. ENUM type ensures response can only be set to 'TRUE', 'FALSE', or 'NOT SURE'
+    CONSTRAINT unique_review_factor_per_review UNIQUE (software_review_id, review_factor_id) -- Ensure each software review response is unique per software review and review factor
+);
+```
+
+## Relationships
+
+### Software Review to Software Review Response:
+
+**Type**: One-to-Many
+
+> Each software review can have multiple review responses, where each response corresponds to a different review factor. Each software review response is linked to one software review
+
+### Review Factor to Software Review Response:
+
+**Type**: One-to-Many
+
+> Each review factor can be used in multiple software review responses, but each response links to only one factor
 

@@ -11,10 +11,38 @@ pub struct SoftwareReview {
     pub id: Option<Uuid>,
     pub software_request_id: Uuid,
     pub reviewer_id: Uuid,
+    pub is_supported: ReviewOptions,
+    pub is_current_version: ReviewOptions,
+    pub is_reputation_good: ReviewOptions,
+    pub is_installation_from_developer: ReviewOptions,
+    pub is_local_admin_required: ReviewOptions,
+    pub is_connected_to_brockport_cloud: ReviewOptions,
+    pub is_connected_to_cloud_services_or_client: ReviewOptions,
+    pub is_security_or_optimization_software: ReviewOptions,
+    pub is_supported_by_current_os: ReviewOptions,
     pub exported: bool,
     pub review_notes: String,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, sqlx::Type)]
+#[sqlx(type_name = "review_options")]
+#[allow(non_camel_case_types)]
+pub enum ReviewOptions {
+    TRUE,
+    FALSE,
+    NOT_SURE,
+}
+
+impl std::fmt::Display for ReviewOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ReviewOptions::TRUE => write!(f, "TRUE"),
+            ReviewOptions::FALSE => write!(f, "FALSE"),
+            ReviewOptions::NOT_SURE => write!(f, "NOT_SURE"),
+        }
+    }
 }
 
 // Data Transfer Object (DTO) for SoftwareReview
@@ -23,6 +51,15 @@ pub struct SoftwareReviewDTO {
     pub id: Option<Uuid>,
     pub software_request: SoftwareRequestDTO,
     pub reviewer: UserDTO,
+    pub is_supported: ReviewOptions,
+    pub is_current_version: ReviewOptions,
+    pub is_reputation_good: ReviewOptions,
+    pub is_installation_from_developer: ReviewOptions,
+    pub is_local_admin_required: ReviewOptions,
+    pub is_connected_to_brockport_cloud: ReviewOptions,
+    pub is_connected_to_cloud_services_or_client: ReviewOptions,
+    pub is_security_or_optimization_software: ReviewOptions,
+    pub is_supported_by_current_os: ReviewOptions,
     pub exported: bool,
     pub review_notes: String,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
@@ -36,6 +73,19 @@ impl From<(&SoftwareReview, SoftwareRequestDTO, UserDTO)> for SoftwareReviewDTO 
             id: review.id,
             software_request,
             reviewer,
+            is_supported: review.is_supported.clone(),
+            is_current_version: review.is_current_version.clone(),
+            is_reputation_good: review.is_reputation_good.clone(),
+            is_installation_from_developer: review.is_installation_from_developer.clone(),
+            is_local_admin_required: review.is_local_admin_required.clone(),
+            is_connected_to_brockport_cloud: review.is_connected_to_brockport_cloud.clone(),
+            is_connected_to_cloud_services_or_client: review
+                .is_connected_to_cloud_services_or_client
+                .clone(),
+            is_security_or_optimization_software: review
+                .is_security_or_optimization_software
+                .clone(),
+            is_supported_by_current_os: review.is_supported_by_current_os.clone(),
             exported: review.exported,
             review_notes: review.review_notes.clone(),
             created_at: review.created_at,
@@ -47,7 +97,7 @@ impl SoftwareReview {
     pub fn parse(&self) -> Result<()> {
         if !Self::validate_review_notes(&self.review_notes) {
             return Err(Error::ValidationError(format!(
-                "software review payload: '{}' is invaild review notes",
+                "software review payload: '{}' is invalid review notes",
                 &self.review_notes
             )));
         }
