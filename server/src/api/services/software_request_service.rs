@@ -10,7 +10,7 @@ use crate::api::utils::{Metadata, QueryParams};
 use crate::api::SoftwareRequest;
 use crate::{Error, Result};
 
-#[tracing::instrument(name = "getting all software_requests", skip(query_params, db_pool))]
+#[tracing::instrument(name = "getting all software requests", skip(query_params, db_pool))]
 pub async fn get_all_software_requests(
     query_params: QueryParams,
     db_pool: &PgPool,

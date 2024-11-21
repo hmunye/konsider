@@ -14,7 +14,7 @@ use crate::server::ServerState;
 use crate::Result;
 
 #[tracing::instrument(
-    name = "get all software_requests", 
+    name = "get all software requests", 
     // Any values in 'skip' won't be included in logs
     skip(token, query_params, state),
     fields(

@@ -1,6 +1,7 @@
 mod auth_service;
 mod requester_service;
 mod software_request_service;
+mod software_review_service;
 mod software_service;
 mod user_service;
 mod user_token_service;
@@ -13,6 +14,7 @@ pub use software_request_service::{
     create_software_request, get_all_software_requests, remove_software_request,
     update_software_request_details,
 };
+pub use software_review_service::get_all_software_reviews;
 pub use software_service::{
     create_software, get_all_software, remove_software, update_software_details,
 };

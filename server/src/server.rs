@@ -11,7 +11,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::api::{
     auth_routes, health_routes, main_response_mapper, requester_routes, software_request_routes,
-    software_routes, user_routes, TokenCache,
+    software_review_routes, software_routes, user_routes, TokenCache,
 };
 use crate::config::{Config, DatabaseConfig};
 use crate::Result;
@@ -107,6 +107,7 @@ pub async fn serve(
                 .nest("/requesters", requester_routes())
                 .nest("/software", software_routes())
                 .nest("/requests", software_request_routes())
+                .nest("/reviews", software_review_routes())
                 .with_state(state),
         )
         .layer(axum::middleware::map_response(main_response_mapper))
