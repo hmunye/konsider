@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::api::models::{
     RequesterDTO, ReviewOptions, SoftwareDTO, SoftwareRequestDTO, SoftwareReview,
-    SoftwareReviewDTO, UserDTO, UserRole,
+    SoftwareReviewDTO, SoftwareReviewPayload, UserDTO, UserRole,
 };
 use crate::api::utils::Metadata;
 use crate::{Error, Result};
@@ -202,7 +202,7 @@ pub async fn fetch_all_software_reviews(
     let software_reviews_records: Vec<SoftwareReviewDTO> = records
         .into_iter()
         .map(|record| SoftwareReviewDTO {
-            id: Some(record.id),
+            id: record.id,
             software_request: SoftwareRequestDTO {
                 id: Some(record.software_request_id),
                 td_request_id: record.td_request_id,
@@ -241,7 +241,7 @@ pub async fn fetch_all_software_reviews(
             is_security_or_optimization_software: record.is_security_or_optimization_software,
             is_supported_by_current_os: record.is_supported_by_current_os,
             exported: Some(record.exported),
-            review_notes: record.review_notes,
+            review_notes: Some(record.review_notes),
             created_at: Some(record.created_at),
         })
         .collect();
@@ -252,11 +252,66 @@ pub async fn fetch_all_software_reviews(
 }
 
 #[tracing::instrument(
+    name = "fetching software review by id from database",
+    skip(review_id, db_pool)
+)]
+pub async fn fetch_software_review_by_id(
+    review_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<SoftwareReview> {
+    let row = sqlx::query!(
+        r#"
+        SELECT 
+            id, software_request_id, reviewer_id, 
+            is_supported AS "is_supported: ReviewOptions", 
+            is_current_version AS "is_current_version: ReviewOptions", 
+            is_reputation_good AS "is_reputation_good: ReviewOptions", 
+            is_installation_from_developer AS "is_installation_from_developer: ReviewOptions", 
+            is_local_admin_required AS "is_local_admin_required: ReviewOptions", 
+            is_connected_to_brockport_cloud AS "is_connected_to_brockport_cloud: ReviewOptions", 
+            is_connected_to_cloud_services_or_client AS "is_connected_to_cloud_services_or_client: ReviewOptions", 
+            is_security_or_optimization_software AS "is_security_or_optimization_software: ReviewOptions", 
+            is_supported_by_current_os AS "is_supported_by_current_os: ReviewOptions", 
+            exported, review_notes, created_at, updated_at, version
+        FROM software_review
+        WHERE id = $1
+        "#,
+        review_id
+    )
+    .fetch_optional(db_pool)
+    .await
+    .map_err(Error::from)?;
+
+    match row {
+        Some(row) => Ok(SoftwareReview {
+            id: row.id,
+            software_request_id: row.software_request_id,
+            reviewer_id: row.reviewer_id,
+            is_supported: row.is_supported,
+            is_current_version: row.is_current_version,
+            is_reputation_good: row.is_reputation_good,
+            is_installation_from_developer: row.is_installation_from_developer,
+            is_local_admin_required: row.is_local_admin_required,
+            is_connected_to_brockport_cloud: row.is_connected_to_brockport_cloud,
+            is_connected_to_cloud_services_or_client: row.is_connected_to_cloud_services_or_client,
+            is_security_or_optimization_software: row.is_security_or_optimization_software,
+            is_supported_by_current_os: row.is_supported_by_current_os,
+            exported: row.exported,
+            review_notes: row.review_notes,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            version: row.version,
+        }),
+        None => Err(Error::PgNotFoundError),
+    }
+}
+
+#[tracing::instrument(
     name = "inserting software review into database",
     skip(payload, db_pool)
 )]
 pub async fn insert_software_review(
-    payload: &SoftwareReview,
+    payload: &SoftwareReviewPayload,
     reviewer_id: &Uuid,
     db_pool: &PgPool,
 ) -> Result<()> {
@@ -395,6 +450,61 @@ pub async fn delete_software_review(review_id: Uuid, db_pool: &PgPool) -> Result
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
             Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            _ => Err(Error::from(err)),
+        },
+    }
+}
+
+#[tracing::instrument(
+    name = "updating software review details in database",
+    skip(software_review, review_id, db_pool)
+)]
+pub async fn update_software_review(
+    software_review: SoftwareReview,
+    review_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    let result = sqlx::query!(
+        r#"
+        UPDATE software_review
+        SET 
+            is_supported = $1,
+            is_current_version = $2,
+            is_reputation_good = $3,
+            is_installation_from_developer = $4,
+            is_local_admin_required = $5,
+            is_connected_to_brockport_cloud = $6,
+            is_connected_to_cloud_services_or_client = $7,
+            is_security_or_optimization_software = $8,
+            is_supported_by_current_os = $9,
+            review_notes = $10,
+            version = version + 1
+        WHERE id = $11 AND version = $12
+        RETURNING version
+    "#,
+        software_review.is_supported.clone() as ReviewOptions,
+        software_review.is_current_version.clone() as ReviewOptions,
+        software_review.is_reputation_good.clone() as ReviewOptions,
+        software_review.is_installation_from_developer.clone() as ReviewOptions,
+        software_review.is_local_admin_required.clone() as ReviewOptions,
+        software_review.is_connected_to_brockport_cloud.clone() as ReviewOptions,
+        software_review
+            .is_connected_to_cloud_services_or_client
+            .clone() as ReviewOptions,
+        software_review.is_security_or_optimization_software.clone() as ReviewOptions,
+        software_review.is_supported_by_current_os.clone() as ReviewOptions,
+        software_review.review_notes,
+        review_id,
+        software_review.version
+    )
+    .fetch_optional(db_pool)
+    .await;
+
+    match result {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
             _ => Err(Error::from(err)),
         },
     }

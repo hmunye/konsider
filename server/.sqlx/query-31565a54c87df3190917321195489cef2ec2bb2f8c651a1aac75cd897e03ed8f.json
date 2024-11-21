@@ -1,0 +1,132 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE software_review\n        SET \n            is_supported = $1,\n            is_current_version = $2,\n            is_reputation_good = $3,\n            is_installation_from_developer = $4,\n            is_local_admin_required = $5,\n            is_connected_to_brockport_cloud = $6,\n            is_connected_to_cloud_services_or_client = $7,\n            is_security_or_optimization_software = $8,\n            is_supported_by_current_os = $9,\n            review_notes = $10,\n            version = version + 1\n        WHERE id = $11 AND version = $12\n        RETURNING version\n    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        },
+        "Varchar",
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "31565a54c87df3190917321195489cef2ec2bb2f8c651a1aac75cd897e03ed8f"
+}

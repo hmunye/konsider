@@ -16,6 +16,7 @@ pub use software_request_service::{
 };
 pub use software_review_service::{
     create_software_review, get_all_software_reviews, remove_software_review,
+    update_software_review_details,
 };
 pub use software_service::{
     create_software, get_all_software, remove_software, update_software_details,

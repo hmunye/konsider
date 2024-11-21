@@ -1,0 +1,217 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id, software_request_id, reviewer_id, \n            is_supported AS \"is_supported: ReviewOptions\", \n            is_current_version AS \"is_current_version: ReviewOptions\", \n            is_reputation_good AS \"is_reputation_good: ReviewOptions\", \n            is_installation_from_developer AS \"is_installation_from_developer: ReviewOptions\", \n            is_local_admin_required AS \"is_local_admin_required: ReviewOptions\", \n            is_connected_to_brockport_cloud AS \"is_connected_to_brockport_cloud: ReviewOptions\", \n            is_connected_to_cloud_services_or_client AS \"is_connected_to_cloud_services_or_client: ReviewOptions\", \n            is_security_or_optimization_software AS \"is_security_or_optimization_software: ReviewOptions\", \n            is_supported_by_current_os AS \"is_supported_by_current_os: ReviewOptions\", \n            exported, review_notes, created_at, updated_at, version\n        FROM software_review\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "software_request_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "reviewer_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_supported: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "is_current_version: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "is_reputation_good: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "is_installation_from_developer: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "is_local_admin_required: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "is_connected_to_brockport_cloud: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "is_connected_to_cloud_services_or_client: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "is_security_or_optimization_software: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "is_supported_by_current_os: ReviewOptions",
+        "type_info": {
+          "Custom": {
+            "name": "review_options",
+            "kind": {
+              "Enum": [
+                "TRUE",
+                "FALSE",
+                "NOT_SURE"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "exported",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 13,
+        "name": "review_notes",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 14,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 15,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 16,
+        "name": "version",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "c0882101eac3cd9a32b2b80c552c8a7a37a8fc16425b2bd7f038d6fca9b26fc4"
+}

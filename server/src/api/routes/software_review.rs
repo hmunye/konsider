@@ -3,6 +3,7 @@ use axum::Router;
 
 use crate::api::controllers::{
     api_create_software_review, api_delete_software_review, api_get_all_software_reviews,
+    api_update_software_review,
 };
 use crate::server::ServerState;
 
@@ -13,5 +14,8 @@ pub fn software_review_routes() -> Router<ServerState> {
             "/",
             get(api_get_all_software_reviews).post(api_create_software_review),
         )
-        .route("/:review_id", delete(api_delete_software_review))
+        .route(
+            "/:review_id",
+            delete(api_delete_software_review).patch(api_update_software_review),
+        )
 }

@@ -2,12 +2,14 @@ use serde_json::{json, Value};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::api::models::SoftwareReview;
+use crate::api::controllers::UpdateSoftwareReviewPayload;
+use crate::api::models::SoftwareReviewPayload;
 use crate::api::repositories::{
-    delete_software_review, fetch_all_software_reviews, insert_software_review,
+    delete_software_review, fetch_all_software_reviews, fetch_software_review_by_id,
+    insert_software_review, update_software_review,
 };
 use crate::api::utils::{Metadata, QueryParams};
-use crate::Result;
+use crate::{Error, Result};
 
 #[tracing::instrument(name = "getting all software reviews", skip(query_params, db_pool))]
 pub async fn get_all_software_reviews(
@@ -61,7 +63,7 @@ pub async fn get_all_software_reviews(
 
 #[tracing::instrument(name = "creating software review", skip(payload, db_pool))]
 pub async fn create_software_review(
-    payload: &SoftwareReview,
+    payload: &SoftwareReviewPayload,
     reviewer_id: &Uuid,
     db_pool: &PgPool,
 ) -> Result<()> {
@@ -71,4 +73,83 @@ pub async fn create_software_review(
 #[tracing::instrument(name = "removing software review", skip(review_id, db_pool))]
 pub async fn remove_software_review(review_id: uuid::Uuid, db_pool: &PgPool) -> Result<()> {
     delete_software_review(review_id, db_pool).await
+}
+
+#[tracing::instrument(
+    name = "updating software review details",
+    skip(payload, review_id, db_pool)
+)]
+pub async fn update_software_review_details(
+    payload: UpdateSoftwareReviewPayload,
+    review_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    // Fetch the existing review details from the database
+    let mut software_review = fetch_software_review_by_id(review_id, db_pool).await?;
+
+    let mut fields_updated = false;
+
+    // Apply any updates to the `SoftwareReview` entity locally
+    if let Some(is_supported) = payload.is_supported {
+        software_review.is_supported = is_supported;
+        fields_updated = true;
+    }
+
+    if let Some(is_current_version) = payload.is_current_version {
+        software_review.is_current_version = is_current_version;
+        fields_updated = true;
+    }
+
+    if let Some(is_reputation_good) = payload.is_reputation_good {
+        software_review.is_reputation_good = is_reputation_good;
+        fields_updated = true;
+    }
+
+    if let Some(is_installation_from_developer) = payload.is_installation_from_developer {
+        software_review.is_installation_from_developer = is_installation_from_developer;
+        fields_updated = true;
+    }
+
+    if let Some(is_local_admin_required) = payload.is_local_admin_required {
+        software_review.is_local_admin_required = is_local_admin_required;
+        fields_updated = true;
+    }
+
+    if let Some(is_connected_to_brockport_cloud) = payload.is_connected_to_brockport_cloud {
+        software_review.is_connected_to_brockport_cloud = is_connected_to_brockport_cloud;
+        fields_updated = true;
+    }
+
+    if let Some(is_connected_to_cloud_services_or_client) =
+        payload.is_connected_to_cloud_services_or_client
+    {
+        software_review.is_connected_to_cloud_services_or_client =
+            is_connected_to_cloud_services_or_client;
+        fields_updated = true;
+    }
+
+    if let Some(is_security_or_optimization_software) = payload.is_security_or_optimization_software
+    {
+        software_review.is_security_or_optimization_software = is_security_or_optimization_software;
+        fields_updated = true;
+    }
+
+    if let Some(is_supported_by_current_os) = payload.is_supported_by_current_os {
+        software_review.is_supported_by_current_os = is_supported_by_current_os;
+        fields_updated = true;
+    }
+
+    if let Some(review_notes) = payload.review_notes {
+        software_review.review_notes = Some(review_notes);
+        fields_updated = true;
+    }
+
+    // Return an error if no fields were updated
+    if !fields_updated {
+        return Err(Error::NoUpdatesProvidedError);
+    }
+
+    software_review.parse()?;
+
+    update_software_review(software_review, review_id, db_pool).await
 }

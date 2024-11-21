@@ -19,7 +19,8 @@ pub use software_request_repository::{
     insert_software_request, update_software_request,
 };
 pub use software_review_repository::{
-    delete_software_review, fetch_all_software_reviews, insert_software_review,
+    delete_software_review, fetch_all_software_reviews, fetch_software_review_by_id,
+    insert_software_review, update_software_review,
 };
 pub use user_repository::{
     delete_user, fetch_all_users, fetch_user_by_id, insert_user, update_user, update_user_password,

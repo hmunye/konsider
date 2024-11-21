@@ -123,6 +123,7 @@ CREATE TABLE software_review (
     review_notes VARCHAR(255) DEFAULT 'NOT PROVIDED', -- Additional notes for the software review
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you know this record has never been updated
+    version INT DEFAULT 1,
     CONSTRAINT unique_software_review UNIQUE (software_request_id, reviewer_id) -- Ensure each review is unique per software request and reviewer pair
 );
 ```

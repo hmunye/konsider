@@ -8,6 +8,27 @@ use super::{SoftwareRequestDTO, UserDTO};
 
 #[derive(Debug, Deserialize)]
 pub struct SoftwareReview {
+    pub id: Uuid,
+    pub software_request_id: Uuid,
+    pub reviewer_id: Uuid,
+    pub is_supported: ReviewOptions,
+    pub is_current_version: ReviewOptions,
+    pub is_reputation_good: ReviewOptions,
+    pub is_installation_from_developer: ReviewOptions,
+    pub is_local_admin_required: ReviewOptions,
+    pub is_connected_to_brockport_cloud: ReviewOptions,
+    pub is_connected_to_cloud_services_or_client: ReviewOptions,
+    pub is_security_or_optimization_software: ReviewOptions,
+    pub is_supported_by_current_os: ReviewOptions,
+    pub exported: Option<bool>,
+    pub review_notes: Option<String>,
+    pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub version: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SoftwareReviewPayload {
     pub id: Option<Uuid>,
     pub software_request: SoftwareRequestDTO,
     pub reviewer_id: Option<Uuid>,
@@ -24,6 +45,7 @@ pub struct SoftwareReview {
     pub review_notes: String,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub version: Option<i32>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, sqlx::Type)]
@@ -48,7 +70,7 @@ impl std::fmt::Display for ReviewOptions {
 // Data Transfer Object (DTO) for SoftwareReview
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct SoftwareReviewDTO {
-    pub id: Option<Uuid>,
+    pub id: Uuid,
     pub software_request: SoftwareRequestDTO,
     pub reviewer: UserDTO,
     pub is_supported: ReviewOptions,
@@ -61,7 +83,7 @@ pub struct SoftwareReviewDTO {
     pub is_security_or_optimization_software: ReviewOptions,
     pub is_supported_by_current_os: ReviewOptions,
     pub exported: Option<bool>,
-    pub review_notes: String,
+    pub review_notes: Option<String>,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
@@ -95,6 +117,33 @@ impl From<(&SoftwareReview, SoftwareRequestDTO, UserDTO)> for SoftwareReviewDTO 
 
 impl SoftwareReview {
     pub fn parse(&self) -> Result<()> {
+        if let Some(review_notes) = &self.review_notes {
+            if !Self::validate_review_notes(review_notes) {
+                return Err(Error::ValidationError(format!(
+                    "software review payload: '{}' is invalid review notes",
+                    review_notes
+                )));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn validate_review_notes(notes: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
+
+        let notes_is_empty_or_whitespace = notes.trim().is_empty();
+
+        let notes_too_long = notes.graphemes(true).count() > 255;
+        let notes_contains_forbidden_chars = notes.chars().any(|c| forbidden_chars.contains(&c));
+
+        // Return false if any of the above conditions are met
+        !(notes_is_empty_or_whitespace || notes_too_long || notes_contains_forbidden_chars)
+    }
+}
+
+impl SoftwareReviewPayload {
+    pub fn parse(&self) -> Result<()> {
         if !Self::validate_review_notes(&self.review_notes) {
             return Err(Error::ValidationError(format!(
                 "software review payload: '{}' is invalid review notes",
@@ -121,45 +170,63 @@ impl SoftwareReview {
 // Unit Tests
 #[cfg(test)]
 mod review_notes_tests {
-    use super::SoftwareReview;
+    use super::SoftwareReviewPayload;
 
     // Returns true is field is vaild, false if invalid
 
     #[test]
     fn a_255_grapheme_review_notes_is_vaild() {
         let review_notes = "a".repeat(255);
-        assert_eq!(SoftwareReview::validate_review_notes(&review_notes), true);
+        assert_eq!(
+            SoftwareReviewPayload::validate_review_notes(&review_notes),
+            true
+        );
     }
 
     #[test]
     fn a_256_grapheme_review_notes_is_invaild() {
         let review_notes = "a".repeat(256);
-        assert_eq!(SoftwareReview::validate_review_notes(&review_notes), false);
+        assert_eq!(
+            SoftwareReviewPayload::validate_review_notes(&review_notes),
+            false
+        );
     }
 
     #[test]
     fn whitespace_only_review_notes_is_invalid() {
         let review_notes = " ".to_string();
-        assert_eq!(SoftwareReview::validate_review_notes(&review_notes), false);
+        assert_eq!(
+            SoftwareReviewPayload::validate_review_notes(&review_notes),
+            false
+        );
     }
 
     #[test]
     fn empty_review_notes_is_invalid() {
         let review_notes = "".to_string();
-        assert_eq!(SoftwareReview::validate_review_notes(&review_notes), false);
+        assert_eq!(
+            SoftwareReviewPayload::validate_review_notes(&review_notes),
+            false
+        );
     }
 
     #[test]
     fn forbidden_characters_in_review_notes_are_invalid() {
         for chars in &['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'] {
             let review_notes = chars.to_string();
-            assert_eq!(SoftwareReview::validate_review_notes(&review_notes), false);
+            assert_eq!(
+                SoftwareReviewPayload::validate_review_notes(&review_notes),
+                false
+            );
         }
     }
 
     #[test]
     fn valid_review_notes_is_accepted() {
         let review_notes = "Notes for the software review".to_string();
-        assert_eq!(SoftwareReview::validate_review_notes(&review_notes), true);
+        assert_eq!(
+            SoftwareReviewPayload::validate_review_notes(&review_notes),
+            true
+        );
     }
 }
