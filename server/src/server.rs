@@ -7,6 +7,7 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tower::ServiceBuilder;
 use tower_http::classify::StatusInRangeAsFailures;
+use tower_http::compression::CompressionLayer;
 use tower_http::trace::TraceLayer;
 
 use crate::api::{
@@ -111,6 +112,7 @@ pub async fn serve(
                 .with_state(state),
         )
         .layer(axum::middleware::map_response(main_response_mapper))
+        .layer(CompressionLayer::new())
         .layer(
             ServiceBuilder::new().layer(
                 TraceLayer::new(
