@@ -3,7 +3,9 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::api::models::SoftwareReview;
-use crate::api::repositories::{fetch_all_software_reviews, insert_software_review};
+use crate::api::repositories::{
+    delete_software_review, fetch_all_software_reviews, insert_software_review,
+};
 use crate::api::utils::{Metadata, QueryParams};
 use crate::Result;
 
@@ -64,4 +66,9 @@ pub async fn create_software_review(
     db_pool: &PgPool,
 ) -> Result<()> {
     insert_software_review(payload, reviewer_id, db_pool).await
+}
+
+#[tracing::instrument(name = "removing software review", skip(review_id, db_pool))]
+pub async fn remove_software_review(review_id: uuid::Uuid, db_pool: &PgPool) -> Result<()> {
+    delete_software_review(review_id, db_pool).await
 }

@@ -4,8 +4,10 @@ use axum::response::IntoResponse;
 use serde_json::json;
 
 use crate::api::models::SoftwareReview;
-use crate::api::services::{create_software_review, get_all_software_reviews};
-use crate::api::utils::{Json, QueryExtractor, Token};
+use crate::api::services::{
+    create_software_review, get_all_software_reviews, remove_software_review,
+};
+use crate::api::utils::{Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::Result;
 
@@ -62,4 +64,24 @@ pub async fn api_create_software_review(
     create_software_review(&payload, &token.sub, &state.db_pool).await?;
 
     Ok(StatusCode::CREATED)
+}
+
+#[tracing::instrument(
+    name = "delete software review", 
+    // Any values in 'skip' won't be included in logs
+    skip(token, review_id, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_delete_software_review(
+    Token(token): Token,
+    Path(review_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+) -> Result<StatusCode> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    remove_software_review(review_id, &state.db_pool).await?;
+
+    Ok(StatusCode::NO_CONTENT)
 }
