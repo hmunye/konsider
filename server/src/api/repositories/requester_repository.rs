@@ -123,7 +123,7 @@ pub async fn fetch_requester_by_id(requester_id: Uuid, db_pool: &PgPool) -> Resu
 }
 
 #[tracing::instrument(name = "inserting requester into database", skip(payload, db_pool))]
-pub async fn insert_requester(payload: &Requester, db_pool: &PgPool) -> Result<()> {
+pub async fn insert_requester(payload: &Requester, db_pool: &PgPool) -> Result<Uuid> {
     match sqlx::query!(
         r#"
         INSERT INTO requester (name, email, department)
@@ -137,7 +137,7 @@ pub async fn insert_requester(payload: &Requester, db_pool: &PgPool) -> Result<(
     .fetch_optional(db_pool)
     .await
     {
-        Ok(Some(_)) => Ok(()),
+        Ok(Some(row)) => Ok(row.id),
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
             Some(code) if code == "23505" => Err(Error::PgRecordExists),

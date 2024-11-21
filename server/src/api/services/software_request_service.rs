@@ -1,5 +1,6 @@
 use serde_json::{json, Value};
 use sqlx::PgPool;
+use uuid::Uuid;
 
 use crate::api::controllers::UpdateSoftwareRequestPayload;
 use crate::api::repositories::{
@@ -59,7 +60,7 @@ pub async fn get_all_software_requests(
 }
 
 #[tracing::instrument(name = "creating software request", skip(payload, db_pool))]
-pub async fn create_software_request(payload: &SoftwareRequest, db_pool: &PgPool) -> Result<()> {
+pub async fn create_software_request(payload: &SoftwareRequest, db_pool: &PgPool) -> Result<Uuid> {
     insert_software_request(payload, db_pool).await
 }
 

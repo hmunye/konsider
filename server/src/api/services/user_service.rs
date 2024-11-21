@@ -123,7 +123,7 @@ pub async fn get_all_users(
 }
 
 #[tracing::instrument(name = "creating user", skip(payload, db_pool))]
-pub async fn create_user(payload: &User, db_pool: &PgPool) -> Result<()> {
+pub async fn create_user(payload: &User, db_pool: &PgPool) -> Result<Uuid> {
     let password_hash = compute_password_hash(&payload.password)?;
 
     insert_user(payload, password_hash, db_pool).await

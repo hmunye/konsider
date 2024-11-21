@@ -84,7 +84,7 @@ pub async fn get_all_requesters(
 }
 
 #[tracing::instrument(name = "creating requester", skip(payload, db_pool))]
-pub async fn create_requester(payload: &Requester, db_pool: &PgPool) -> Result<()> {
+pub async fn create_requester(payload: &Requester, db_pool: &PgPool) -> Result<Uuid> {
     insert_requester(payload, db_pool).await
 }
 

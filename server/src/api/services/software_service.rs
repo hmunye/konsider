@@ -77,7 +77,7 @@ pub async fn get_all_software(
 }
 
 #[tracing::instrument(name = "creating software", skip(payload, db_pool))]
-pub async fn create_software(payload: &Software, db_pool: &PgPool) -> Result<()> {
+pub async fn create_software(payload: &Software, db_pool: &PgPool) -> Result<Uuid> {
     insert_software(payload, db_pool).await
 }
 

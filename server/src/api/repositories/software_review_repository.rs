@@ -2,8 +2,8 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::api::models::{
-    RequesterDTO, ReviewOptions, SoftwareDTO, SoftwareRequestDTO, SoftwareReviewDTO, UserDTO,
-    UserRole,
+    RequesterDTO, ReviewOptions, SoftwareDTO, SoftwareRequestDTO, SoftwareReview,
+    SoftwareReviewDTO, UserDTO, UserRole,
 };
 use crate::api::utils::Metadata;
 use crate::{Error, Result};
@@ -240,7 +240,7 @@ pub async fn fetch_all_software_reviews(
                 .is_connected_to_cloud_services_or_client,
             is_security_or_optimization_software: record.is_security_or_optimization_software,
             is_supported_by_current_os: record.is_supported_by_current_os,
-            exported: record.exported,
+            exported: Some(record.exported),
             review_notes: record.review_notes,
             created_at: Some(record.created_at),
         })
@@ -249,4 +249,128 @@ pub async fn fetch_all_software_reviews(
     let metadata = Metadata::calculate_metadata(total_records, page, per_page);
 
     Ok((software_reviews_records, metadata))
+}
+
+#[tracing::instrument(
+    name = "inserting software review into database",
+    skip(payload, db_pool)
+)]
+pub async fn insert_software_review(
+    payload: &SoftwareReview,
+    reviewer_id: &Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    let mut tx = db_pool.begin().await?;
+
+    let software_id = match sqlx::query!(
+        r#"
+        INSERT INTO software (software_name, software_version, developer_name, description)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id
+        "#,
+        payload.software_request.software.software_name,
+        payload.software_request.software.software_version,
+        payload.software_request.software.developer_name,
+        payload.software_request.software.description,
+    )
+    .fetch_optional(&mut *tx)
+    .await
+    {
+        Ok(Some(row)) => Ok(row.id),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    };
+
+    let requester_id = match sqlx::query!(
+        r#"
+        INSERT INTO requester (name, email, department)
+        VALUES ($1, $2, $3)
+        RETURNING id
+        "#,
+        payload.software_request.requester.name,
+        payload.software_request.requester.email,
+        payload.software_request.requester.department,
+    )
+    .fetch_optional(&mut *tx)
+    .await
+    {
+        Ok(Some(row)) => Ok(row.id),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    };
+
+    let software_request_id = match sqlx::query!(
+        r#"
+        INSERT INTO software_request (td_request_id, software_id, requester_id)
+        VALUES ($1, $2, $3)
+        RETURNING id
+        "#,
+        payload.software_request.td_request_id,
+        software_id?,
+        requester_id?
+    )
+    .fetch_optional(&mut *tx)
+    .await
+    {
+        Ok(Some(row)) => Ok(row.id),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    };
+
+    let _ = match sqlx::query!(
+        r#"
+        INSERT INTO software_review (
+            software_request_id, reviewer_id, 
+            is_supported, is_current_version, is_reputation_good, 
+            is_installation_from_developer, is_local_admin_required, 
+            is_connected_to_brockport_cloud, is_connected_to_cloud_services_or_client, 
+            is_security_or_optimization_software, is_supported_by_current_os, review_notes
+        )
+        VALUES (
+            $1, $2, 
+            $3, $4, $5, 
+            $6, $7, 
+            $8, $9, 
+            $10, $11, $12
+        )
+        RETURNING id
+        "#,
+        software_request_id?,
+        reviewer_id,
+        payload.is_supported.clone() as ReviewOptions,
+        payload.is_current_version.clone() as ReviewOptions,
+        payload.is_reputation_good.clone() as ReviewOptions,
+        payload.is_installation_from_developer.clone() as ReviewOptions,
+        payload.is_local_admin_required.clone() as ReviewOptions,
+        payload.is_connected_to_brockport_cloud.clone() as ReviewOptions,
+        payload.is_connected_to_cloud_services_or_client.clone() as ReviewOptions,
+        payload.is_security_or_optimization_software.clone() as ReviewOptions,
+        payload.is_supported_by_current_os.clone() as ReviewOptions,
+        payload.review_notes
+    )
+    .fetch_optional(&mut *tx)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            Some(code) if code == "23505" => Err(Error::PgRecordExists),
+            _ => Err(Error::from(err)),
+        },
+    };
+
+    tx.commit().await?;
+
+    Ok(())
 }

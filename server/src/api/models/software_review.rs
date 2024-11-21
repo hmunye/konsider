@@ -9,8 +9,8 @@ use super::{SoftwareRequestDTO, UserDTO};
 #[derive(Debug, Deserialize)]
 pub struct SoftwareReview {
     pub id: Option<Uuid>,
-    pub software_request_id: Uuid,
-    pub reviewer_id: Uuid,
+    pub software_request: SoftwareRequestDTO,
+    pub reviewer_id: Option<Uuid>,
     pub is_supported: ReviewOptions,
     pub is_current_version: ReviewOptions,
     pub is_reputation_good: ReviewOptions,
@@ -20,7 +20,7 @@ pub struct SoftwareReview {
     pub is_connected_to_cloud_services_or_client: ReviewOptions,
     pub is_security_or_optimization_software: ReviewOptions,
     pub is_supported_by_current_os: ReviewOptions,
-    pub exported: bool,
+    pub exported: Option<bool>,
     pub review_notes: String,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
@@ -60,7 +60,7 @@ pub struct SoftwareReviewDTO {
     pub is_connected_to_cloud_services_or_client: ReviewOptions,
     pub is_security_or_optimization_software: ReviewOptions,
     pub is_supported_by_current_os: ReviewOptions,
-    pub exported: bool,
+    pub exported: Option<bool>,
     pub review_notes: String,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
 }

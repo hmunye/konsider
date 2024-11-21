@@ -1,7 +1,9 @@
 use serde_json::{json, Value};
 use sqlx::PgPool;
+use uuid::Uuid;
 
-use crate::api::repositories::fetch_all_software_reviews;
+use crate::api::models::SoftwareReview;
+use crate::api::repositories::{fetch_all_software_reviews, insert_software_review};
 use crate::api::utils::{Metadata, QueryParams};
 use crate::Result;
 
@@ -53,4 +55,13 @@ pub async fn get_all_software_reviews(
         .collect();
 
     Ok((wrapped_software_reviews, metadata))
+}
+
+#[tracing::instrument(name = "creating software review", skip(payload, db_pool))]
+pub async fn create_software_review(
+    payload: &SoftwareReview,
+    reviewer_id: &Uuid,
+    db_pool: &PgPool,
+) -> Result<()> {
+    insert_software_review(payload, reviewer_id, db_pool).await
 }

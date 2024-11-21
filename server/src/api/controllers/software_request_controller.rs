@@ -60,7 +60,7 @@ pub async fn api_create_software_request(
 
     payload.parse()?;
 
-    create_software_request(&payload, &state.db_pool).await?;
+    let _ = create_software_request(&payload, &state.db_pool).await?;
 
     Ok(StatusCode::CREATED)
 }

@@ -16,7 +16,7 @@ pub struct Requester {
 }
 
 // Data Transfer Object (DTO) for Requester
-#[derive(Debug, Serialize, sqlx::FromRow, sqlx::Type)]
+#[derive(Debug, Deserialize, Serialize, sqlx::FromRow, sqlx::Type)]
 pub struct RequesterDTO {
     pub id: Option<uuid::Uuid>,
     pub name: String,
@@ -38,6 +38,73 @@ impl From<&Requester> for RequesterDTO {
 }
 
 impl Requester {
+    pub fn parse(&self) -> Result<()> {
+        if !Self::validate_name(&self.name) {
+            return Err(Error::ValidationError(format!(
+                "requests payload: '{}' is an invaild name for requests",
+                &self.name
+            )));
+        }
+
+        if !Self::validate_email(&self.email) {
+            return Err(Error::ValidationError(format!(
+                "requests payload: '{}' is an invaild email for requests",
+                &self.email
+            )));
+        }
+
+        if !Self::validate_department(&self.department) {
+            return Err(Error::ValidationError(format!(
+                "requests payload: '{}' is an invaild department for requests",
+                &self.department
+            )));
+        }
+
+        Ok(())
+    }
+
+    fn validate_name(name: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
+
+        let name_is_empty_or_whitespace = name.trim().is_empty();
+
+        let name_too_long = name.graphemes(true).count() > 100;
+        let name_contains_forbidden_chars = name.chars().any(|c| forbidden_chars.contains(&c));
+
+        // Return false if any of the above conditions are met
+        !(name_is_empty_or_whitespace || name_too_long || name_contains_forbidden_chars)
+    }
+
+    fn validate_email(email: &String) -> bool {
+        // Check if the email contains exactly one '@' symbol and has a domain
+        let split = email.split('@').collect::<Vec<&str>>();
+
+        if split.len() != 2 || split[1].is_empty() {
+            return false;
+        }
+
+        // `ValidateEmail` validates email based on HTML5 spec
+        ValidateEmail::validate_email(&email)
+    }
+
+    fn validate_department(department: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
+
+        let department_is_empty_or_whitespace = department.trim().is_empty();
+
+        let department_too_long = department.graphemes(true).count() > 100;
+
+        let department_contains_forbidden_chars =
+            department.chars().any(|c| forbidden_chars.contains(&c));
+
+        // Return false if any of the above conditions are met
+        !(department_is_empty_or_whitespace
+            || department_too_long
+            || department_contains_forbidden_chars)
+    }
+}
+
+impl RequesterDTO {
     pub fn parse(&self) -> Result<()> {
         if !Self::validate_name(&self.name) {
             return Err(Error::ValidationError(format!(

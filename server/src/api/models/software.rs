@@ -16,7 +16,7 @@ pub struct Software {
 }
 
 // Data Transfer Object (DTO) for Software
-#[derive(Debug, Serialize, sqlx::FromRow, sqlx::Type)]
+#[derive(Debug, Deserialize, Serialize, sqlx::FromRow, sqlx::Type)]
 pub struct SoftwareDTO {
     pub id: Option<uuid::Uuid>,
     pub software_name: String,
@@ -40,6 +40,96 @@ impl From<&Software> for SoftwareDTO {
 }
 
 impl Software {
+    pub fn parse(&self) -> Result<()> {
+        if !Self::validate_software_name(&self.software_name) {
+            return Err(Error::ValidationError(format!(
+                "software payload: '{}' is an invaild software_name for software",
+                &self.software_name
+            )));
+        }
+
+        if !Self::validate_software_version(&self.software_version) {
+            return Err(Error::ValidationError(format!(
+                "software payload: '{}' is an invaild software version for software",
+                &self.software_version
+            )));
+        }
+
+        if !Self::validate_developer_name(&self.developer_name) {
+            return Err(Error::ValidationError(format!(
+                "software payload: '{}' is an invaild developer_name for software",
+                &self.developer_name
+            )));
+        }
+
+        if !Self::validate_description(&self.description) {
+            return Err(Error::ValidationError(format!(
+                "software payload: '{}' is an invaild description for software",
+                &self.description
+            )));
+        }
+
+        Ok(())
+    }
+
+    fn validate_software_name(name: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
+
+        let name_is_empty_or_whitespace = name.trim().is_empty();
+
+        let name_too_long = name.graphemes(true).count() > 100;
+        let name_contains_forbidden_chars = name.chars().any(|c| forbidden_chars.contains(&c));
+
+        // Return false if any of the above conditions are met
+        !(name_is_empty_or_whitespace || name_too_long || name_contains_forbidden_chars)
+    }
+
+    fn validate_software_version(version: &str) -> bool {
+        let parts: Vec<&str> = version.split('.').collect();
+
+        // Ensure exactly 3 parts (x.y.z)
+        if parts.len() != 3 {
+            return false;
+        }
+
+        // Return false if any of the above conditions are met
+        parts
+            .iter()
+            .all(|&part| !part.is_empty() && part.len() <= 4 && part.chars().all(char::is_numeric))
+    }
+
+    fn validate_developer_name(developer: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
+
+        let developer_is_empty_or_whitespace = developer.trim().is_empty();
+
+        let developer_too_long = developer.graphemes(true).count() > 100;
+        let developer_contains_forbidden_chars =
+            developer.chars().any(|c| forbidden_chars.contains(&c));
+
+        // Return false if any of the above conditions are met
+        !(developer_is_empty_or_whitespace
+            || developer_too_long
+            || developer_contains_forbidden_chars)
+    }
+
+    fn validate_description(description: &String) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
+
+        let description_is_empty_or_whitespace = description.trim().is_empty();
+
+        let description_too_long = description.graphemes(true).count() > 255;
+        let description_contains_forbidden_chars =
+            description.chars().any(|c| forbidden_chars.contains(&c));
+
+        // Return false if any of the above conditions are met
+        !(description_is_empty_or_whitespace
+            || description_too_long
+            || description_contains_forbidden_chars)
+    }
+}
+
+impl SoftwareDTO {
     pub fn parse(&self) -> Result<()> {
         if !Self::validate_software_name(&self.software_name) {
             return Err(Error::ValidationError(format!(

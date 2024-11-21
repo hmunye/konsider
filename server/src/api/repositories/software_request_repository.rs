@@ -197,7 +197,7 @@ pub async fn fetch_software_request_by_id(
     name = "inserting software request into database",
     skip(payload, db_pool)
 )]
-pub async fn insert_software_request(payload: &SoftwareRequest, db_pool: &PgPool) -> Result<()> {
+pub async fn insert_software_request(payload: &SoftwareRequest, db_pool: &PgPool) -> Result<Uuid> {
     match sqlx::query!(
         r#"
         INSERT INTO software_request (td_request_id, software_id, requester_id)
@@ -211,7 +211,7 @@ pub async fn insert_software_request(payload: &SoftwareRequest, db_pool: &PgPool
     .fetch_optional(db_pool)
     .await
     {
-        Ok(Some(_)) => Ok(()),
+        Ok(Some(row)) => Ok(row.id),
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
             Some(code) if code == "23503" => Err(Error::PgKeyViolation),

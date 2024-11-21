@@ -58,7 +58,7 @@ pub async fn api_create_requester(
 
     payload.parse()?;
 
-    create_requester(&payload, &state.db_pool).await?;
+    let _ = create_requester(&payload, &state.db_pool).await?;
 
     Ok(StatusCode::CREATED)
 }

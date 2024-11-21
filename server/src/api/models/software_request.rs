@@ -16,7 +16,7 @@ pub struct SoftwareRequest {
 }
 
 // Data Transfer Object (DTO) for SoftwareRequest
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct SoftwareRequestDTO {
     pub id: Option<uuid::Uuid>,
     pub td_request_id: String,
@@ -38,6 +38,33 @@ impl From<(&SoftwareRequest, SoftwareDTO, RequesterDTO)> for SoftwareRequestDTO 
 }
 
 impl SoftwareRequest {
+    pub fn parse(&self) -> Result<()> {
+        if !Self::validate_td_request_id(&self.td_request_id) {
+            return Err(Error::ValidationError(format!(
+                "requests payload: '{}' is an invaild td_request_id for requests",
+                self.td_request_id
+            )));
+        }
+
+        Ok(())
+    }
+
+    fn validate_td_request_id(id: &str) -> bool {
+        let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
+
+        if id.trim().is_empty() {
+            return false;
+        }
+
+        if id.chars().any(|c| forbidden_chars.contains(&c)) {
+            return false;
+        }
+
+        id.len() == 8 && id.chars().all(|c| c.is_ascii_digit())
+    }
+}
+
+impl SoftwareRequestDTO {
     pub fn parse(&self) -> Result<()> {
         if !Self::validate_td_request_id(&self.td_request_id) {
             return Err(Error::ValidationError(format!(

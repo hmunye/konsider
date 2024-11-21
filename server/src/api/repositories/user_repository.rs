@@ -157,7 +157,7 @@ pub async fn insert_user(
     payload: &User,
     password_hash: SecretString,
     db_pool: &PgPool,
-) -> Result<()> {
+) -> Result<Uuid> {
     match sqlx::query!(
         r#"
         INSERT INTO user_account (name, email, password_hash, role)
@@ -172,7 +172,7 @@ pub async fn insert_user(
     .fetch_optional(db_pool)
     .await
     {
-        Ok(Some(_)) => Ok(()),
+        Ok(Some(row)) => Ok(row.id),
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
             Some(code) if code == "23505" => Err(Error::PgRecordExists),
