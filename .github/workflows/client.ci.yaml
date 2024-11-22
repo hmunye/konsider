@@ -1,0 +1,34 @@
+# This GitHub Actions workflow runs linting check on the code whenever there is 
+# a push or pull request that modifies files in the `client` directory
+
+name: Client CI
+
+on:
+  push:
+    paths:
+      - "client/**"
+  pull_request:
+    paths:
+      - "client/**"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+    steps:
+    - uses: actions/checkout@v4
+        
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: Install Dependencies
+      working-directory: client
+      run: npm ci
+      
+    - name: Lint Code
+      working-directory: client
+      run: npm run lint
