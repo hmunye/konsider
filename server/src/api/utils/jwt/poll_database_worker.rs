@@ -9,11 +9,11 @@ use crate::Result;
 pub async fn poll_and_update_token_cache(cache: TokenCache, config: DatabaseConfig) -> Result<()> {
     let db_pool = get_db_pool(&config)?;
 
-    worker_loop(&cache, &db_pool).await
+    poll_database_task(&cache, &db_pool).await
 }
 
-#[tracing::instrument(name = "worker loop running", skip(cache, db_pool))]
-async fn worker_loop(cache: &TokenCache, db_pool: &PgPool) -> Result<()> {
+#[tracing::instrument(name = "poll database running", skip(cache, db_pool))]
+async fn poll_database_task(cache: &TokenCache, db_pool: &PgPool) -> Result<()> {
     let polling_interval = tokio::time::Duration::from_secs(600); // 10 minutes
 
     loop {

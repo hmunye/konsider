@@ -1,4 +1,4 @@
-use axum::http::Request;
+use axum::http::{header, Method, Request};
 use axum::Router;
 use hyper::body::Incoming;
 use hyper_util::rt::{TokioExecutor, TokioIo};
@@ -12,6 +12,7 @@ use tokio_native_tls::{
 use tower::ServiceBuilder;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::compression::CompressionLayer;
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tower_service::Service;
 
@@ -176,6 +177,24 @@ pub async fn setup_server(
         token_cache,
     };
 
+    let origin = ["http://localhost:3030".parse().unwrap()];
+
+    let cors_layer = CorsLayer::new()
+        .allow_origin(origin)
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PATCH,
+            Method::DELETE,
+            Method::OPTIONS,
+        ])
+        .allow_credentials(true)
+        .allow_headers([
+            header::ACCEPT,
+            header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            header::CONTENT_TYPE,
+        ]);
+
     let server = Router::new()
         .nest(
             "/api/v1",
@@ -191,6 +210,7 @@ pub async fn setup_server(
         )
         .layer(axum::middleware::map_response(main_response_mapper))
         .layer(CompressionLayer::new())
+        .layer(cors_layer)
         .layer(
             ServiceBuilder::new().layer(
                 TraceLayer::new(

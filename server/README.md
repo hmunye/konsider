@@ -44,6 +44,7 @@
 │   │       │   ├── poll_database_worker.rs 	        # Background worker that periodically checks the database for valid tokens and updates token cache
 │   │       │   ├── token_cache.rs                      # In-memory cache for storing active, valid JWT tokens
 │   │       │   └── token_extractor.rs                  # Extracts JWT tokens from Cookie header in requests
+│   │       ├── log_cleanup_worker.rs                   # Function to remove log files given path and retention days
 │   │       ├── path_extractor.rs                       # Wrapper for axum::Path extractor to customize errors
 │   │       └── query_extractor.rs                      # Wrapper for axum::Query extractor to extract custom query params
 │   ├── config.rs                       		# Code for loading and managing application configuration
@@ -105,6 +106,9 @@ Edit this file to suit your production configuration. Here's an example setup:
 port = 8443
 host = "0.0.0.0"
 jwt_secret = ""
+
+[log]
+retention_days = 3
 
 [database]
 user = "k6r_user"
@@ -192,7 +196,9 @@ TEST_LOG=true cargo test
 ## Logging
 
 This project uses structured logging in JSON format following Bunyan-style conventions.
-By default, it logs to files with hourly rotation
+By default, it logs to files with hourly rotation. Logs are cleaned up through a background
+`tokio` process every 24 hours by default. The retention days can be configured in the
+configuration
 
 ## sqlx
 

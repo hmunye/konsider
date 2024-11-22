@@ -1,11 +1,11 @@
-use k6r::api::{poll_and_update_token_cache, TokenCache};
+use k6r::api::{log_cleanup_task, poll_and_update_token_cache, TokenCache};
 use k6r::config::get_config;
 use k6r::log::{get_subscriber, init_subscriber};
 use k6r::Server;
 
 #[tokio::main]
 async fn main() -> k6r::Result<()> {
-    // Creates an hourly rotating file appender that writes to ./logs/k6r.YYYY-MM-DD-HH
+    // Creates an hourly rotating file appender that writes to logs/k6r.YYYY-MM-DD-HH
     // (New log file to write to every hour)
     let file_appender = tracing_appender::rolling::hourly("./logs", "k6r");
 
@@ -23,13 +23,18 @@ async fn main() -> k6r::Result<()> {
 
     let (server, tcp_listener) = Server::build(config.clone(), token_cache.clone()).await?;
 
-    // Spawn two new asynchronous tasks using `tokio::spawn`
+    let log_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("logs");
+    let log_retention_days = config.log.retention_days;
+
+    // Spawn three new asynchronous tasks using `tokio::spawn`
     let server_task = tokio::spawn(server.run(tcp_listener));
     let worker_task = tokio::spawn(poll_and_update_token_cache(token_cache, config.database));
+    let log_cleanup_task = tokio::spawn(log_cleanup_task(log_dir, log_retention_days));
 
     tokio::select! {
         t = server_task => report_exit("SERVER", t),
-        t = worker_task => report_exit("WORKER", t)
+        t = worker_task => report_exit("WORKER", t),
+        t = log_cleanup_task => report_exit("LOG CLEANUP", Ok(t))
     }
 
     Ok(())

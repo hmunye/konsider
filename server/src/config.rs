@@ -7,6 +7,7 @@ use sqlx::postgres::{PgConnectOptions, PgSslMode};
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
     pub server: ServerConfig,
+    pub log: LogConfig,
     pub database: DatabaseConfig,
 }
 
@@ -16,6 +17,11 @@ pub struct ServerConfig {
     pub host: String,
     pub environment: String,
     pub jwt_secret: SecretString,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct LogConfig {
+    pub retention_days: u16,
 }
 
 #[derive(Clone, Debug, Deserialize)]
