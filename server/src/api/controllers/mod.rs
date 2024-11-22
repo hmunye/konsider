@@ -21,8 +21,8 @@ pub use software_request_controller::{
     api_update_software_request, UpdateSoftwareRequestPayload,
 };
 pub use software_review_controller::{
-    api_create_software_review, api_delete_software_review, api_get_all_software_reviews,
-    api_update_software_review, UpdateSoftwareReviewPayload,
+    api_create_software_review, api_delete_software_review, api_export_software_review,
+    api_get_all_software_reviews, api_update_software_review, UpdateSoftwareReviewPayload,
 };
 pub use user_controller::{
     api_change_password, api_create_user, api_delete_user, api_get_all_users, api_update_user,

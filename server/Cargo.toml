@@ -18,6 +18,7 @@ axum = "0.7.7"
 chrono = { version = "0.4.38", default-features = false, features = ["serde"] }
 config = { version = "0.14.1", default-features = false, features = ["toml"] }
 jsonwebtoken = "9.3.0"
+printpdf = { version = "0.7.0", features = ["embedded_images"] }
 rand = { version = "0.8.5", features = ["std_rng"] }
 secrecy = { version = "0.10.3", features = ["serde"] }
 serde = { version = "1.0.215", features = ["derive"] }

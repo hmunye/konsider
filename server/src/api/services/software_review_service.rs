@@ -6,9 +6,11 @@ use crate::api::controllers::UpdateSoftwareReviewPayload;
 use crate::api::models::SoftwareReviewPayload;
 use crate::api::repositories::{
     delete_software_review, fetch_all_software_reviews, fetch_software_review_by_id,
-    insert_software_review, update_software_review,
+    fetch_software_review_details, insert_software_review, update_software_review,
+    update_software_review_exported,
 };
 use crate::api::utils::{Metadata, QueryParams};
+use crate::api::SoftwareReviewDTO;
 use crate::{Error, Result};
 
 #[tracing::instrument(name = "getting all software reviews", skip(query_params, db_pool))]
@@ -152,4 +154,33 @@ pub async fn update_software_review_details(
     software_review.parse()?;
 
     update_software_review(software_review, review_id, db_pool).await
+}
+
+#[tracing::instrument(name = "get software review by id", skip(review_id, db_pool))]
+pub async fn get_software_review(
+    review_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<(SoftwareReviewDTO, i32)> {
+    let software_review = fetch_software_review_by_id(review_id, db_pool).await?;
+
+    let version = software_review.version.unwrap_or_default();
+
+    let (software_request, reviewer) = fetch_software_review_details(review_id, db_pool).await?;
+
+    let software_review_dto =
+        SoftwareReviewDTO::from((&software_review, software_request, reviewer));
+
+    Ok((software_review_dto, version))
+}
+
+#[tracing::instrument(
+    name = "update software review",
+    skip(review_id, review_version, db_pool)
+)]
+pub async fn update_review_exported(
+    review_id: &Uuid,
+    review_version: i32,
+    db_pool: &PgPool,
+) -> Result<()> {
+    update_software_review_exported(review_id, review_version, db_pool).await
 }

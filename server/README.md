@@ -9,6 +9,12 @@
 ├── Cargo.lock                     
 ├── Cargo.toml                          		# Manifest file for the project; specifies metadata and dependencies
 ├── README.md                       
+├── assets                                      # Fonts and images used in PDF generation
+│   ├── font
+│   │   ├── NotoSans-Regular.ttf
+│   │   └── NotoSansSymbols2-Regular.ttf
+│   └── img
+│       └── logo.bmp
 ├── config                          
 │   ├── local.toml                      		# Local development configuration settings
 │   └── production.toml                 		# Production environment configuration settings
@@ -29,6 +35,7 @@
 │   │   ├── services                    		# Contains business logic and service functions
 │   │   └── utils
 │   │       ├── cookie.rs               		# Handles the creation of cookies with customizable flags and security settings
+│   │       ├── generate_pdf.rs                 # Function to generate PDF response of a software review
 │   │       ├── json_extractor.rs       		# Wrapper for axum::Json to customize errors
 │   │       ├── jwt
 │   │       │   ├── claims.rs           		# Defines the structure for JWT claims
@@ -54,6 +61,7 @@
         ├── requester
         ├── software
         ├── software_request
+        ├── software_review
         └── user
 ```
 

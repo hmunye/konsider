@@ -509,3 +509,120 @@ pub async fn update_software_review(
         },
     }
 }
+
+#[tracing::instrument(
+    name = "updating exported column for software review in database",
+    skip(review_id, db_pool)
+)]
+pub async fn update_software_review_exported(
+    review_id: &Uuid,
+    review_version: i32,
+    db_pool: &PgPool,
+) -> Result<()> {
+    match sqlx::query!(
+        r#"
+        UPDATE software_review
+        SET 
+            exported = TRUE,
+            version = version + 1
+        WHERE id = $1 AND version = $2
+        RETURNING version
+        "#,
+        review_id,
+        review_version
+    )
+    .fetch_optional(db_pool)
+    .await
+    {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::PgNotFoundError),
+        Err(err) => Err(Error::from(err)),
+    }
+}
+
+#[tracing::instrument(
+    name = "fetching software request and reviewer details from software review",
+    skip(review_id, db_pool)
+)]
+pub async fn fetch_software_review_details(
+    review_id: Uuid,
+    db_pool: &PgPool,
+) -> Result<(SoftwareRequestDTO, UserDTO)> {
+    let row = sqlx::query!(
+        r#"
+        SELECT 
+            r.id AS software_request_id,
+            r.td_request_id,
+            r.created_at AS software_request_created_at,
+            s.id AS software_id,
+            s.software_name,
+            s.software_version,
+            s.developer_name,
+            s.description,
+            s.created_at AS software_created_at,
+            rq.id AS requester_id,
+            rq.name AS requester_name,
+            rq.email AS requester_email,
+            rq.department AS requester_department,
+            rq.created_at AS requester_created_at,
+            u.id AS reviewer_id,
+            u.name AS reviewer_name,
+            u.email AS reviewer_email,
+            u.role AS "role: UserRole",
+            u.created_at AS reviewer_created_at
+        FROM 
+            software_review sr
+        INNER JOIN 
+            software_request r ON sr.software_request_id = r.id
+        INNER JOIN 
+            software s ON r.software_id = s.id
+        INNER JOIN 
+            requester rq ON r.requester_id = rq.id
+        INNER JOIN 
+            user_account u ON sr.reviewer_id = u.id
+        WHERE 
+            sr.id = $1
+        "#,
+        review_id
+    )
+    .fetch_optional(db_pool)
+    .await
+    .map_err(Error::from)?;
+
+    match row {
+        Some(row) => {
+            let software_request_dto = SoftwareRequestDTO {
+                id: Some(row.software_request_id),
+                td_request_id: row.td_request_id,
+                software: SoftwareDTO {
+                    id: Some(row.software_id),
+                    software_name: row.software_name,
+                    software_version: row.software_version,
+                    developer_name: row.developer_name,
+                    description: row.description,
+                    created_at: row.software_created_at,
+                },
+                requester: RequesterDTO {
+                    id: Some(row.requester_id),
+                    name: row.requester_name,
+                    email: row.requester_email,
+                    department: row.requester_department,
+                    created_at: row.requester_created_at,
+                },
+                created_at: row.software_request_created_at,
+            };
+
+            let user_dto = UserDTO {
+                id: Some(row.reviewer_id),
+                name: row.reviewer_name,
+                email: row.reviewer_email,
+                // unwrap here should be safe
+                role: row.role.unwrap(),
+                created_at: row.reviewer_created_at,
+            };
+
+            Ok((software_request_dto, user_dto))
+        }
+        None => Err(Error::PgNotFoundError),
+    }
+}

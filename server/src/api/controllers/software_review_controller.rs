@@ -6,10 +6,10 @@ use serde_json::json;
 
 use crate::api::models::{ReviewOptions, SoftwareReviewPayload};
 use crate::api::services::{
-    create_software_review, get_all_software_reviews, remove_software_review,
-    update_software_review_details,
+    create_software_review, get_all_software_reviews, get_software_review, remove_software_review,
+    update_review_exported, update_software_review_details,
 };
-use crate::api::utils::{Json, Path, QueryExtractor, Token};
+use crate::api::utils::{generate_pdf, Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::Result;
 
@@ -121,4 +121,33 @@ pub async fn api_update_software_review(
     update_software_review_details(payload, review_id, &state.db_pool).await?;
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[tracing::instrument(
+    name = "export software review", 
+    skip(review_id, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_export_software_review(
+    Token(token): Token,
+    Path(review_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+) -> Result<impl IntoResponse> {
+    tracing::Span::current().record("review_initiator", tracing::field::display(&token.sub));
+
+    let (software_review_dto, software_review_version) =
+        get_software_review(review_id, &state.db_pool).await?;
+
+    let pdf_response = generate_pdf(&software_review_dto).await?;
+
+    update_review_exported(
+        &software_review_dto.id,
+        software_review_version,
+        &state.db_pool,
+    )
+    .await?;
+
+    Ok(pdf_response)
 }

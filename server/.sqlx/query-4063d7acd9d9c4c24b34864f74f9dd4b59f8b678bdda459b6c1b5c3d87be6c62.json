@@ -1,0 +1,140 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            r.id AS software_request_id,\n            r.td_request_id,\n            r.created_at AS software_request_created_at,\n            s.id AS software_id,\n            s.software_name,\n            s.software_version,\n            s.developer_name,\n            s.description,\n            s.created_at AS software_created_at,\n            rq.id AS requester_id,\n            rq.name AS requester_name,\n            rq.email AS requester_email,\n            rq.department AS requester_department,\n            rq.created_at AS requester_created_at,\n            u.id AS reviewer_id,\n            u.name AS reviewer_name,\n            u.email AS reviewer_email,\n            u.role AS \"role: UserRole\",\n            u.created_at AS reviewer_created_at\n        FROM \n            software_review sr\n        INNER JOIN \n            software_request r ON sr.software_request_id = r.id\n        INNER JOIN \n            software s ON r.software_id = s.id\n        INNER JOIN \n            requester rq ON r.requester_id = rq.id\n        INNER JOIN \n            user_account u ON sr.reviewer_id = u.id\n        WHERE \n            sr.id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "software_request_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "td_request_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "software_request_created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "software_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "software_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "software_version",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "developer_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "software_created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "requester_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 10,
+        "name": "requester_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 11,
+        "name": "requester_email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 12,
+        "name": "requester_department",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 13,
+        "name": "requester_created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 14,
+        "name": "reviewer_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 15,
+        "name": "reviewer_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 16,
+        "name": "reviewer_email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 17,
+        "name": "role: UserRole",
+        "type_info": {
+          "Custom": {
+            "name": "user_role",
+            "kind": {
+              "Enum": [
+                "REVIEWER",
+                "ADMIN"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "reviewer_created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "4063d7acd9d9c4c24b34864f74f9dd4b59f8b678bdda459b6c1b5c3d87be6c62"
+}
