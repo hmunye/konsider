@@ -1,0 +1,10 @@
+config/local.toml
+logs/
+scripts/
+target/
+tests/
+.env
+.gitignore
+README.md
+.DS_Store
+Thumbs.db

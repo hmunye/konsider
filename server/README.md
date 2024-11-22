@@ -3,11 +3,13 @@
 ## Project Structure
 
 ```
+├── .dockerignore
 ├── .env
 ├── .gitignore
 ├── .sqlx                               		# Query metadata for sqlx offline usage
 ├── Cargo.lock                     
 ├── Cargo.toml                          		# Manifest file for the project; specifies metadata and dependencies
+├── Dockerfile
 ├── README.md                       
 ├── assets                                              # Fonts and images used in PDF generation
 │   ├── font
@@ -18,6 +20,7 @@
 ├── config                          
 │   ├── local.toml                      		# Local development configuration settings
 │   └── production.toml                 		# Production environment configuration settings
+├── docker_entrypoint.sh
 ├── docs                          
 │   ├── database_design.md              
 │   └── design_and_architecture.md
