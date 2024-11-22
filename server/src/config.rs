@@ -14,6 +14,7 @@ pub struct Config {
 pub struct ServerConfig {
     pub port: u16,
     pub host: String,
+    pub environment: String,
     pub jwt_secret: SecretString,
 }
 

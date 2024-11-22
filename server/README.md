@@ -9,7 +9,7 @@
 ├── Cargo.lock                     
 ├── Cargo.toml                          		# Manifest file for the project; specifies metadata and dependencies
 ├── README.md                       
-├── assets                                      # Fonts and images used in PDF generation
+├── assets                                              # Fonts and images used in PDF generation
 │   ├── font
 │   │   ├── NotoSans-Regular.ttf
 │   │   └── NotoSansSymbols2-Regular.ttf
@@ -35,7 +35,7 @@
 │   │   ├── services                    		# Contains business logic and service functions
 │   │   └── utils
 │   │       ├── cookie.rs               		# Handles the creation of cookies with customizable flags and security settings
-│   │       ├── generate_pdf.rs                 # Function to generate PDF response of a software review
+│   │       ├── generate_pdf.rs                         # Function to generate PDF response of a software review
 │   │       ├── json_extractor.rs       		# Wrapper for axum::Json to customize errors
 │   │       ├── jwt
 │   │       │   ├── claims.rs           		# Defines the structure for JWT claims
@@ -115,6 +115,26 @@ db_port = 5432
 require_ssl = true
 ```
 
+
+Create a Self-Signed Certificate to serve the API over HTTPS:
+
+```shell
+mkdir certs && openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+-keyout certs/server.key -out certs/server.crt
+```
+> req -x509: Creates a self-signed certificate
+
+> -nodes: Tells OpenSSL not to encrypt the private key
+
+> -days 365: The certificate will be valid for 365 days
+
+> -newkey rsa:2048: Generates a new RSA key that is 2048 bits long
+
+> -keyout server.key: The private key will be saved to server.key
+
+> -out server.crt: The certificate will be saved to server.crt
+
+
 #### Step 2: Initialize Database
 
 Use the `init_db.sh` script to spin up a PostgreSQL database container via Docker and apply migrations:
@@ -144,7 +164,7 @@ Ensure the API is up and running by sending a health check request:
 ```bash
 curl -v http://<your_host>:<your_port>/api/v1/health
 ```
-> Note: A `204 No Content` response confirms the server is operational
+> Note: A `204 No Content` response confirms the server is operational. `https` for production environment
 
 ## Testing
 

@@ -276,7 +276,7 @@ pub async fn spawn_server() -> Result<TestServer> {
     // Initialize cache to store valid tokens in-memory
     let token_cache = TokenCache::new();
 
-    let server = Server::build(config.clone(), token_cache.clone()).await?;
+    let (server, tcp_listener) = Server::build(config.clone(), token_cache.clone()).await?;
 
     let port = server.port();
 
@@ -285,7 +285,7 @@ pub async fn spawn_server() -> Result<TestServer> {
     // in the background. The server's `run` method is awaited within this task,
     // allowing it to handle incoming requests while the main thread can
     // continue executing
-    tokio::spawn(server.run());
+    tokio::spawn(server.run(tcp_listener));
     tokio::spawn(poll_and_update_token_cache(
         token_cache,
         config.database.clone(),

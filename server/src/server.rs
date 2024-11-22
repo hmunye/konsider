@@ -1,14 +1,19 @@
 use axum::http::Request;
-use axum::routing::IntoMakeService;
-use axum::serve::Serve;
 use axum::Router;
+use hyper::body::Incoming;
+use hyper_util::rt::{TokioExecutor, TokioIo};
 use secrecy::SecretString;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use tokio_native_tls::{
+    native_tls::{Identity, Protocol, TlsAcceptor as NativeTlsAcceptor},
+    TlsAcceptor,
+};
 use tower::ServiceBuilder;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::compression::CompressionLayer;
 use tower_http::trace::TraceLayer;
+use tower_service::Service;
 
 use crate::api::{
     auth_routes, health_routes, main_response_mapper, requester_routes, software_request_routes,
@@ -17,18 +22,19 @@ use crate::api::{
 use crate::config::{Config, DatabaseConfig};
 use crate::Result;
 
-// Type alias for axum's serve
-type ServeType = Serve<IntoMakeService<Router>, Router>;
-
 #[derive(Debug)]
 pub struct Server {
     port: u16,
-    instance: ServeType,
+    instance: Router,
+    environment: String,
 }
 
 impl Server {
     // Build a new server instance
-    pub async fn build(config: Config, token_cache: TokenCache) -> Result<Server> {
+    pub async fn build(
+        config: Config,
+        token_cache: TokenCache,
+    ) -> Result<(Server, tokio::net::TcpListener)> {
         let db_pool = get_db_pool(&config.database)?;
 
         let bind = format!("{}:{}", config.server.host, config.server.port);
@@ -43,26 +49,99 @@ impl Server {
             .expect("failed to get local address bound to tcp listener")
             .port();
 
-        let instance = serve(tcp_listener, db_pool, config.server.jwt_secret, token_cache).await?;
+        let instance = setup_server(db_pool, config.server.jwt_secret, token_cache).await?;
 
         tracing::info!(
             "{}",
             format_args!("[LISTENING ON - {}:{}]", &config.server.host, &port)
         );
 
-        Ok(Self { port, instance })
+        Ok((
+            Self {
+                port,
+                instance,
+                environment: config.server.environment,
+            },
+            tcp_listener,
+        ))
     }
 
     pub fn port(&self) -> u16 {
         self.port
     }
 
-    // Start the server and await its completion
-    pub async fn run(self) -> Result<()> {
-        self.instance.await.expect("failed to run server");
+    // Start the server and await its completion, either HTTP or HTTPS
+    pub async fn run(self, tcp_listener: tokio::net::TcpListener) -> Result<()> {
+        match self.environment.as_str() {
+            "production" => self.run_https(tcp_listener).await,
+            _ => {
+                axum::serve(tcp_listener, self.instance.into_make_service())
+                    .await
+                    .expect("failed to start HTTP server");
 
-        Ok(())
+                Ok(())
+            }
+        }
     }
+
+    async fn run_https(&self, tcp_listener: tokio::net::TcpListener) -> Result<()> {
+        let tls_acceptor = native_tls_acceptor(
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("certs")
+                .join("server.key"),
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("certs")
+                .join("server.crt"),
+        );
+
+        let tls_acceptor = TlsAcceptor::from(tls_acceptor);
+
+        futures_util::pin_mut!(tcp_listener);
+
+        loop {
+            let (cnx, addr) = tcp_listener.accept().await.unwrap();
+            let tower_service = self.instance.clone();
+            let tls_acceptor = tls_acceptor.clone();
+
+            tokio::spawn(async move {
+                let Ok(stream) = tls_acceptor.accept(cnx).await else {
+                    tracing::error!("error during TLS handshake connection from {}", addr);
+                    return;
+                };
+
+                let stream = TokioIo::new(stream);
+
+                let hyper_service =
+                    hyper::service::service_fn(move |request: Request<Incoming>| {
+                        tower_service.clone().call(request)
+                    });
+
+                let ret = hyper_util::server::conn::auto::Builder::new(TokioExecutor::new())
+                    .serve_connection_with_upgrades(stream, hyper_service)
+                    .await;
+
+                if let Err(err) = ret {
+                    tracing::warn!("error serving connection from {}: {}", addr, err);
+                }
+            });
+        }
+    }
+}
+
+fn native_tls_acceptor(
+    key_file: std::path::PathBuf,
+    cert_file: std::path::PathBuf,
+) -> NativeTlsAcceptor {
+    let key = std::fs::read_to_string(&key_file).unwrap();
+
+    let cert = std::fs::read_to_string(&cert_file).unwrap();
+
+    let id = Identity::from_pkcs8(cert.as_bytes(), key.as_bytes()).unwrap();
+
+    NativeTlsAcceptor::builder(id)
+        .min_protocol_version(Some(Protocol::Tlsv12))
+        .build()
+        .unwrap()
 }
 
 pub fn get_db_pool(config: &DatabaseConfig) -> Result<PgPool> {
@@ -86,12 +165,11 @@ pub struct ServerState {
     pub token_cache: TokenCache,
 }
 
-pub async fn serve(
-    tcp_listener: tokio::net::TcpListener,
+pub async fn setup_server(
     db_pool: PgPool,
     jwt_secret: SecretString,
     token_cache: TokenCache,
-) -> Result<ServeType> {
+) -> Result<Router> {
     let state = ServerState {
         db_pool,
         jwt_secret,
@@ -137,5 +215,5 @@ pub async fn serve(
             ),
         );
 
-    Ok(axum::serve(tcp_listener, server.into_make_service()))
+    Ok(server)
 }

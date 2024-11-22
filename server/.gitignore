@@ -4,6 +4,9 @@
 # logs
 /logs
 
+# certificates
+/certs
+
 # configuration
 /config/*
 !config/local.toml

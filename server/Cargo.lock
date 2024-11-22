@@ -862,9 +862,9 @@ checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
 name = "hyper"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbbff0a806a4728c99295b254c8838933b5b082d75e3cb70c8dab21fdfbcfa9a"
+checksum = "97818827ef4f364230e16705d4706e2897df2bb60617d6ca15d598025a3c481f"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -1172,6 +1172,9 @@ dependencies = [
  "chrono",
  "config",
  "fake",
+ "futures-util",
+ "hyper",
+ "hyper-util",
  "jsonwebtoken",
  "printpdf",
  "rand",
@@ -1182,8 +1185,10 @@ dependencies = [
  "sqlx",
  "thiserror 2.0.3",
  "tokio",
+ "tokio-native-tls",
  "tower",
  "tower-http",
+ "tower-service",
  "tracing",
  "tracing-appender",
  "tracing-bunyan-formatter",
@@ -1887,9 +1892,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.16"
+version = "0.23.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eee87ff5d9b36712a58574e12e9f0ea80f915a5b0ac518d322b24a465617925e"
+checksum = "7f1a745511c54ba6d4465e8d5dfbd81b45791756de28d4981af70d6dca128f1e"
 dependencies = [
  "once_cell",
  "ring",

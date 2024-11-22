@@ -21,10 +21,10 @@ async fn main() -> k6r::Result<()> {
     // Initialize cache to store valid tokens in-memory
     let token_cache = TokenCache::new();
 
-    let server = Server::build(config.clone(), token_cache.clone()).await?;
+    let (server, tcp_listener) = Server::build(config.clone(), token_cache.clone()).await?;
 
     // Spawn two new asynchronous tasks using `tokio::spawn`
-    let server_task = tokio::spawn(server.run());
+    let server_task = tokio::spawn(server.run(tcp_listener));
     let worker_task = tokio::spawn(poll_and_update_token_cache(token_cache, config.database));
 
     tokio::select! {
