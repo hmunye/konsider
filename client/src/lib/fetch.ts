@@ -70,20 +70,14 @@ export async function fetchRequest<T>(
       throw new HttpError(response);
     }
 
-    const contentLength = response.headers.get("content-length");
+    const responseText = await response.text();
 
-    if (contentLength && contentLength !== "0") {
-      try {
-        const responseBody = await response.json();
-        return { success: responseBody };
-      } catch {
-        return {
-          error: { status: 500, message: "failed to parse JSON response" },
-        };
-      }
-    } else {
+    if (responseText.trim() === "") {
       return { success: response as T };
     }
+    const responseBody = JSON.parse(responseText);
+
+    return { success: responseBody };
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
       return { error: { status: 408, message: "request timed-out" } };

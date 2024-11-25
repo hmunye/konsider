@@ -22,6 +22,7 @@ pub use software_service::{
     create_software, get_all_software, remove_software, update_software_details,
 };
 pub use user_service::{
-    change_user_password, create_user, get_all_users, remove_user, update_user_details,
+    change_user_password, create_user, get_all_users, get_user_by_id, remove_user,
+    update_user_details,
 };
 pub use user_token_service::{get_valid_tokens, revoke_user_token, save_user_token};

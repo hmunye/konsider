@@ -1,13 +1,14 @@
-use axum::body::Body;
 use axum::extract::State;
-use axum::http::header::{CONTENT_TYPE, SET_COOKIE};
+use axum::http::header::SET_COOKIE;
 use axum::http::StatusCode;
-use axum::response::Response;
+use axum::response::{AppendHeaders, IntoResponse};
 use secrecy::SecretString;
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::api::services::{revoke_user_token, save_user_token, validate_credentials};
+use crate::api::services::{
+    get_user_by_id, revoke_user_token, save_user_token, validate_credentials,
+};
 use crate::api::utils::{generate_jwt, Cookie, Json, SameSite, Token};
 use crate::server::ServerState;
 use crate::Result;
@@ -29,7 +30,7 @@ pub struct CredentialsPayload {
 pub async fn api_login(
     State(state): State<ServerState>,
     Json(payload): Json<CredentialsPayload>,
-) -> Result<Response<Body>> {
+) -> Result<impl IntoResponse> {
     let (user_id, user_role) =
         validate_credentials(&payload.email, payload.password, &state.db_pool).await?;
 
@@ -45,20 +46,13 @@ pub async fn api_login(
     cookie.set_domain("localhost");
     cookie.set_path("/");
     cookie.set_http_only();
-    // cookie.set_secure();
-    cookie.set_same_site(SameSite::Strict);
+    cookie.set_secure();
+    // Needs to be `SameSite::None`
+    cookie.set_same_site(SameSite::None);
 
-    Ok(Response::builder()
-        .status(StatusCode::OK)
-        .header(CONTENT_TYPE, "application/json")
-        .header(SET_COOKIE, cookie.build())
-        .body(axum::body::Body::from(
-            json!({
-                "role": user_role
-            })
-            .to_string(),
-        ))
-        .unwrap())
+    let headers = AppendHeaders([(SET_COOKIE, cookie.build())]);
+
+    Ok((StatusCode::OK, headers, Json(json!({"role": user_role}))))
 }
 
 #[tracing::instrument(
@@ -80,4 +74,27 @@ pub async fn api_logout(
     state.token_cache.remove_token(token.jti, token.sub).await;
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[tracing::instrument(
+    name = "user token check", 
+    skip(token, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+// `Token` will check if a vaild JWT was provided
+pub async fn api_check_token(
+    Token(token): Token,
+    State(state): State<ServerState>,
+) -> Result<impl IntoResponse> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    let user_dto = get_user_by_id(token.sub, &state.db_pool).await?;
+
+    let response_body = json!({
+        "user": user_dto
+    });
+
+    Ok((StatusCode::OK, Json(response_body)))
 }

@@ -6,7 +6,7 @@ mod software_request_controller;
 mod software_review_controller;
 mod user_controller;
 
-pub use auth_controller::{api_login, api_logout};
+pub use auth_controller::{api_check_token, api_login, api_logout};
 pub use health_controller::api_health_check;
 pub use requester_controller::{
     api_create_requester, api_delete_requester, api_get_all_requesters, api_update_requester,

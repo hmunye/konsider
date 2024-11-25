@@ -1,7 +1,7 @@
-use axum::routing::post;
+use axum::routing::{get, post};
 use axum::Router;
 
-use crate::api::controllers::{api_login, api_logout};
+use crate::api::controllers::{api_check_token, api_login, api_logout};
 use crate::server::ServerState;
 
 pub fn auth_routes() -> Router<ServerState> {
@@ -9,4 +9,5 @@ pub fn auth_routes() -> Router<ServerState> {
     Router::new()
         .route("/login", post(api_login))
         .route("/logout", post(api_logout))
+        .route("/check", get(api_check_token))
 }

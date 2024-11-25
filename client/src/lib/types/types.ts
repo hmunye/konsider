@@ -17,11 +17,10 @@ export type Metadata = {
 
 export type User = {
   id: string;
-  email: string;
   name: string;
+  email: string;
   role: "ADMIN" | "REVIEWER";
   created_at: string;
-  updated_at: string;
 };
 
 export type UserResponse = {
@@ -36,7 +35,6 @@ export type Software = {
   name: string;
   software_version: string;
   created_at: string;
-  updated_at: string;
 };
 
 export type SoftwareResponse = {
@@ -51,12 +49,11 @@ export type Request = {
   name: string;
   td_request_id: number;
   created_at: string;
-  updated_at: string;
 };
 
 export type RequestResponse = {
   metadata: Metadata;
-  requests: Array<{ request: Request }>;
+  software_requests: Array<{ request: Request }>;
 };
 
 export type Review = {
@@ -76,10 +73,9 @@ export type Review = {
   software_name: string;
   td_request_id: number;
   created_at: string;
-  updated_at: string;
 };
 
 export type ReviewResponse = {
   metadata: Metadata;
-  reviews: Array<{ review: Review }>;
+  software_reviews: Array<{ review: Review }>;
 };

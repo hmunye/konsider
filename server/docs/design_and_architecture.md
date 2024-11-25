@@ -124,3 +124,8 @@ Implementing a refresh token system could be an alternative approach to provide 
 
 ### Idempotency Keys:
 Introducing idempotency keys ensures that repeated requests (e.g., retries due to network issues) produce the same result, preventing unintended side effects like duplicate transactions or operations
+
+## Notes
+
+### Cookies:
+When running the client over HTTPS, third-party cookies must be enabled for the application's domain in order for the browser to accept and apply the `Set-Cookie` header

@@ -11,6 +11,7 @@ use crate::api::repositories::{
 };
 use crate::api::services::{compute_password_hash, verify_password_hash};
 use crate::api::utils::{Metadata, QueryParams};
+use crate::api::UserDTO;
 use crate::log::spawn_blocking_with_tracing;
 use crate::{Error, Result};
 
@@ -120,6 +121,13 @@ pub async fn get_all_users(
         .collect();
 
     Ok((wrapped_users, metadata))
+}
+
+#[tracing::instrument(name = "getting user", skip(user_id, db_pool))]
+pub async fn get_user_by_id(user_id: Uuid, db_pool: &PgPool) -> Result<UserDTO> {
+    let user = fetch_user_by_id(user_id, db_pool).await?;
+
+    Ok(UserDTO::from(&user))
 }
 
 #[tracing::instrument(name = "creating user", skip(payload, db_pool))]
