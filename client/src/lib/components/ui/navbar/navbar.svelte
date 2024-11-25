@@ -1,6 +1,6 @@
 <script lang="ts">
-    import ThemeToggle from "$lib/components/theme-toggle.svelte";
-    import Package2 from "lucide-svelte/icons/package-2";
+import ThemeToggle from "$lib/components/theme-toggle.svelte";
+import Package2 from "lucide-svelte/icons/package-2";
 </script>
 
 <nav

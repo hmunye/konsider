@@ -1,13 +1,13 @@
 <script lang="ts">
-    import type { Message } from "$lib/types/types";
-    import { cn } from "$lib/utils";
+import type { Message } from "$lib/types/types";
+import { cn } from "$lib/utils";
 
-    interface Props {
-        message: Message;
-        class?: string;
-    }
+interface Props {
+  message: Message;
+  class?: string;
+}
 
-    let { message, class: className = "" }: Props = $props();
+let { message, class: className = "" }: Props = $props();
 </script>
 
 <div class={cn("flex flex-col gap-2 w-full max-w-md text-sm", className)}>
