@@ -1,0 +1,8 @@
+/.svelte-kit
+/node_modules
+.env.development
+.gitignore
+README.md
+components.json
+.DS_Store
+Thumbs.db
