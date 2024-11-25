@@ -19,7 +19,7 @@ async fn delete_requester_successful() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let token = login_response
         .headers()
@@ -94,7 +94,7 @@ async fn delete_requester_with_invalid_id_rejected() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let token = login_response
         .headers()

@@ -19,7 +19,7 @@ async fn change_user_password_successful() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let token = login_response
         .headers()
@@ -105,7 +105,7 @@ async fn change_password_using_invalid_password_rejected() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let token = login_response
         .headers()
@@ -177,7 +177,7 @@ async fn change_password_using_missing_fields_rejected() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
-    assert_eq!(204, login_response.status().as_u16());
+    assert_eq!(200, login_response.status().as_u16());
 
     let token = login_response
         .headers()
