@@ -1,4 +1,4 @@
-const COOKIE_ID: &str = "id";
+const COOKIE_KEY: &str = "id";
 
 #[derive(Debug, Default)]
 pub struct Cookie {
@@ -53,7 +53,7 @@ impl Cookie {
     }
 
     pub fn build(&self) -> String {
-        let mut cookie_header = format!("{}={}", COOKIE_ID, self.value);
+        let mut cookie_header = format!("{}={}", COOKIE_KEY, self.value);
 
         cookie_header.push_str(&format!("; Domain={}", self.domain));
 
@@ -78,6 +78,19 @@ impl Cookie {
         cookie_header.push_str(&format!("; SameSite={}", self.same_site.as_str()));
 
         cookie_header
+    }
+
+    pub fn clear(domain: &str, path: &str) -> Self {
+        Self {
+            value: "".to_string(),
+            domain: domain.to_string(),
+            path: path.to_string(),
+            expires: Some("Thu, 01 Jan 1970 00:00:00 GMT".to_string()),
+            max_age: None,
+            http_only: true,
+            secure: true,
+            same_site: SameSite::None,
+        }
     }
 }
 

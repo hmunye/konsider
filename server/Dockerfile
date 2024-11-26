@@ -22,6 +22,8 @@ COPY . .
 
 ENV SQLX_OFFLINE=true
 
+RUN cargo install sqlx-cli --no-default-features --features postgres,rustls
+
 RUN cargo build --release --bin k6r
 #------------------------------------------------------------------------------
 FROM debian:bookworm-slim AS runtime
@@ -37,7 +39,10 @@ RUN apt-get update -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/k6r /app/k6r
+COPY --from=builder /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
+
 COPY --from=builder /app/migrations /app/migrations
+COPY --from=builder /app/certs /app/certs
 COPY --from=builder /app/config/production.toml /app/config/production.toml
 COPY ./docker_entrypoint.sh /docker_entrypoint.sh
 

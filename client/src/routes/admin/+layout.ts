@@ -2,9 +2,9 @@ import { PUBLIC_BASE_API_URL } from "$env/static/public";
 import { fetchRequest } from "$lib/fetch.js";
 import type { User } from "$lib/types/types.js";
 import { redirect } from "@sveltejs/kit";
-import type { LayoutServerLoad } from "./$types";
+import type { LayoutLoad } from "./$types";
 
-export const load: LayoutServerLoad = async ({ fetch, url }) => {
+export const load: LayoutLoad = async ({ fetch, url }) => {
   const response = await fetchRequest<{ user: User }>(
     {
       url: `${PUBLIC_BASE_API_URL}/api/v1/auth/check`,

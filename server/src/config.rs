@@ -29,7 +29,7 @@ pub struct DatabaseConfig {
     pub user: String,
     pub password: SecretString,
     pub database: String,
-    pub host: String,
+    pub db_host: String,
     pub db_port: u16,
     pub require_ssl: bool,
 }
@@ -43,7 +43,7 @@ impl DatabaseConfig {
         };
 
         PgConnectOptions::new()
-            .host(&self.host)
+            .host(&self.db_host)
             .username(&self.user)
             .password(self.password.expose_secret())
             .port(self.db_port)

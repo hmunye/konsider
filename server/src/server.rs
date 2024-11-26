@@ -177,7 +177,10 @@ pub async fn setup_server(
         token_cache,
     };
 
-    let origin = ["https://localhost:3030".parse().unwrap()];
+    let origin = [
+        "http://localhost:3080".parse().unwrap(),
+        "https://localhost".parse().unwrap(),
+    ];
 
     let cors_layer = CorsLayer::new()
         .allow_origin(origin)

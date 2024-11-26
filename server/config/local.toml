@@ -11,6 +11,7 @@ retention_days = 1
 user = "k6r_user"
 password = "password"
 database = "k6r"
-host = "127.0.0.1"
+# Currently not being used
+db_host = "127.0.0.1"
 db_port = 5432
 require_ssl = false

@@ -1,9 +1,9 @@
 import { PUBLIC_BASE_API_URL } from "$env/static/public";
 import { fetchRequest } from "$lib/fetch.js";
 import type { UserResponse } from "$lib/types/types.js";
-import type { PageServerLoad } from "./$types.js";
+import type { PageLoad } from "./$types.js";
 
-export const load: PageServerLoad = async ({ fetch, url }) => {
+export const load: PageLoad = async ({ fetch, url }) => {
   const page = url.searchParams.get("page") || "1";
   const perPage = url.searchParams.get("per_page") || "8";
 

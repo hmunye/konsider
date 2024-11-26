@@ -5,7 +5,7 @@ set -eo pipefail
 # ^ Ensures the script exits immediately if any command fails (-e) and that the exit status of a pipeline 
 # is determined by the last non-zero status
 
-TOML_FILE="/app/config/production.toml"
+TOML_FILE="server/config/production.toml"
 
 if [ ! -f "$TOML_FILE" ]; then
     echo >&2 "production config file not found: $TOML_FILE"
@@ -28,20 +28,8 @@ get_toml_value() {
     echo "$value"
 }
 
-POSTGRES_USER=$(get_toml_value "user")
-POSTGRES_PASSWORD=$(get_toml_value "password")
-POSTGRES_DB=$(get_toml_value "database")
-POSTGRES_HOST=$(get_toml_value "db_host")
-POSTGRES_PORT=$(get_toml_value "db_port")
+export POSTGRES_USER=$(get_toml_value "user")
+export POSTGRES_PASSWORD=$(get_toml_value "password")
+export POSTGRES_DB=$(get_toml_value "database")
 
-export PGPASSWORD="$POSTGRES_PASSWORD"
-until psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -p "$POSTGRES_PORT" -d "$POSTGRES_DB" -c '\q' > /dev/null 2>&1; do
-    echo >&2 "Postgres is still unavailable - sleeping..."
-    sleep 1
-done
-
-export DATABASE_URL="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=require"
-
-sqlx migrate run
-
-exec /app/k6r
+docker-compose up -d --build

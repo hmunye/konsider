@@ -6,9 +6,9 @@ import type {
   SoftwareResponse,
   UserResponse,
 } from "$lib/types/types.js";
-import type { PageServerLoad } from "./$types.js";
+import type { PageLoad } from "./$types.js";
 
-export const load: PageServerLoad = async ({ fetch }) => {
+export const load: PageLoad = async ({ fetch }) => {
   const fetchPromises = [
     fetchRequest<UserResponse>(
       {

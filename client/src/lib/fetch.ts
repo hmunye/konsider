@@ -23,10 +23,14 @@ class HttpError extends Error {
   async getErrorMessage(): Promise<string> {
     try {
       const errorBody = await this.response.json();
-      return errorBody.error || this.response.statusText || "an error occurred";
+      return (
+        errorBody.error ||
+        this.response.statusText ||
+        "an unexpected error occurred"
+      );
     } catch {
       const text = await this.response.text();
-      return text || this.response.statusText || "an error occurred";
+      return text || this.response.statusText || "an unexpected error occurred";
     }
   }
 }
@@ -75,6 +79,7 @@ export async function fetchRequest<T>(
     if (responseText.trim() === "") {
       return { success: response as T };
     }
+
     const responseBody = JSON.parse(responseText);
 
     return { success: responseBody };

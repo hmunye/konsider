@@ -7,9 +7,6 @@
 /.svelte-kit
 /build
 
-# certificates
-/certs
-
 # misc
 .DS_Store
 Thumbs.db
