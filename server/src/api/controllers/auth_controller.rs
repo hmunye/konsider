@@ -47,12 +47,12 @@ pub async fn api_login(
     cookie.set_path("/");
     cookie.set_http_only();
     cookie.set_secure();
-    // Needs to be `SameSite::None`
+    // Needs to be `SameSite::None` for cross-origin requests
     cookie.set_same_site(SameSite::None);
 
     let headers = AppendHeaders([(SET_COOKIE, cookie.build())]);
 
-    Ok((StatusCode::OK, headers, Json(json!({"role": user_role}))))
+    Ok((StatusCode::NO_CONTENT, headers))
 }
 
 #[tracing::instrument(

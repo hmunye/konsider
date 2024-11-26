@@ -32,6 +32,6 @@ export const load: LayoutLoad = async ({ fetch, url }) => {
   }
 
   return {
-    user: response.success?.user,
+    current_user: response.success?.user,
   };
 };

@@ -17,7 +17,7 @@ async fn get_all_requesters_successful() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     let token = login_response
         .headers()
@@ -71,7 +71,7 @@ async fn get_all_requesters_with_invalid_query_rejected() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     let token = login_response
         .headers()
@@ -146,7 +146,7 @@ async fn sql_injection_get_requesters_rejected() -> Result<()> {
     let login_response = server
         .post_request(&login_url, Some(login_body.to_string()), None)
         .await?;
-    assert_eq!(200, login_response.status().as_u16());
+    assert_eq!(204, login_response.status().as_u16());
 
     let token = login_response
         .headers()

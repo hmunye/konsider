@@ -1,63 +1,61 @@
 <script lang="ts">
-import ResponseMessage from "$lib/components/response-message.svelte";
-import * as Form from "$lib/components/ui/form";
-import { Input } from "$lib/components/ui/input";
-import { superForm } from "sveltekit-superforms";
-import { zodClient } from "sveltekit-superforms/adapters";
-import { logInSchema } from "./schema";
-import type { Message, LoginResponse } from "$lib/types/types";
-import { fetchRequest } from "$lib/fetch";
-import { PUBLIC_BASE_API_URL } from "$env/static/public";
-import { goto } from "$app/navigation";
-import { page } from "$app/stores";
+    import { goto } from "$app/navigation";
+    import { page } from "$app/stores";
+    import { PUBLIC_BASE_API_URL } from "$env/static/public";
+    import * as Form from "$lib/components/ui/form";
+    import { Input } from "$lib/components/ui/input";
+    import { fetchRequest } from "$lib/fetch";
+    import type { Message } from "$lib/types/types";
+    import { superForm } from "sveltekit-superforms";
+    import { zodClient } from "sveltekit-superforms/adapters";
+    import { logInSchema } from "./schema";
+    import ResponseMessage from "$lib/components/custom/response-message/response-message.svelte";
 
-let data = $props();
+    let data = $props();
 
-let responseMessage: Message | undefined = $state();
+    let responseMessage: Message | undefined = $state();
 
-let redirectMessage: Message | undefined = $derived(
-  $page.url.searchParams.get("message")
-    ? { error: $page.url.searchParams.get("message")! }
-    : undefined,
-);
+    let redirectMessage: Message | undefined = $derived(
+        $page.url.searchParams.get("message")
+            ? { error: $page.url.searchParams.get("message")! }
+            : undefined,
+    );
 
-const form = superForm(data, {
-  validators: zodClient(logInSchema),
-  SPA: true,
-  dataType: "json",
-  resetForm: false,
-  async onUpdate({ form }) {
-    responseMessage = undefined;
+    const form = superForm(data, {
+        validators: zodClient(logInSchema),
+        SPA: true,
+        dataType: "json",
+        resetForm: false,
+        async onUpdate({ form }) {
+            responseMessage = undefined;
 
-    if (!form.valid) {
-      return;
-    }
+            if (!form.valid) {
+                return;
+            }
 
-    const response = await fetchRequest<LoginResponse>({
-      url: `${PUBLIC_BASE_API_URL}/api/v1/auth/login`,
-      method: "POST",
-      requestBody: {
-        email: $formData.email,
-        password: $formData.password,
-      },
+            const response = await fetchRequest<unknown>({
+                url: `${PUBLIC_BASE_API_URL}/api/v1/auth/login`,
+                method: "POST",
+                requestBody: {
+                    email: $formData.email,
+                    password: $formData.password,
+                },
+            });
+
+            if (response.error) {
+                responseMessage = { error: response.error.message };
+                return;
+            }
+
+            const redirectTo = $page.url.searchParams.get("redirectTo");
+
+            goto(redirectTo ? `/${redirectTo.slice(1)}` : "/dashboard", {
+                replaceState: true,
+            });
+        },
     });
 
-    if (response.error) {
-      responseMessage = { error: response.error.message };
-      return;
-    }
-
-    const route = response.success?.role === "ADMIN" ? "admin" : "reviewer";
-
-    const redirectTo = $page.url.searchParams.get("redirectTo");
-
-    goto(redirectTo ? `/${redirectTo.slice(1)}` : `/${route}`, {
-      replaceState: true,
-    });
-  },
-});
-
-const { form: formData, enhance, submitting } = form;
+    const { form: formData, enhance, submitting } = form;
 </script>
 
 <div class="flex flex-col flex-1 max-w-full items-center p-4">
@@ -79,7 +77,7 @@ const { form: formData, enhance, submitting } = form;
                         type="text"
                         autocomplete="email"
                         placeholder="you@example.com"
-                        class="text-lg placeholder:text-lg placeholder:font-light"
+                        class="text-xl placeholder:text-xl placeholder:font-light"
                     />
                 </Form.Control>
                 <Form.FieldErrors class="text-lg" />
@@ -92,7 +90,7 @@ const { form: formData, enhance, submitting } = form;
                         bind:value={$formData.password}
                         type="password"
                         placeholder="••••••••"
-                        class="text-lg placeholder:text-lg placeholder:font-light"
+                        class="text-xl placeholder:text-xl placeholder:font-light"
                     />
                 </Form.Control>
                 <Form.FieldErrors class="text-lg" />

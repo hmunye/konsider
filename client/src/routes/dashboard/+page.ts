@@ -1,9 +1,9 @@
 import { PUBLIC_BASE_API_URL } from "$env/static/public";
 import { type ApiResponse, fetchRequest } from "$lib/fetch.js";
 import type {
-  RequestResponse,
-  ReviewResponse,
+  SoftwareRequestResponse,
   SoftwareResponse,
+  SoftwareReviewResponse,
   UserResponse,
 } from "$lib/types/types.js";
 import type { PageLoad } from "./$types.js";
@@ -24,14 +24,14 @@ export const load: PageLoad = async ({ fetch }) => {
       },
       fetch,
     ),
-    fetchRequest<RequestResponse>(
+    fetchRequest<SoftwareRequestResponse>(
       {
         url: `${PUBLIC_BASE_API_URL}/api/v1/requests?per_page=7`,
         method: "GET",
       },
       fetch,
     ),
-    fetchRequest<ReviewResponse>(
+    fetchRequest<SoftwareReviewResponse>(
       {
         url: `${PUBLIC_BASE_API_URL}/api/v1/reviews?per_page=7`,
         method: "GET",
@@ -43,13 +43,13 @@ export const load: PageLoad = async ({ fetch }) => {
   const responses: [
     ApiResponse<UserResponse>,
     ApiResponse<SoftwareResponse>,
-    ApiResponse<RequestResponse>,
-    ApiResponse<ReviewResponse>,
+    ApiResponse<SoftwareRequestResponse>,
+    ApiResponse<SoftwareReviewResponse>,
   ] = (await Promise.all(fetchPromises)) as [
     ApiResponse<UserResponse>,
     ApiResponse<SoftwareResponse>,
-    ApiResponse<RequestResponse>,
-    ApiResponse<ReviewResponse>,
+    ApiResponse<SoftwareRequestResponse>,
+    ApiResponse<SoftwareReviewResponse>,
   ];
 
   for (const response of responses) {

@@ -1,46 +1,47 @@
 <script lang="ts">
-import * as Avatar from "$lib/components/ui/avatar/index.js";
-import { Button } from "$lib/components/ui/button/index.js";
-import * as Card from "$lib/components/ui/card/index.js";
-import * as Table from "$lib/components/ui/table/index.js";
-import ArrowUpRight from "lucide-svelte/icons/arrow-up-right";
-import FolderCode from "lucide-svelte/icons/folder-code";
-import SquareChartGantt from "lucide-svelte/icons/square-chart-gantt";
-import Tag from "lucide-svelte/icons/tag";
-import Users from "lucide-svelte/icons/users";
-import type { PageData } from "./$types";
-import { userStore } from "$lib/stores/userStore";
-import { onMount } from "svelte";
-import { fetchRequest } from "$lib/fetch";
-import { PUBLIC_BASE_API_URL } from "$env/static/public";
-import type { ReviewResponse } from "$lib/types/types";
-import { toast } from "svelte-sonner";
-import { formatDate } from "$lib/utils";
+    import * as Avatar from "$lib/components/ui/avatar/index.js";
+    import { Button } from "$lib/components/ui/button/index.js";
+    import * as Card from "$lib/components/ui/card/index.js";
+    import * as Table from "$lib/components/ui/table/index.js";
+    import ArrowUpRight from "lucide-svelte/icons/arrow-up-right";
+    import FolderCode from "lucide-svelte/icons/folder-code";
+    import SquareChartGantt from "lucide-svelte/icons/square-chart-gantt";
+    import Tag from "lucide-svelte/icons/tag";
+    import Users from "lucide-svelte/icons/users";
+    import type { PageData } from "./$types";
+    import { userStore } from "$lib/stores/userStore";
+    import { onMount } from "svelte";
+    import { fetchRequest } from "$lib/fetch";
+    import { PUBLIC_BASE_API_URL } from "$env/static/public";
+    import type { SoftwareReviewResponse } from "$lib/types/types";
+    import { toast } from "svelte-sonner";
+    import { formatDate } from "$lib/utils";
 
-let { data }: { data: PageData } = $props();
+    let { data }: { data: PageData } = $props();
 
-if (data.error) {
-  toast.error(data.error.message);
-}
-
-let userReviews: ReviewResponse | undefined = $state();
-
-onMount(async () => {
-  if ($userStore?.email) {
-    const response = await fetchRequest<ReviewResponse>({
-      url: `${PUBLIC_BASE_API_URL}/api/v1/reviews?filter=reviewer_email:${$userStore.email}`,
-      method: "GET",
-    });
-
-    if (response.error) {
-      toast.error(
-        response.error.message ?? "Error occured fetching your reviews",
-      );
-    } else {
-      userReviews = response.success!;
+    if (data.error) {
+        toast.error(data.error.message);
     }
-  }
-});
+
+    let userReviews: SoftwareReviewResponse | undefined = $state();
+
+    onMount(async () => {
+        if ($userStore?.email) {
+            const response = await fetchRequest<SoftwareReviewResponse>({
+                url: `${PUBLIC_BASE_API_URL}/api/v1/reviews?filter=reviewer_email:${$userStore.email}`,
+                method: "GET",
+            });
+
+            if (response.error) {
+                toast.error(
+                    response.error.message ??
+                        "Error occured fetching your reviews",
+                );
+            } else {
+                userReviews = response.success!;
+            }
+        }
+    });
 </script>
 
 <div class="animate-in grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
@@ -148,21 +149,23 @@ onMount(async () => {
                             <Table.Row>
                                 <Table.Cell>
                                     <div class="font-medium text-lg">
-                                        {review.review.reviewer_name}
+                                        {review.software_review.reviewer.name}
                                     </div>
                                 </Table.Cell>
                                 <Table.Cell class="hidden md:table-cell">
                                     <div class="font-medium text-lg">
-                                        {review.review.software_name}
+                                        {review.software_review.software_request
+                                            .software.software_name}
                                     </div>
                                 </Table.Cell>
-                                <Table.Cell class="font-medium text-lg"
-                                    >{review.review.td_request_id}</Table.Cell
-                                >
+                                <Table.Cell class="font-medium text-lg">
+                                    {review.software_review.software_request
+                                        .td_request_id}
+                                </Table.Cell>
                                 <Table.Cell
                                     class="font-medium text-lg text-right"
                                     >{formatDate(
-                                        review.review.created_at,
+                                        review.software_review.created_at,
                                     )}</Table.Cell
                                 >
                             </Table.Row>
@@ -189,30 +192,32 @@ onMount(async () => {
             <Card.Title>Recent Requests</Card.Title>
         </Card.Header>
         <Card.Content class="grid gap-8">
-            {#if data.software_requests && data.software_requests?.software_requests.length > 0}
+            {#if data.software_requests && data.software_requests.software_requests.length > 0}
                 {#each data.software_requests.software_requests as request}
                     <div class="flex items-center gap-4">
                         <Avatar.Root class="hidden h-9 w-9 sm:flex">
                             <Avatar.Fallback
                                 class="text-lg bg-purple text-purple-foreground"
-                                >{request.request.name
+                                >{request.software_request.requester.name
                                     .charAt(0)
                                     .toUpperCase()}</Avatar.Fallback
                             >
                         </Avatar.Root>
                         <div class="grid gap-1">
                             <p class="text-md font-medium leading-none">
-                                {request.request.name}
+                                {request.software_request.requester.name}
                             </p>
                             <p class="text-muted-foreground text-sm">
-                                {request.request.email}
+                                {request.software_request.requester.email}
                             </p>
                             <p class="text-muted-foreground text-sm">
-                                {request.request.department}
+                                {request.software_request.requester.department}
                             </p>
                         </div>
                         <div class="ml-auto font-medium">
-                            {formatDate(request.request.created_at)}
+                            {formatDate(
+                                request.software_request.requester.created_at,
+                            )}
                         </div>
                     </div>
                 {/each}
