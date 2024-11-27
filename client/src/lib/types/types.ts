@@ -1,3 +1,5 @@
+export const roleEnum = ["ADMIN", "REVIEWER"] as const;
+
 export type Message =
   | { success: string }
   | { error: string }

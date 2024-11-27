@@ -14,7 +14,7 @@ pub async fn get_valid_tokens(db_pool: &PgPool) -> Result<Vec<(Uuid, Uuid)>> {
     fetch_valid_tokens(db_pool).await
 }
 
-#[tracing::instrument(name = "revoking user token", skip(jti, db_pool))]
-pub async fn revoke_user_token(jti: Uuid, db_pool: &PgPool) -> Result<()> {
-    update_user_token(jti, db_pool).await
+#[tracing::instrument(name = "revoking user token", skip(user_id, db_pool))]
+pub async fn revoke_user_token(user_id: Uuid, db_pool: &PgPool) -> Result<Uuid> {
+    update_user_token(user_id, db_pool).await
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        UPDATE user_token\n        SET revoked = TRUE\n        WHERE jti = $1 AND revoked = FALSE\n        RETURNING jti\n        ",
+  "query": "\n        UPDATE user_token\n        SET revoked = TRUE\n        WHERE user_id = $1\n        RETURNING jti\n        ",
   "describe": {
     "columns": [
       {
@@ -18,5 +18,5 @@
       false
     ]
   },
-  "hash": "0a4fbcf694e1b4497c1b6fb4d1b83ac2397c95513270f64fdcdda53cec4d2bba"
+  "hash": "4ff5a93c7a834b795142d853ae8e557e3c7b041a6ada84bab557d3b6a1af6c26"
 }

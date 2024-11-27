@@ -1,6 +1,7 @@
 use axum::extract::State;
+use axum::http::header::SET_COOKIE;
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
+use axum::response::{AppendHeaders, IntoResponse};
 use secrecy::SecretString;
 use serde::Deserialize;
 use serde_json::json;
@@ -10,7 +11,7 @@ use crate::api::services::{
     change_user_password, create_user, get_all_users, remove_user, revoke_user_token,
     update_user_details,
 };
-use crate::api::utils::{Json, Path, QueryExtractor, Token};
+use crate::api::utils::{Cookie, Json, Path, QueryExtractor, Token};
 use crate::server::ServerState;
 use crate::{Error, Result};
 
@@ -32,7 +33,7 @@ pub async fn api_change_password(
     Token(token): Token,
     State(state): State<ServerState>,
     Json(payload): Json<ChangePasswordPayload>,
-) -> Result<StatusCode> {
+) -> Result<impl IntoResponse> {
     tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
 
     change_user_password(
@@ -44,10 +45,14 @@ pub async fn api_change_password(
     .await?;
 
     // Invalidate user token after successful password update
-    revoke_user_token(token.jti, &state.db_pool).await?;
+    let _ = revoke_user_token(token.sub, &state.db_pool).await?;
     state.token_cache.remove_token(token.jti, token.sub).await;
 
-    Ok(StatusCode::NO_CONTENT)
+    let cookie = Cookie::clear("localhost", "/");
+
+    let headers = AppendHeaders([(SET_COOKIE, cookie.build())]);
+
+    Ok((StatusCode::NO_CONTENT, headers))
 }
 
 #[tracing::instrument(

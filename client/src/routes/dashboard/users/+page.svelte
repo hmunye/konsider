@@ -16,6 +16,8 @@ import Ellipsis from "lucide-svelte/icons/ellipsis";
 import type { PageData } from "./$types";
 import { toast } from "svelte-sonner";
 import { onMount } from "svelte";
+import EditUserForm from "$lib/components/forms/users/edit/edit-user-form.svelte";
+import type { User } from "$lib/types/types";
 
 let { data }: { data: PageData } = $props();
 
@@ -32,6 +34,9 @@ const filterList = [
   { value: "email", label: "Email" },
   { value: "role", label: "Role" },
 ];
+
+let dialogOpen: boolean = $state(false);
+let selectedUser: User | undefined = $state();
 </script>
 
 <Card.Root class="animate-in">
@@ -48,10 +53,16 @@ const filterList = [
                     </Button>
                 </Dialog.Trigger>
                 <Dialog.Content>
-                    <CreateUserForm data={data.form} />
+                    <CreateUserForm />
                 </Dialog.Content>
             </Dialog.Root>
         </div>
+
+        <Dialog.Root bind:open={dialogOpen}>
+            <Dialog.Content>
+                <EditUserForm {selectedUser} />
+            </Dialog.Content>
+        </Dialog.Root>
     </Card.Header>
     <Card.Content>
         <Table.Root>
@@ -124,8 +135,12 @@ const filterList = [
                                         <DropdownMenu.Label class="text-lg"
                                             >Actions</DropdownMenu.Label
                                         >
-                                        <DropdownMenu.Item class="text-md"
-                                            >Edit</DropdownMenu.Item
+                                        <DropdownMenu.Item
+                                            class="text-md"
+                                            onclick={() => {
+                                                selectedUser = user.user;
+                                                dialogOpen = true;
+                                            }}>Edit</DropdownMenu.Item
                                         >
                                         <DropdownMenu.Item class="text-md"
                                             >Delete</DropdownMenu.Item

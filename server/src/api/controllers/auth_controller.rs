@@ -6,12 +6,13 @@ use secrecy::SecretString;
 use serde::Deserialize;
 use serde_json::json;
 
+use crate::api::models::UserRole;
 use crate::api::services::{
     get_user_by_id, revoke_user_token, save_user_token, validate_credentials,
 };
-use crate::api::utils::{generate_jwt, Cookie, Json, SameSite, Token};
+use crate::api::utils::{generate_jwt, Cookie, Json, Path, SameSite, Token};
 use crate::server::ServerState;
-use crate::Result;
+use crate::{Error, Result};
 
 #[derive(Debug, Deserialize)]
 pub struct CredentialsPayload {
@@ -69,7 +70,7 @@ pub async fn api_logout(
 ) -> Result<impl IntoResponse> {
     tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
 
-    revoke_user_token(token.jti, &state.db_pool).await?;
+    let _ = revoke_user_token(token.sub, &state.db_pool).await?;
 
     state.token_cache.remove_token(token.jti, token.sub).await;
 
@@ -101,4 +102,31 @@ pub async fn api_check_token(
     });
 
     Ok((StatusCode::OK, Json(response_body)))
+}
+
+#[tracing::instrument(
+    name = "revoke user token", 
+    skip(token, user_id, state),
+    fields(
+        request_initiator = tracing::field::Empty,
+    )
+)]
+pub async fn api_revoke_user_token(
+    Token(token): Token,
+    Path(user_id): Path<uuid::Uuid>,
+    State(state): State<ServerState>,
+) -> Result<impl IntoResponse> {
+    tracing::Span::current().record("request_initiator", tracing::field::display(&token.sub));
+
+    // Only allow `ADMIN` users to access this endpoint
+    match token.role {
+        UserRole::ADMIN => (),
+        _ => return Err(Error::AuthInvalidRoleError)?,
+    }
+
+    let jti = revoke_user_token(user_id, &state.db_pool).await?;
+
+    state.token_cache.remove_token(jti, user_id).await;
+
+    Ok(StatusCode::NO_CONTENT)
 }

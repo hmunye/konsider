@@ -2,16 +2,14 @@
 import { goto } from "$app/navigation";
 import { page } from "$app/stores";
 import { PUBLIC_BASE_API_URL } from "$env/static/public";
+import ResponseMessage from "$lib/components/custom/response-message/response-message.svelte";
 import * as Form from "$lib/components/ui/form";
 import { Input } from "$lib/components/ui/input";
 import { fetchRequest } from "$lib/fetch";
 import type { Message } from "$lib/types/types";
-import { superForm } from "sveltekit-superforms";
-import { zodClient } from "sveltekit-superforms/adapters";
+import { defaults, superForm } from "sveltekit-superforms";
+import { zod, zodClient } from "sveltekit-superforms/adapters";
 import { logInSchema } from "./schema";
-import ResponseMessage from "$lib/components/custom/response-message/response-message.svelte";
-
-let data = $props();
 
 let responseMessage: Message | undefined = $state();
 
@@ -21,7 +19,12 @@ let redirectMessage: Message | undefined = $derived(
     : undefined,
 );
 
-const form = superForm(data, {
+const initialData = {
+  email: "",
+  password: "",
+};
+
+const form = superForm(defaults(initialData, zod(logInSchema)), {
   validators: zodClient(logInSchema),
   SPA: true,
   dataType: "json",

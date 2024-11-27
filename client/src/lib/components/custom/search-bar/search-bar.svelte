@@ -27,19 +27,19 @@ const urlContainsFilter = filterList.some(
 
 if (urlContainsFilter) {
   searchQuery = filterParts[1];
-  searchQuery = filterParts[0];
+  selectedFilter = filterParts[0];
 }
 
 function handleSubmit(event: Event) {
   event.preventDefault();
 
   if (!searchQuery.trim()) {
-    toast.error("No Search Query Provided");
+    toast.error("No search query provided");
     return;
   }
 
   if (!selectedFilter.trim()) {
-    toast.error("No Filter Selected");
+    toast.error("No filter selected");
     return;
   }
 

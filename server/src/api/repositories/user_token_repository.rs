@@ -50,22 +50,25 @@ pub async fn fetch_valid_tokens(db_pool: &PgPool) -> Result<Vec<(Uuid, Uuid)>> {
     Ok(valid_tokens)
 }
 
-#[tracing::instrument(name = "updating user token in database", skip(jti, db_pool))]
-pub async fn update_user_token(jti: Uuid, db_pool: &PgPool) -> Result<()> {
+#[tracing::instrument(name = "updating user token in database", skip(user_id, db_pool))]
+pub async fn update_user_token(user_id: Uuid, db_pool: &PgPool) -> Result<Uuid> {
     match sqlx::query!(
         r#"
         UPDATE user_token
         SET revoked = TRUE
-        WHERE jti = $1 AND revoked = FALSE
+        WHERE user_id = $1
         RETURNING jti
         "#,
-        jti
+        user_id
     )
     .fetch_optional(db_pool)
     .await
     {
-        Ok(Some(_)) => Ok(()),
+        Ok(Some(row)) => Ok(row.jti),
         Ok(None) => Err(Error::PgNotFoundError),
-        Err(err) => Err(Error::from(err)),
+        Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
+            Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            _ => Err(Error::from(err)),
+        },
     }
 }

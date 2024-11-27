@@ -7,19 +7,20 @@ import { fetchRequest } from "$lib/fetch";
 import { toast } from "svelte-sonner";
 import { defaults, superForm } from "sveltekit-superforms";
 import { zod, zodClient } from "sveltekit-superforms/adapters";
-import { createUserSchema } from "./schema";
+import { editUserSchema } from "./schema";
+
+let { selectedUser } = $props();
 
 let submitting: boolean = $state(false);
 
 const initialData = {
-  name: "",
-  email: "",
-  password: "",
-  role: "",
+  name: selectedUser.name,
+  email: selectedUser.email,
+  role: selectedUser.role,
 };
 
-const form = superForm(defaults(initialData, zod(createUserSchema)), {
-  validators: zodClient(createUserSchema),
+const form = superForm(defaults(initialData, zod(editUserSchema)), {
+  validators: zodClient(editUserSchema),
   SPA: true,
   dataType: "json",
   resetForm: false,
@@ -30,18 +31,31 @@ const form = superForm(defaults(initialData, zod(createUserSchema)), {
       return;
     }
 
-    const createUserResponse = new Promise<unknown>((resolve, reject) => {
+    const requestBody: Record<string, string> = {};
+
+    if ($formData.name !== initialData.name) {
+      requestBody.name = $formData.name;
+    }
+    if ($formData.email !== initialData.email) {
+      requestBody.email = $formData.email;
+    }
+    if ($formData.role !== initialData.role) {
+      requestBody.role = $formData.role;
+    }
+
+    if (Object.keys(requestBody).length === 0) {
+      submitting = false;
+      toast.error("No values changed");
+      return;
+    }
+
+    const editUserResponse = new Promise<unknown>((resolve, reject) => {
       // Simulate a timeout before making the request to show loading toast
       setTimeout(() => {
         fetchRequest<unknown>({
-          url: `${PUBLIC_BASE_API_URL}/api/v1/users`,
-          method: "POST",
-          requestBody: {
-            name: $formData.name,
-            email: $formData.email,
-            password: $formData.password,
-            role: $formData.role,
-          },
+          url: `${PUBLIC_BASE_API_URL}/api/v1/users/${selectedUser.id}`,
+          method: "PATCH",
+          requestBody,
         })
           .then((response) => {
             if (response.error) {
@@ -56,11 +70,11 @@ const form = superForm(defaults(initialData, zod(createUserSchema)), {
       }, 3000);
     });
 
-    toast.promise(createUserResponse, {
+    toast.promise(editUserResponse, {
       loading: "Loading...",
       success: () => {
         submitting = false;
-        return `${$formData.name} has been successfully registered`;
+        return "User details have been successfully updated";
       },
       error: (error) => {
         submitting = false;
@@ -84,7 +98,7 @@ let selectedRole = $derived(
 
 <form method="POST" use:enhance>
     <div class="flex flex-col gap-8 [&>input]:mb-4 mt-8 rounded-lg p-8 py-16">
-        <h1 class="text-4xl font-bold mb-4">Create New User</h1>
+        <h1 class="text-4xl font-bold mb-4">Edit User</h1>
 
         <Form.Field {form} name="name">
             <Form.Control let:attrs>
@@ -109,19 +123,6 @@ let selectedRole = $derived(
                     type="text"
                     autocomplete="email"
                     placeholder="you@example.com"
-                    class="text-xl placeholder:text-xl placeholder:font-light"
-                />
-            </Form.Control>
-            <Form.FieldErrors class="text-lg" />
-        </Form.Field>
-        <Form.Field {form} name="password">
-            <Form.Control let:attrs>
-                <Form.Label class="text-2xl">Password</Form.Label>
-                <Input
-                    {...attrs}
-                    bind:value={$formData.password}
-                    type="password"
-                    placeholder="••••••••"
                     class="text-xl placeholder:text-xl placeholder:font-light"
                 />
             </Form.Control>
@@ -164,7 +165,7 @@ let selectedRole = $derived(
             disabled={submitting}
             aria-disabled={submitting}
         >
-            Create
+            Update
         </Form.Button>
     </div>
 </form>
