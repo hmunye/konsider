@@ -4,7 +4,7 @@ import { page } from "$app/stores";
 import { PUBLIC_BASE_API_URL } from "$env/static/public";
 import { Button } from "$lib/components/ui/button";
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
-import Logo from "$lib/components/ui/logo/logo.svelte";
+import Logo from "$lib/components/custom/logo/logo.svelte";
 import * as Sheet from "$lib/components/ui/sheet/index.js";
 import { fetchRequest } from "$lib/fetch";
 import { userStore } from "$lib/stores/userStore";

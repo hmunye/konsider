@@ -1,32 +1,56 @@
 <script lang="ts">
+import { page } from "$app/stores";
+import Pagination from "$lib/components/custom/pagination/pagination.svelte";
+import SearchBar from "$lib/components/custom/search-bar/search-bar.svelte";
+import CreateUserForm from "$lib/components/forms/users/create/create-user-form.svelte";
 import * as Avatar from "$lib/components/ui/avatar/index.js";
 import { Badge } from "$lib/components/ui/badge/index.js";
 import { Button } from "$lib/components/ui/button/index.js";
 import * as Card from "$lib/components/ui/card/index.js";
+import * as Dialog from "$lib/components/ui/dialog";
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 import * as Table from "$lib/components/ui/table/index.js";
+import { userStore } from "$lib/stores/userStore";
+import { formatDate, getRandomColor } from "$lib/utils";
 import Ellipsis from "lucide-svelte/icons/ellipsis";
 import type { PageData } from "./$types";
 import { toast } from "svelte-sonner";
-import { formatDate, getRandomColor } from "$lib/utils";
-import { goto } from "$app/navigation";
-import SearchBar from "$lib/components/custom/search-bar/search-bar.svelte";
+import { onMount } from "svelte";
 
 let { data }: { data: PageData } = $props();
 
-if (data.error) {
-  toast.error(data.error);
-}
+onMount(() => {
+  if (data.error) {
+    toast.error(data.error);
+  }
+});
+
+let filter = $derived($page.url.searchParams.get("filter") || "");
+
+const filterList = [
+  { value: "name", label: "Name" },
+  { value: "email", label: "Email" },
+  { value: "role", label: "Role" },
+];
 </script>
 
 <Card.Root class="animate-in">
     <Card.Header class="flex flex-row justify-between">
-        <Card.Description class="text-xl hidden md:flex"
+        <Card.Description class="text-xl hidden lg:flex"
             >Manage Users</Card.Description
         >
-        <div class="flex gap-24">
-            <SearchBar />
-            <Button variant="default" class="text-lg">Create User</Button>
+        <div class="flex gap-24 sm:gap-0">
+            <SearchBar link={"users"} {filterList} />
+            <Dialog.Root>
+                <Dialog.Trigger>
+                    <Button variant="default" class="text-lg">
+                        Create User
+                    </Button>
+                </Dialog.Trigger>
+                <Dialog.Content>
+                    <CreateUserForm data={data.form} />
+                </Dialog.Content>
+            </Dialog.Root>
         </div>
     </Card.Header>
     <Card.Content>
@@ -106,9 +130,11 @@ if (data.error) {
                                         <DropdownMenu.Item class="text-md"
                                             >Delete</DropdownMenu.Item
                                         >
-                                        <DropdownMenu.Item class="text-md"
-                                            >Change Password</DropdownMenu.Item
-                                        >
+                                        {#if user.user.email === $userStore?.email}
+                                            <DropdownMenu.Item class="text-md"
+                                                >Change Password</DropdownMenu.Item
+                                            >
+                                        {/if}
                                     </DropdownMenu.Content>
                                 </DropdownMenu.Root>
                             </Table.Cell>
@@ -128,36 +154,6 @@ if (data.error) {
         </Table.Root>
     </Card.Content>
     <Card.Footer class="flex justify-between items-center">
-        <div class="text-muted-foreground text-md">
-            Showing Page <strong
-                >{data.users?.metadata.current_page} of {data.users?.metadata
-                    .last_page}</strong
-            >
-        </div>
-        <div class="flex gap-2">
-            <Button
-                class="text-md"
-                variant={"ghost"}
-                on:click={() =>
-                    goto(
-                        `/dashboard/users?per_page=8&page=${data.users!.metadata.current_page - 1}`,
-                    )}
-                disabled={data.users?.metadata.current_page === 1}
-            >
-                Previous
-            </Button>
-            <Button
-                class="text-md"
-                variant={"ghost"}
-                on:click={() =>
-                    goto(
-                        `/dashboard/users?per_page=8&page=${data.users!.metadata.current_page + 1}`,
-                    )}
-                disabled={data.users?.metadata.current_page ===
-                    data.users?.metadata.last_page}
-            >
-                Next
-            </Button>
-        </div>
+        <Pagination data={data.users!} link={"users"} {filter} />
     </Card.Footer>
 </Card.Root>

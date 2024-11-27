@@ -1,8 +1,8 @@
 <script lang="ts">
 import "../app.css";
-import Footer from "$lib/components/ui/footer/footer.svelte";
 import { Toaster } from "$lib/components/ui/sonner";
 import { theme } from "$lib/stores/theme";
+import Footer from "$lib/components/custom/footer/footer.svelte";
 
 let toastTheme: "dark" | "light" | "system" | undefined = $derived(
   $theme === "dark" ? "dark" : "light",

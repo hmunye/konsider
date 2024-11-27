@@ -1,15 +1,25 @@
 import { PUBLIC_BASE_API_URL } from "$env/static/public";
+import { createUserSchema } from "$lib/components/forms/users/create/schema";
 import { fetchRequest } from "$lib/fetch.js";
 import type { UserResponse } from "$lib/types/types.js";
+import { superValidate } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
 import type { PageLoad } from "../$types";
 
 export const load: PageLoad = async ({ fetch, url }) => {
   const page = url.searchParams.get("page") || "1";
   const perPage = url.searchParams.get("per_page") || "8";
+  const filter = url.searchParams.get("filter") || "";
+
+  let baseUrl = `${PUBLIC_BASE_API_URL}/api/v1/users?per_page=${perPage}&page=${page}`;
+
+  if (filter.trim()) {
+    baseUrl = `${PUBLIC_BASE_API_URL}/api/v1/users?per_page=${perPage}&page=${page}&filter=${filter}`;
+  }
 
   const response = await fetchRequest<UserResponse>(
     {
-      url: `${PUBLIC_BASE_API_URL}/api/v1/users?per_page=${perPage}&page=${page}`,
+      url: baseUrl,
       method: "GET",
     },
     fetch,
@@ -23,5 +33,6 @@ export const load: PageLoad = async ({ fetch, url }) => {
 
   return {
     users: response.success,
+    form: await superValidate(zod(createUserSchema)),
   };
 };
