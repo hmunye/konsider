@@ -1,54 +1,54 @@
 <script lang="ts">
-    import { goto } from "$app/navigation";
-    import { page } from "$app/stores";
-    import { PUBLIC_BASE_API_URL } from "$env/static/public";
-    import { Button } from "$lib/components/ui/button";
-    import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
-    import Logo from "$lib/components/ui/logo/logo.svelte";
-    import * as Sheet from "$lib/components/ui/sheet/index.js";
-    import { fetchRequest } from "$lib/fetch";
-    import { userStore } from "$lib/stores/userStore";
-    import CircleUser from "lucide-svelte/icons/circle-user";
-    import Menu from "lucide-svelte/icons/menu";
-    import { toast } from "svelte-sonner";
-    import ThemeToggle from "../theme-toggle/theme-toggle.svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { PUBLIC_BASE_API_URL } from "$env/static/public";
+import { Button } from "$lib/components/ui/button";
+import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+import Logo from "$lib/components/ui/logo/logo.svelte";
+import * as Sheet from "$lib/components/ui/sheet/index.js";
+import { fetchRequest } from "$lib/fetch";
+import { userStore } from "$lib/stores/userStore";
+import CircleUser from "lucide-svelte/icons/circle-user";
+import Menu from "lucide-svelte/icons/menu";
+import { toast } from "svelte-sonner";
+import ThemeToggle from "../theme-toggle/theme-toggle.svelte";
 
-    let { data = undefined } = $props();
+let { data = undefined } = $props();
 
-    if (data) userStore.set(data.current_user);
+if (data) userStore.set(data);
 
-    const handleLogOut = async () => {
-        const response = await fetchRequest({
-            url: `${PUBLIC_BASE_API_URL}/api/v1/auth/logout`,
-            method: "POST",
-        });
+const handleLogOut = async () => {
+  const response = await fetchRequest({
+    url: `${PUBLIC_BASE_API_URL}/api/v1/auth/logout`,
+    method: "POST",
+  });
 
-        if (response.error) {
-            toast.error(
-                response.error.message ??
-                    "Error occured handling logout reqeust",
-            );
-            return;
-        }
+  if (response.error) {
+    toast.error(
+      response.error.message ?? "Error occured handling logout reqeust",
+    );
+    return;
+  }
 
-        userStore.set(null);
+  userStore.set(null);
 
-        goto("/", {
-            replaceState: true,
-        });
-    };
+  goto("/", {
+    replaceState: true,
+  });
+};
 
-    let sheetOpen: boolean = $state(false);
+let sheetOpen: boolean = $state(false);
 
-    let currentPath = $derived($page.url.pathname);
+let currentPath = $derived($page.url.pathname);
 
-    const paths = [
-        { path: "/dashboard", label: "Dashboard" },
-        { path: "/dashboard/users", label: "Users" },
-        { path: "/dashboard/requests", label: "Requests" },
-        { path: "/dashboard/software", label: "Software" },
-        { path: "/dashboard/reviews", label: "Reviews" },
-    ];
+const paths = [
+  { path: "/dashboard", label: "Dashboard" },
+  { path: "/dashboard/users", label: "Users" },
+  { path: "/dashboard/requesters", label: "Requesters" },
+  { path: "/dashboard/software", label: "Software" },
+  { path: "/dashboard/requests", label: "Requests" },
+  { path: "/dashboard/reviews", label: "Reviews" },
+];
 </script>
 
 {#if data === undefined}

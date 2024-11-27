@@ -8,8 +8,9 @@ import * as Table from "$lib/components/ui/table/index.js";
 import Ellipsis from "lucide-svelte/icons/ellipsis";
 import type { PageData } from "./$types";
 import { toast } from "svelte-sonner";
-import { formatDate } from "$lib/utils";
+import { formatDate, getRandomColor } from "$lib/utils";
 import { goto } from "$app/navigation";
+import SearchBar from "$lib/components/custom/search-bar/search-bar.svelte";
 
 let { data }: { data: PageData } = $props();
 
@@ -20,8 +21,11 @@ if (data.error) {
 
 <Card.Root class="animate-in">
     <Card.Header class="flex flex-row justify-between">
-        <Card.Description class="text-xl">Manage Users</Card.Description>
-        <div class="flex gap-2">
+        <Card.Description class="text-xl hidden md:flex"
+            >Manage Users</Card.Description
+        >
+        <div class="flex gap-24">
+            <SearchBar />
             <Button variant="default" class="text-lg">Create User</Button>
         </div>
     </Card.Header>
@@ -36,7 +40,7 @@ if (data.error) {
                     <Table.Head>Role</Table.Head>
                     <Table.Head class="hidden md:table-cell">Email</Table.Head>
                     <Table.Head class="hidden md:table-cell"
-                        >Joined At</Table.Head
+                        >Created At</Table.Head
                     >
                     <Table.Head>
                         <span class="sr-only">Actions</span>
@@ -50,7 +54,7 @@ if (data.error) {
                             <Table.Cell class="hidden sm:table-cell">
                                 <Avatar.Root class="hidden h-9 w-9 sm:flex">
                                     <Avatar.Fallback
-                                        class="text-lg bg-purple text-purple-foreground"
+                                        class={`text-lg ${getRandomColor()} text-white`}
                                         >{user.user.name
                                             .charAt(0)
                                             .toUpperCase()}</Avatar.Fallback
@@ -102,6 +106,9 @@ if (data.error) {
                                         <DropdownMenu.Item class="text-md"
                                             >Delete</DropdownMenu.Item
                                         >
+                                        <DropdownMenu.Item class="text-md"
+                                            >Change Password</DropdownMenu.Item
+                                        >
                                     </DropdownMenu.Content>
                                 </DropdownMenu.Root>
                             </Table.Cell>
@@ -111,7 +118,7 @@ if (data.error) {
                     <Table.Row>
                         <Table.Cell
                             colspan={6}
-                            class="text-center text-muted-foreground text-lg"
+                            class="text-muted-foreground text-center text-lg"
                         >
                             No users found
                         </Table.Cell>
@@ -133,7 +140,7 @@ if (data.error) {
                 variant={"ghost"}
                 on:click={() =>
                     goto(
-                        `/admin/users?per_page=8&page=${data.users!.metadata.current_page - 1}`,
+                        `/dashboard/users?per_page=8&page=${data.users!.metadata.current_page - 1}`,
                     )}
                 disabled={data.users?.metadata.current_page === 1}
             >
@@ -144,7 +151,7 @@ if (data.error) {
                 variant={"ghost"}
                 on:click={() =>
                     goto(
-                        `/admin/users?per_page=8&page=${data.users!.metadata.current_page + 1}`,
+                        `/dashboard/users?per_page=8&page=${data.users!.metadata.current_page + 1}`,
                     )}
                 disabled={data.users?.metadata.current_page ===
                     data.users?.metadata.last_page}

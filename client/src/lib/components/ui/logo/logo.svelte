@@ -1,7 +1,7 @@
 <script lang="ts">
-    import Rabbit from "lucide-svelte/icons/rabbit";
+import Rabbit from "lucide-svelte/icons/rabbit";
 
-    let { hidden = false } = $props();
+let { hidden = false } = $props();
 </script>
 
 <div class="flex justify-evenly items-center gap-4">

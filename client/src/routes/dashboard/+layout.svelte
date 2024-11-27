@@ -1,7 +1,7 @@
 <script lang="ts">
-    import Navbar from "$lib/components/custom/navbar/navbar.svelte";
+import Navbar from "$lib/components/custom/navbar/navbar.svelte";
 
-    let { children, data } = $props();
+let { children, data } = $props();
 </script>
 
 <div class="flex w-full flex-col overflow-hidden">
