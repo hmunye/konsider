@@ -1,8 +1,11 @@
 <script lang="ts">
 import { page } from "$app/stores";
+import { PUBLIC_BASE_API_URL } from "$env/static/public";
 import Pagination from "$lib/components/custom/pagination/pagination.svelte";
 import SearchBar from "$lib/components/custom/search-bar/search-bar.svelte";
 import CreateUserForm from "$lib/components/forms/users/create/create-user-form.svelte";
+import EditUserForm from "$lib/components/forms/users/edit/edit-user-form.svelte";
+import * as AlertDialog from "$lib/components/ui/alert-dialog";
 import * as Avatar from "$lib/components/ui/avatar/index.js";
 import { Badge } from "$lib/components/ui/badge/index.js";
 import { Button } from "$lib/components/ui/button/index.js";
@@ -10,14 +13,14 @@ import * as Card from "$lib/components/ui/card/index.js";
 import * as Dialog from "$lib/components/ui/dialog";
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 import * as Table from "$lib/components/ui/table/index.js";
+import { fetchRequest } from "$lib/fetch";
 import { userStore } from "$lib/stores/userStore";
+import type { User } from "$lib/types/types";
 import { formatDate, getRandomColor } from "$lib/utils";
 import Ellipsis from "lucide-svelte/icons/ellipsis";
-import type { PageData } from "./$types";
-import { toast } from "svelte-sonner";
 import { onMount } from "svelte";
-import EditUserForm from "$lib/components/forms/users/edit/edit-user-form.svelte";
-import type { User } from "$lib/types/types";
+import { toast } from "svelte-sonner";
+import type { PageData } from "./$types";
 
 let { data }: { data: PageData } = $props();
 
@@ -35,8 +38,48 @@ const filterList = [
   { value: "role", label: "Role" },
 ];
 
+let submitting: boolean = $state(false);
+
 let dialogOpen: boolean = $state(false);
+let deleteAlertOpen: boolean = $state(false);
+
 let selectedUser: User | undefined = $state();
+
+function handleDeleteUser() {
+  submitting = true;
+
+  const deleteUserResponse = new Promise<unknown>((resolve, reject) => {
+    // Simulate a timeout before making the request to show loading toast
+    setTimeout(() => {
+      fetchRequest<unknown>({
+        url: `${PUBLIC_BASE_API_URL}/api/v1/users/${selectedUser!.id}`,
+        method: "DELETE",
+      })
+        .then((response) => {
+          if (response.error) {
+            reject(response.error.message);
+          } else {
+            resolve(response);
+          }
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    }, 3000);
+  });
+
+  toast.promise(deleteUserResponse, {
+    loading: "Loading...",
+    success: () => {
+      submitting = false;
+      return `${selectedUser!.name}'s account has been successfully deleted`;
+    },
+    error: (error) => {
+      submitting = false;
+      return `${error}`;
+    },
+  });
+}
 </script>
 
 <Card.Root class="animate-in">
@@ -57,12 +100,6 @@ let selectedUser: User | undefined = $state();
                 </Dialog.Content>
             </Dialog.Root>
         </div>
-
-        <Dialog.Root bind:open={dialogOpen}>
-            <Dialog.Content>
-                <EditUserForm {selectedUser} />
-            </Dialog.Content>
-        </Dialog.Root>
     </Card.Header>
     <Card.Content>
         <Table.Root>
@@ -142,9 +179,18 @@ let selectedUser: User | undefined = $state();
                                                 dialogOpen = true;
                                             }}>Edit</DropdownMenu.Item
                                         >
-                                        <DropdownMenu.Item class="text-md"
-                                            >Delete</DropdownMenu.Item
+                                        <DropdownMenu.Item
+                                            class="text-md"
+                                            onclick={() => {
+                                                selectedUser = user.user;
+                                                deleteAlertOpen = true;
+                                            }}>Delete</DropdownMenu.Item
                                         >
+                                        {#if user.user.email !== $userStore?.email && $userStore?.role === "ADMIN"}
+                                            <DropdownMenu.Item class="text-md"
+                                                >Revoke Session</DropdownMenu.Item
+                                            >
+                                        {/if}
                                         {#if user.user.email === $userStore?.email}
                                             <DropdownMenu.Item class="text-md"
                                                 >Change Password</DropdownMenu.Item
@@ -171,4 +217,31 @@ let selectedUser: User | undefined = $state();
     <Card.Footer class="flex justify-between items-center">
         <Pagination data={data.users!} link={"users"} {filter} />
     </Card.Footer>
+    <Dialog.Root bind:open={dialogOpen}>
+        <Dialog.Content>
+            <EditUserForm {selectedUser} />
+        </Dialog.Content>
+    </Dialog.Root>
+    <AlertDialog.Root bind:open={deleteAlertOpen}>
+        <AlertDialog.Content>
+            <AlertDialog.Header>
+                <AlertDialog.Title class="text-2xl"
+                    >Are you sure?</AlertDialog.Title
+                >
+                <AlertDialog.Description class="text-lg">
+                    This action cannot be undone. This will permanently delete
+                    the user's account and remove their data.
+                </AlertDialog.Description>
+            </AlertDialog.Header>
+            <AlertDialog.Footer>
+                <AlertDialog.Cancel class="text-md">Cancel</AlertDialog.Cancel>
+                <AlertDialog.Action
+                    class="text-md bg-destructive text-destructive-foreground hover:bg-destructive hover:brightness-125"
+                    onclick={() => handleDeleteUser()}
+                    disabled={submitting}
+                    aria-disabled={submitting}>Delete</AlertDialog.Action
+                >
+            </AlertDialog.Footer>
+        </AlertDialog.Content>
+    </AlertDialog.Root>
 </Card.Root>
