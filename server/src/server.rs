@@ -206,8 +206,12 @@ pub async fn setup_server(
         .allow_headers([
             header::ACCEPT,
             header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            header::ACCESS_CONTROL_ALLOW_HEADERS,
             header::CONTENT_TYPE,
-        ]);
+            header::CONTENT_DISPOSITION,
+            header::CONTENT_LENGTH,
+        ])
+        .expose_headers([header::CONTENT_DISPOSITION]);
 
     let server = Router::new()
         .nest(

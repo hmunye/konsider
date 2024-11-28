@@ -1,14 +1,14 @@
 <script lang="ts">
-    import "../app.css";
-    import { Toaster } from "$lib/components/ui/sonner";
-    import { theme } from "$lib/stores/theme";
-    import Footer from "$lib/components/custom/footer/footer.svelte";
+import "../app.css";
+import { Toaster } from "$lib/components/ui/sonner";
+import { theme } from "$lib/stores/theme";
+import Footer from "$lib/components/custom/footer/footer.svelte";
 
-    let toastTheme: "dark" | "light" | "system" | undefined = $derived(
-        $theme === "dark" ? "dark" : "light",
-    );
+let toastTheme: "dark" | "light" | "system" | undefined = $derived(
+  $theme === "dark" ? "dark" : "light",
+);
 
-    let { children } = $props();
+let { children } = $props();
 </script>
 
 <Toaster richColors theme={toastTheme} />

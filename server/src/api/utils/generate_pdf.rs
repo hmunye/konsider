@@ -261,10 +261,14 @@ pub async fn generate_pdf(software_review: &SoftwareReviewDTO) -> Result<Respons
 
     current_layer.set_font(&font, 11.0);
     current_layer.set_outline_thickness(0.0);
-    current_layer.write_text(
-        software_review.review_notes.clone().unwrap_or_default(),
-        &font,
-    );
+
+    let review_notes = software_review.review_notes.clone().unwrap_or_default();
+    let lines = split_into_lines(&review_notes, 80);
+
+    for line in lines {
+        current_layer.write_text(&line, &font);
+        current_layer.add_line_break();
+    }
 
     current_layer.end_text_section();
     // ----------------------------------------------------------------------------
@@ -296,4 +300,27 @@ fn convert_response_to_glyph(review_response: ReviewOptions) -> (String, Color) 
         // `?` won't render colors other than black or white when targeting fill
         _ => ("❓".into(), Color::Rgb(Rgb::new(5.0, 5.0, 5.0, None))),
     }
+}
+
+fn split_into_lines(text: &str, max_line_length: usize) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut current_line = String::new();
+
+    for word in text.split_whitespace() {
+        if current_line.len() + word.len() + 1 > max_line_length {
+            lines.push(current_line.clone());
+            current_line = word.to_string();
+        } else {
+            if !current_line.is_empty() {
+                current_line.push(' ');
+            }
+            current_line.push_str(word);
+        }
+    }
+
+    if !current_line.is_empty() {
+        lines.push(current_line);
+    }
+
+    lines
 }

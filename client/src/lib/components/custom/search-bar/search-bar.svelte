@@ -109,7 +109,7 @@ function handleReset() {
         <Button
             variant="link"
             type="button"
-            class="text-destructive text-md mr-0 md:mr-5"
+            class="text-destructive mr-0 md:mr-5 text-md"
             onclick={handleReset}
         >
             Reset

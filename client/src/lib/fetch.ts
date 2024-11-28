@@ -35,6 +35,8 @@ class HttpError extends Error {
   }
 }
 
+const FILENAME_REGEX = /filename="(.+)"/;
+
 export async function fetchRequest<T>(
   params: FetchParams,
   serverFetch?: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
@@ -61,17 +63,39 @@ export async function fetchRequest<T>(
     if (serverFetch) {
       response = await serverFetch(url, {
         ...fetchOptions,
-        signal: AbortSignal.timeout(3000), // Set timeout for the fetch call
+        signal: AbortSignal.timeout(10000), // Set timeout for the fetch call
       });
     } else {
       response = await fetch(url, {
         ...fetchOptions,
-        signal: AbortSignal.timeout(3000), // Set timeout for the fetch call
+        signal: AbortSignal.timeout(10000), // Set timeout for the fetch call
       });
     }
 
     if (!response.ok) {
       throw new HttpError(response);
+    }
+
+    if (response.headers.get("content-type")?.includes("application/pdf")) {
+      const contentDisposition = response.headers.get("content-disposition");
+      const matches = contentDisposition?.match(FILENAME_REGEX);
+      const filename = matches ? matches[1] : "review.pdf";
+
+      // Handle PDF response
+      const pdfBlob = await response.blob();
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      // Create a temporary link to trigger the download
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.download = filename;
+      link.click();
+
+      // Clean up the object URL and link
+      URL.revokeObjectURL(pdfUrl);
+      link.remove();
+
+      return { success: undefined as unknown as T };
     }
 
     const responseText = await response.text();

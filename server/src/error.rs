@@ -34,6 +34,8 @@ pub enum Error {
     PgRecordExists,
     #[error("database key violation occured")]
     PgKeyViolation,
+    #[error("database records depend on the referenced record")]
+    PgDependencyViolation,
 
     // -- other
     #[error("no details provided to update resource")]
@@ -131,6 +133,11 @@ impl Error {
 
             Self::PgRecordExists => (StatusCode::CONFLICT, ClientError::RecordExists.to_string()),
 
+            Self::PgDependencyViolation => (
+                StatusCode::CONFLICT,
+                ClientError::DependencyViolation.to_string(),
+            ),
+
             Self::PgNotFoundError => (StatusCode::NOT_FOUND, ClientError::NotFound.to_string()),
 
             // -- Fallback
@@ -153,6 +160,7 @@ pub enum ClientError {
     NotFound,
     RecordExists,
     Conflict,
+    DependencyViolation,
     ServiceError,
 }
 
@@ -171,6 +179,9 @@ impl std::fmt::Display for ClientError {
             ClientError::MissingToken => "The request is missing a valid token",
             ClientError::NotFound => "The requested resource could not be found",
             ClientError::Conflict => "The request could not be completed due to a conflict",
+            ClientError::DependencyViolation => {
+                "This record cannot be deleted because other records depend on it"
+            }
             ClientError::RecordExists => "A record with the specified details already exists",
             _ => "An internal server error has occurred. Please try again later",
         };

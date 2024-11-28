@@ -240,7 +240,7 @@ pub async fn delete_software_request(request_id: Uuid, db_pool: &PgPool) -> Resu
         Ok(Some(_)) => Ok(()),
         Ok(None) => Err(Error::PgNotFoundError),
         Err(err) => match err.as_database_error().and_then(|db_err| db_err.code()) {
-            Some(code) if code == "23503" => Err(Error::PgKeyViolation),
+            Some(code) if code == "23503" => Err(Error::PgDependencyViolation),
             _ => Err(Error::from(err)),
         },
     }
