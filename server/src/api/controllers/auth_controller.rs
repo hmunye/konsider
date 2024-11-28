@@ -47,9 +47,14 @@ pub async fn api_login(
     cookie.set_domain("localhost");
     cookie.set_path("/");
     cookie.set_http_only();
-    cookie.set_secure();
-    // Needs to be `SameSite::None` for cross-origin requests
-    cookie.set_same_site(SameSite::None);
+
+    if state.environment.as_str() == "production" {
+        cookie.set_secure();
+        // Needs to be `SameSite::None` for cross-origin requests
+        cookie.set_same_site(SameSite::None);
+    } else {
+        cookie.set_same_site(SameSite::Lax);
+    }
 
     let headers = AppendHeaders([(SET_COOKIE, cookie.build())]);
 

@@ -50,7 +50,15 @@ impl Server {
             .expect("failed to get local address bound to tcp listener")
             .port();
 
-        let instance = setup_server(db_pool, config.server.jwt_secret, token_cache).await?;
+        let environment = config.server.environment;
+
+        let instance = setup_server(
+            db_pool,
+            config.server.jwt_secret,
+            token_cache,
+            environment.clone(),
+        )
+        .await?;
 
         tracing::info!(
             "{}",
@@ -61,7 +69,7 @@ impl Server {
             Self {
                 port,
                 instance,
-                environment: config.server.environment,
+                environment,
             },
             tcp_listener,
         ))
@@ -164,17 +172,20 @@ pub struct ServerState {
     pub db_pool: PgPool,
     pub jwt_secret: SecretString,
     pub token_cache: TokenCache,
+    pub environment: String,
 }
 
 pub async fn setup_server(
     db_pool: PgPool,
     jwt_secret: SecretString,
     token_cache: TokenCache,
+    environment: String,
 ) -> Result<Router> {
     let state = ServerState {
         db_pool,
         jwt_secret,
         token_cache,
+        environment,
     };
 
     let origin = [

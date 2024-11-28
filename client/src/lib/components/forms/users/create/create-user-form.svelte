@@ -1,85 +1,87 @@
 <script lang="ts">
-import { PUBLIC_BASE_API_URL } from "$env/static/public";
-import * as Form from "$lib/components/ui/form";
-import { Input } from "$lib/components/ui/input";
-import * as Select from "$lib/components/ui/select";
-import { fetchRequest } from "$lib/fetch";
-import { toast } from "svelte-sonner";
-import { defaults, superForm } from "sveltekit-superforms";
-import { zod, zodClient } from "sveltekit-superforms/adapters";
-import { createUserSchema } from "./schema";
+    import { PUBLIC_BASE_API_URL } from "$env/static/public";
+    import * as Form from "$lib/components/ui/form";
+    import { Input } from "$lib/components/ui/input";
+    import * as Select from "$lib/components/ui/select";
+    import { fetchRequest } from "$lib/fetch";
+    import { toast } from "svelte-sonner";
+    import { defaults, superForm } from "sveltekit-superforms";
+    import { zod, zodClient } from "sveltekit-superforms/adapters";
+    import { createUserSchema } from "./schema";
 
-let submitting: boolean = $state(false);
+    let submitting: boolean = $state(false);
 
-const initialData = {
-  name: "",
-  email: "",
-  password: "",
-  role: "",
-};
+    const initialData = {
+        name: "",
+        email: "",
+        password: "",
+        role: "",
+    };
 
-const form = superForm(defaults(initialData, zod(createUserSchema)), {
-  validators: zodClient(createUserSchema),
-  SPA: true,
-  dataType: "json",
-  resetForm: false,
-  async onUpdate({ form }) {
-    submitting = true;
+    const form = superForm(defaults(initialData, zod(createUserSchema)), {
+        validators: zodClient(createUserSchema),
+        SPA: true,
+        dataType: "json",
+        resetForm: false,
+        async onUpdate({ form }) {
+            submitting = true;
 
-    if (!form.valid) {
-      return;
-    }
-
-    const createUserResponse = new Promise<unknown>((resolve, reject) => {
-      // Simulate a timeout before making the request to show loading toast
-      setTimeout(() => {
-        fetchRequest<unknown>({
-          url: `${PUBLIC_BASE_API_URL}/api/v1/users`,
-          method: "POST",
-          requestBody: {
-            name: $formData.name,
-            email: $formData.email,
-            password: $formData.password,
-            role: $formData.role,
-          },
-        })
-          .then((response) => {
-            if (response.error) {
-              reject(response.error.message);
-            } else {
-              resolve(response);
+            if (!form.valid) {
+                return;
             }
-          })
-          .catch((error) => {
-            reject(error);
-          });
-      }, 3000);
+
+            const createUserResponse = new Promise<unknown>(
+                (resolve, reject) => {
+                    // Simulate a timeout before making the request to show loading toast
+                    setTimeout(() => {
+                        fetchRequest<unknown>({
+                            url: `${PUBLIC_BASE_API_URL}/api/v1/users`,
+                            method: "POST",
+                            requestBody: {
+                                name: $formData.name,
+                                email: $formData.email,
+                                password: $formData.password,
+                                role: $formData.role,
+                            },
+                        })
+                            .then((response) => {
+                                if (response.error) {
+                                    reject(response.error.message);
+                                } else {
+                                    resolve(response);
+                                }
+                            })
+                            .catch((error) => {
+                                reject(error);
+                            });
+                    }, 2000);
+                },
+            );
+
+            toast.promise(createUserResponse, {
+                loading: "Loading...",
+                success: () => {
+                    submitting = false;
+                    return `${$formData.name} has been successfully registered`;
+                },
+                error: (error) => {
+                    submitting = false;
+                    return `${error}`;
+                },
+            });
+        },
     });
 
-    toast.promise(createUserResponse, {
-      loading: "Loading...",
-      success: () => {
-        submitting = false;
-        return `${$formData.name} has been successfully registered`;
-      },
-      error: (error) => {
-        submitting = false;
-        return `${error}`;
-      },
-    });
-  },
-});
+    const { form: formData, enhance } = form;
 
-const { form: formData, enhance } = form;
-
-let selectedRole = $derived(
-  $formData.role
-    ? {
-        label: $formData.role,
-        value: $formData.role,
-      }
-    : undefined,
-);
+    let selectedRole = $derived(
+        $formData.role
+            ? {
+                  label: $formData.role,
+                  value: $formData.role,
+              }
+            : undefined,
+    );
 </script>
 
 <form method="POST" use:enhance>

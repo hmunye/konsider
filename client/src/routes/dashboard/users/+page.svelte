@@ -1,85 +1,128 @@
 <script lang="ts">
-import { page } from "$app/stores";
-import { PUBLIC_BASE_API_URL } from "$env/static/public";
-import Pagination from "$lib/components/custom/pagination/pagination.svelte";
-import SearchBar from "$lib/components/custom/search-bar/search-bar.svelte";
-import CreateUserForm from "$lib/components/forms/users/create/create-user-form.svelte";
-import EditUserForm from "$lib/components/forms/users/edit/edit-user-form.svelte";
-import * as AlertDialog from "$lib/components/ui/alert-dialog";
-import * as Avatar from "$lib/components/ui/avatar/index.js";
-import { Badge } from "$lib/components/ui/badge/index.js";
-import { Button } from "$lib/components/ui/button/index.js";
-import * as Card from "$lib/components/ui/card/index.js";
-import * as Dialog from "$lib/components/ui/dialog";
-import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
-import * as Table from "$lib/components/ui/table/index.js";
-import { fetchRequest } from "$lib/fetch";
-import { userStore } from "$lib/stores/userStore";
-import type { User } from "$lib/types/types";
-import { formatDate, getRandomColor } from "$lib/utils";
-import Ellipsis from "lucide-svelte/icons/ellipsis";
-import { onMount } from "svelte";
-import { toast } from "svelte-sonner";
-import type { PageData } from "./$types";
+    import { page } from "$app/stores";
+    import { PUBLIC_BASE_API_URL } from "$env/static/public";
+    import Pagination from "$lib/components/custom/pagination/pagination.svelte";
+    import SearchBar from "$lib/components/custom/search-bar/search-bar.svelte";
+    import CreateUserForm from "$lib/components/forms/users/create/create-user-form.svelte";
+    import EditUserForm from "$lib/components/forms/users/edit/edit-user-form.svelte";
+    import * as AlertDialog from "$lib/components/ui/alert-dialog";
+    import * as Avatar from "$lib/components/ui/avatar/index.js";
+    import { Badge } from "$lib/components/ui/badge/index.js";
+    import { Button } from "$lib/components/ui/button/index.js";
+    import * as Card from "$lib/components/ui/card/index.js";
+    import * as Dialog from "$lib/components/ui/dialog";
+    import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+    import * as Table from "$lib/components/ui/table/index.js";
+    import { fetchRequest } from "$lib/fetch";
+    import { userStore } from "$lib/stores/userStore";
+    import type { User } from "$lib/types/types";
+    import { formatDate, getRandomColor } from "$lib/utils";
+    import Ellipsis from "lucide-svelte/icons/ellipsis";
+    import { onMount } from "svelte";
+    import { toast } from "svelte-sonner";
+    import type { PageData } from "./$types";
+    import ChangeUserPasswordForm from "$lib/components/forms/users/change-password/change-user-password-form.svelte";
 
-let { data }: { data: PageData } = $props();
+    let { data }: { data: PageData } = $props();
 
-onMount(() => {
-  if (data.error) {
-    toast.error(data.error);
-  }
-});
+    onMount(() => {
+        if (data.error) {
+            toast.error(data.error);
+        }
+    });
 
-let filter = $derived($page.url.searchParams.get("filter") || "");
+    let filter = $derived($page.url.searchParams.get("filter") || "");
 
-const filterList = [
-  { value: "name", label: "Name" },
-  { value: "email", label: "Email" },
-  { value: "role", label: "Role" },
-];
+    const filterList = [
+        { value: "name", label: "Name" },
+        { value: "email", label: "Email" },
+        { value: "role", label: "Role" },
+    ];
 
-let submitting: boolean = $state(false);
+    let submitting: boolean = $state(false);
 
-let dialogOpen: boolean = $state(false);
-let deleteAlertOpen: boolean = $state(false);
+    let editDialogOpen: boolean = $state(false);
+    let passwordDialogOpen: boolean = $state(false);
+    let deleteAlertOpen: boolean = $state(false);
+    let revokeAlertOpen: boolean = $state(false);
 
-let selectedUser: User | undefined = $state();
+    let selectedUser: User | undefined = $state();
 
-function handleDeleteUser() {
-  submitting = true;
+    function handleDeleteUser() {
+        submitting = true;
 
-  const deleteUserResponse = new Promise<unknown>((resolve, reject) => {
-    // Simulate a timeout before making the request to show loading toast
-    setTimeout(() => {
-      fetchRequest<unknown>({
-        url: `${PUBLIC_BASE_API_URL}/api/v1/users/${selectedUser!.id}`,
-        method: "DELETE",
-      })
-        .then((response) => {
-          if (response.error) {
-            reject(response.error.message);
-          } else {
-            resolve(response);
-          }
-        })
-        .catch((error) => {
-          reject(error);
+        const deleteUserResponse = new Promise<unknown>((resolve, reject) => {
+            // Simulate a timeout before making the request to show loading toast
+            setTimeout(() => {
+                fetchRequest<unknown>({
+                    url: `${PUBLIC_BASE_API_URL}/api/v1/users/${selectedUser!.id}`,
+                    method: "DELETE",
+                })
+                    .then((response) => {
+                        if (response.error) {
+                            reject(response.error.message);
+                        } else {
+                            resolve(response);
+                        }
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            }, 2000);
         });
-    }, 3000);
-  });
 
-  toast.promise(deleteUserResponse, {
-    loading: "Loading...",
-    success: () => {
-      submitting = false;
-      return `${selectedUser!.name}'s account has been successfully deleted`;
-    },
-    error: (error) => {
-      submitting = false;
-      return `${error}`;
-    },
-  });
-}
+        toast.promise(deleteUserResponse, {
+            loading: "Loading...",
+            success: () => {
+                submitting = false;
+                return `${selectedUser!.name}'s account has been successfully deleted`;
+            },
+            error: (error) => {
+                submitting = false;
+                return `${error}`;
+            },
+        });
+    }
+
+    function handleRevokeUserToken() {
+        submitting = true;
+
+        const revokeUserTokenResponse = new Promise<unknown>(
+            (resolve, reject) => {
+                // Simulate a timeout before making the request to show loading toast
+                setTimeout(() => {
+                    fetchRequest<unknown>({
+                        url: `${PUBLIC_BASE_API_URL}/api/v1/auth/revoke/${selectedUser!.id}`,
+                        method: "DELETE",
+                    })
+                        .then((response) => {
+                            if (response.error) {
+                                reject(
+                                    "This user has no current active sessions",
+                                );
+                            } else {
+                                resolve(response);
+                            }
+                        })
+                        .catch((error) => {
+                            reject(error);
+                        });
+                }, 2000);
+            },
+        );
+
+        toast.promise(revokeUserTokenResponse, {
+            loading: "Loading...",
+            success: () => {
+                submitting = false;
+                return `${selectedUser!.name}'s session has been revoked`;
+            },
+            error: (error) => {
+                submitting = false;
+                return `${error}`;
+            },
+        });
+    }
 </script>
 
 <Card.Root class="animate-in">
@@ -176,7 +219,7 @@ function handleDeleteUser() {
                                             class="text-md"
                                             onclick={() => {
                                                 selectedUser = user.user;
-                                                dialogOpen = true;
+                                                editDialogOpen = true;
                                             }}>Edit</DropdownMenu.Item
                                         >
                                         <DropdownMenu.Item
@@ -187,12 +230,21 @@ function handleDeleteUser() {
                                             }}>Delete</DropdownMenu.Item
                                         >
                                         {#if user.user.email !== $userStore?.email && $userStore?.role === "ADMIN"}
-                                            <DropdownMenu.Item class="text-md"
+                                            <DropdownMenu.Item
+                                                class="text-md"
+                                                onclick={() => {
+                                                    selectedUser = user.user;
+                                                    revokeAlertOpen = true;
+                                                }}
                                                 >Revoke Session</DropdownMenu.Item
                                             >
                                         {/if}
                                         {#if user.user.email === $userStore?.email}
-                                            <DropdownMenu.Item class="text-md"
+                                            <DropdownMenu.Item
+                                                class="text-md"
+                                                onclick={() => {
+                                                    passwordDialogOpen = true;
+                                                }}
                                                 >Change Password</DropdownMenu.Item
                                             >
                                         {/if}
@@ -217,11 +269,19 @@ function handleDeleteUser() {
     <Card.Footer class="flex justify-between items-center">
         <Pagination data={data.users!} link={"users"} {filter} />
     </Card.Footer>
-    <Dialog.Root bind:open={dialogOpen}>
+
+    <Dialog.Root bind:open={editDialogOpen}>
         <Dialog.Content>
             <EditUserForm {selectedUser} />
         </Dialog.Content>
     </Dialog.Root>
+
+    <Dialog.Root bind:open={passwordDialogOpen}>
+        <Dialog.Content>
+            <ChangeUserPasswordForm />
+        </Dialog.Content>
+    </Dialog.Root>
+
     <AlertDialog.Root bind:open={deleteAlertOpen}>
         <AlertDialog.Content>
             <AlertDialog.Header>
@@ -230,7 +290,7 @@ function handleDeleteUser() {
                 >
                 <AlertDialog.Description class="text-lg">
                     This action cannot be undone. This will permanently delete
-                    the user's account and remove their data.
+                    the user's account and remove their data from the server.
                 </AlertDialog.Description>
             </AlertDialog.Header>
             <AlertDialog.Footer>
@@ -240,6 +300,29 @@ function handleDeleteUser() {
                     onclick={() => handleDeleteUser()}
                     disabled={submitting}
                     aria-disabled={submitting}>Delete</AlertDialog.Action
+                >
+            </AlertDialog.Footer>
+        </AlertDialog.Content>
+    </AlertDialog.Root>
+
+    <AlertDialog.Root bind:open={revokeAlertOpen}>
+        <AlertDialog.Content>
+            <AlertDialog.Header>
+                <AlertDialog.Title class="text-2xl"
+                    >Are you sure?</AlertDialog.Title
+                >
+                <AlertDialog.Description class="text-lg">
+                    Revoking this user's session will log them out immediately.
+                    They will need to log in again to access the system
+                </AlertDialog.Description>
+            </AlertDialog.Header>
+            <AlertDialog.Footer>
+                <AlertDialog.Cancel class="text-md">Cancel</AlertDialog.Cancel>
+                <AlertDialog.Action
+                    class="text-md bg-destructive text-destructive-foreground hover:bg-destructive hover:brightness-125"
+                    onclick={() => handleRevokeUserToken()}
+                    disabled={submitting}
+                    aria-disabled={submitting}>Revoke</AlertDialog.Action
                 >
             </AlertDialog.Footer>
         </AlertDialog.Content>
