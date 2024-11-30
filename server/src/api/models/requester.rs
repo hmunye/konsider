@@ -63,7 +63,7 @@ impl Requester {
         Ok(())
     }
 
-    fn validate_name(name: &String) -> bool {
+    fn validate_name(name: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let name_is_empty_or_whitespace = name.trim().is_empty();
@@ -87,7 +87,7 @@ impl Requester {
         ValidateEmail::validate_email(&email)
     }
 
-    fn validate_department(department: &String) -> bool {
+    fn validate_department(department: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let department_is_empty_or_whitespace = department.trim().is_empty();
@@ -130,7 +130,7 @@ impl RequesterDTO {
         Ok(())
     }
 
-    fn validate_name(name: &String) -> bool {
+    fn validate_name(name: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let name_is_empty_or_whitespace = name.trim().is_empty();
@@ -154,7 +154,7 @@ impl RequesterDTO {
         ValidateEmail::validate_email(&email)
     }
 
-    fn validate_department(department: &String) -> bool {
+    fn validate_department(department: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let department_is_empty_or_whitespace = department.trim().is_empty();

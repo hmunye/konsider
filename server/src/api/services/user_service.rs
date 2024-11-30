@@ -31,7 +31,7 @@ pub async fn change_user_password(
         ));
     }
 
-    if !User::validate_password(&new_password.expose_secret().to_string()) {
+    if !User::validate_password(new_password.expose_secret()) {
         return Err(Error::ValidationError(
             "change password payload: invaild password provided by user".into(),
         ));

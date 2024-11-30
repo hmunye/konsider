@@ -72,7 +72,7 @@ impl Software {
         Ok(())
     }
 
-    fn validate_software_name(name: &String) -> bool {
+    fn validate_software_name(name: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let name_is_empty_or_whitespace = name.trim().is_empty();
@@ -98,7 +98,7 @@ impl Software {
             .all(|&part| !part.is_empty() && part.len() <= 4 && part.chars().all(char::is_numeric))
     }
 
-    fn validate_developer_name(developer: &String) -> bool {
+    fn validate_developer_name(developer: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let developer_is_empty_or_whitespace = developer.trim().is_empty();
@@ -113,7 +113,7 @@ impl Software {
             || developer_contains_forbidden_chars)
     }
 
-    fn validate_description(description: &String) -> bool {
+    fn validate_description(description: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let description_is_empty_or_whitespace = description.trim().is_empty();
@@ -162,7 +162,7 @@ impl SoftwareDTO {
         Ok(())
     }
 
-    fn validate_software_name(name: &String) -> bool {
+    fn validate_software_name(name: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let name_is_empty_or_whitespace = name.trim().is_empty();
@@ -188,7 +188,7 @@ impl SoftwareDTO {
             .all(|&part| !part.is_empty() && part.len() <= 4 && part.chars().all(char::is_numeric))
     }
 
-    fn validate_developer_name(developer: &String) -> bool {
+    fn validate_developer_name(developer: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let developer_is_empty_or_whitespace = developer.trim().is_empty();
@@ -203,7 +203,7 @@ impl SoftwareDTO {
             || developer_contains_forbidden_chars)
     }
 
-    fn validate_description(description: &String) -> bool {
+    fn validate_description(description: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let description_is_empty_or_whitespace = description.trim().is_empty();

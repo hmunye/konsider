@@ -127,7 +127,7 @@ impl SoftwareReview {
         Ok(())
     }
 
-    fn validate_review_notes(notes: &String) -> bool {
+    fn validate_review_notes(notes: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let notes_is_empty_or_whitespace = notes.trim().is_empty();
@@ -152,7 +152,7 @@ impl SoftwareReviewPayload {
         Ok(())
     }
 
-    fn validate_review_notes(notes: &String) -> bool {
+    fn validate_review_notes(notes: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let notes_is_empty_or_whitespace = notes.trim().is_empty();

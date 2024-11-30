@@ -72,7 +72,7 @@ impl User {
             )));
         }
 
-        if !Self::validate_password(&self.password.expose_secret().to_string()) {
+        if !Self::validate_password(self.password.expose_secret()) {
             return Err(Error::ValidationError(
                 "user payload: invaild password provided for user".into(),
             ));
@@ -101,7 +101,7 @@ impl User {
         Ok(())
     }
 
-    fn validate_name(name: &String) -> bool {
+    fn validate_name(name: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         let name_is_empty_or_whitespace = name.trim().is_empty();
@@ -131,7 +131,7 @@ impl User {
         ValidateEmail::validate_email(&email)
     }
 
-    pub fn validate_password(password: &String) -> bool {
+    pub fn validate_password(password: &str) -> bool {
         let forbidden_chars = ['/', '(', ')', '"', '<', '>', '\\', '{', '}', '$', '\'', '-'];
 
         // TODO: Make sure multiple spaces are handled (Replace multiple spaces with single space)
