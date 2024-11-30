@@ -104,7 +104,7 @@ function handleReset() {
 
     <div>
         <Button variant="link" type="submit" class="text-success text-md">
-            Search
+            Apply
         </Button>
         <Button
             variant="link"
