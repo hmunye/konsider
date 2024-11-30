@@ -52,9 +52,7 @@ const form = superForm(defaults(initialData, zod(logInSchema)), {
 
     const redirectTo = $page.url.searchParams.get("redirectTo");
 
-    goto(redirectTo ? `/${redirectTo.slice(1)}` : "/dashboard", {
-      replaceState: true,
-    });
+    goto(redirectTo ? `/${redirectTo.slice(1)}` : "/dashboard", {});
   },
 });
 
@@ -70,36 +68,36 @@ const { form: formData, enhance, submitting } = form;
         <div
             class="flex flex-col gap-10 [&>input]:mb-4 mt-8 rounded-lg p-8 py-16 border"
         >
-            <h1 class="text-4xl font-bold mb-4">Log In</h1>
+            <h1 class="text-2xl font-bold mb-4">Log In</h1>
             <Form.Field {form} name="email">
                 <Form.Control let:attrs>
-                    <Form.Label class="text-2xl">Email</Form.Label>
+                    <Form.Label class="text-xl">Email</Form.Label>
                     <Input
                         {...attrs}
                         bind:value={$formData.email}
                         type="text"
                         autocomplete="email"
                         placeholder="you@example.com"
-                        class="text-xl placeholder:text-xl placeholder:font-light"
+                        class="text-lg placeholder:text-lg placeholder:font-light"
                     />
                 </Form.Control>
                 <Form.FieldErrors class="text-lg" />
             </Form.Field>
             <Form.Field {form} name="password">
                 <Form.Control let:attrs>
-                    <Form.Label class="text-2xl">Password</Form.Label>
+                    <Form.Label class="text-xl">Password</Form.Label>
                     <Input
                         {...attrs}
                         bind:value={$formData.password}
                         type="password"
                         placeholder="••••••••"
-                        class="text-xl placeholder:text-xl placeholder:font-light"
+                        class="text-lg placeholder:text-lg placeholder:font-light"
                     />
                 </Form.Control>
                 <Form.FieldErrors class="text-lg" />
             </Form.Field>
             <Form.Button
-                class="bg-success text-success-foreground text-xl hover:bg-success hover:brightness-125 transition duration-300"
+                class="bg-success text-success-foreground text-lg hover:bg-success hover:brightness-125 transition duration-300"
                 disabled={$submitting}
                 aria-disabled={$submitting}
             >

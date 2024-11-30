@@ -7,6 +7,7 @@ import * as AlertDialog from "$lib/components/ui/alert-dialog";
 import { Badge } from "$lib/components/ui/badge/index.js";
 import { Button } from "$lib/components/ui/button/index.js";
 import * as Card from "$lib/components/ui/card/index.js";
+import * as HoverCard from "$lib/components/ui/hover-card";
 import * as Dialog from "$lib/components/ui/dialog";
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 import * as Table from "$lib/components/ui/table/index.js";
@@ -17,6 +18,7 @@ import Ellipsis from "lucide-svelte/icons/ellipsis";
 import { onMount } from "svelte";
 import { toast } from "svelte-sonner";
 import type { PageData } from "./$types";
+import CreateSoftwareReviewForm from "$lib/components/forms/reviews/create/create-software-review-form.svelte";
 
 let { data }: { data: PageData } = $props();
 
@@ -131,7 +133,7 @@ function handleExportSoftwareReview() {
                         variant="default"
                         class="text-lg mb-[115px] sm:mb-0"
                     >
-                        <span class="hidden md:inline"
+                        <span class="hidden sm:inline"
                             >Create Software Review</span
                         >
                         <span class="inline md:hidden">Create</span>
@@ -147,20 +149,25 @@ function handleExportSoftwareReview() {
         <Table.Root>
             <Table.Header>
                 <Table.Row>
-                    <Table.Head>Reviewer Name</Table.Head>
-                    <Table.Head>Requester Name</Table.Head>
-                    <Table.Head>Software Name</Table.Head>
                     <Table.Head class="hidden md:table-cell"
+                        >Reviewer Name</Table.Head
+                    >
+                    <Table.Head class="hidden sm:table-cell"
+                        >Requester Name</Table.Head
+                    >
+                    <Table.Head>Software Name</Table.Head>
+                    <Table.Head class="hidden sm:table-cell"
                         >Request #</Table.Head
                     >
-                    <Table.Head class="hidden lg:table-cell"
-                        >Exported</Table.Head
-                    >
+                    <Table.Head>Exported</Table.Head>
                     <Table.Head class="hidden md:table-cell"
                         >Created At</Table.Head
                     >
                     <Table.Head>
                         <span class="sr-only">Actions</span>
+                    </Table.Head>
+                    <Table.Head>
+                        <span class="sr-only">Hover For Details</span>
                     </Table.Head>
                 </Table.Row>
             </Table.Header>
@@ -168,11 +175,13 @@ function handleExportSoftwareReview() {
                 {#if data.software_reviews?.software_reviews && data.software_reviews.software_reviews.length > 0}
                     {#each data.software_reviews.software_reviews as review}
                         <Table.Row>
-                            <Table.Cell class="font-medium text-lg"
+                            <Table.Cell
+                                class="font-medium text-lg hidden md:table-cell"
                                 >{review.software_review.reviewer
                                     .name}</Table.Cell
                             >
-                            <Table.Cell class="font-medium text-lg"
+                            <Table.Cell
+                                class="font-medium text-lg hidden sm:table-cell"
                                 >{review.software_review.software_request
                                     .requester.name}</Table.Cell
                             >
@@ -182,13 +191,13 @@ function handleExportSoftwareReview() {
                             >
 
                             <Table.Cell
-                                class="font-medium text-lg hidden md:table-cell"
+                                class="font-medium text-lg hidden sm:table-cell"
                                 >{review.software_review.software_request
                                     .td_request_id}</Table.Cell
                             >
                             <Table.Cell>
                                 <Badge
-                                    class="text-md hidden md:table-cell"
+                                    class="text-md"
                                     variant={review.software_review.exported ===
                                     true
                                         ? "default"
@@ -248,12 +257,242 @@ function handleExportSoftwareReview() {
                                     </DropdownMenu.Content>
                                 </DropdownMenu.Root>
                             </Table.Cell>
+                            <Table.Cell>
+                                <HoverCard.Root>
+                                    <HoverCard.Trigger
+                                        class="text-md hover:underline"
+                                    >
+                                        Hover For Details
+                                    </HoverCard.Trigger>
+                                    <HoverCard.Content>
+                                        <div class="text-md space-y-4">
+                                            <p>
+                                                <a
+                                                    href={`/dashboard/users?filter=name:${review.software_review.reviewer.name}`}
+                                                    class="text-md font-semibold hover:underline"
+                                                >
+                                                    Go To Reviewer
+                                                </a>
+
+                                                <span class="mx-2">|</span>
+                                                <a
+                                                    href={`/dashboard/requests?filter=td_request_id:${review.software_review.software_request.td_request_id}`}
+                                                    class="text-md font-semibold hover:underline"
+                                                >
+                                                    Go To Software Request
+                                                </a>
+                                            </p>
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Is Supported:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_supported
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Is Current Version:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_current_version
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Is Reputation Good:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_reputation_good
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Is Installation from
+                                                    Developer:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_installation_from_developer
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Is Local Admin Required:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_local_admin_required
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Connected to Brockport
+                                                    Cloud:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_connected_to_brockport_cloud
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Connected to Cloud Services
+                                                    or Client:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_connected_to_cloud_services_or_client
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Is Security or Optimization
+                                                    Software:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_security_or_optimization_software
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Is Supported by Current OS:</span
+                                                >
+                                                <span>
+                                                    {review.software_review.is_supported_by_current_os
+                                                        .split("_")
+                                                        .map(
+                                                            (word: string) =>
+                                                                word
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                word
+                                                                    .slice(1)
+                                                                    .toLowerCase(),
+                                                        )
+                                                        .join(" ")}
+                                                </span>
+                                            </p>
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Created At:</span
+                                                >
+                                                <span
+                                                    >{formatDate(
+                                                        review.software_review
+                                                            .created_at,
+                                                    )}</span
+                                                >
+                                            </p>
+                                            <p class="text-md">
+                                                <span class="font-semibold"
+                                                    >Review Notes:</span
+                                                >
+                                                <span
+                                                    >{review.software_review
+                                                        .review_notes}</span
+                                                >
+                                            </p>
+                                        </div>
+                                    </HoverCard.Content>
+                                </HoverCard.Root>
+                            </Table.Cell>
                         </Table.Row>
                     {/each}
                 {:else}
                     <Table.Row>
                         <Table.Cell
-                            colspan={6}
+                            colspan={7}
                             class="text-muted-foreground text-center text-lg"
                         >
                             No software reviews found
@@ -276,7 +515,7 @@ function handleExportSoftwareReview() {
     <AlertDialog.Root bind:open={deleteAlertOpen}>
         <AlertDialog.Content>
             <AlertDialog.Header>
-                <AlertDialog.Title class="text-2xl"
+                <AlertDialog.Title class="text-xl"
                     >Are you sure?</AlertDialog.Title
                 >
                 <AlertDialog.Description class="text-lg">

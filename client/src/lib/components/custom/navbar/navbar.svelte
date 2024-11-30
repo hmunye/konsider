@@ -32,9 +32,7 @@ const handleLogOut = async () => {
 
   userStore.set(null);
 
-  goto("/", {
-    replaceState: true,
-  });
+  goto("/", {});
 };
 
 let sheetOpen: boolean = $state(false);
@@ -111,7 +109,7 @@ const paths = [
         class="relative flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4"
     >
         <div class="mx-auto">
-            <h1 class="text-3xl font-bold block sm:hidden">KONSIDER</h1>
+            <h1 class="text-3xl font-bold block md:hidden">KONSIDER</h1>
         </div>
         <ThemeToggle />
         <DropdownMenu.Root>
@@ -135,8 +133,6 @@ const paths = [
                         Role: {$userStore?.role}
                     </DropdownMenu.Label>
                 </div>
-                <DropdownMenu.Separator />
-                <DropdownMenu.Item class="text-md">Settings</DropdownMenu.Item>
                 <DropdownMenu.Separator />
                 <DropdownMenu.Item class="text-md" on:click={handleLogOut}
                     >Logout</DropdownMenu.Item

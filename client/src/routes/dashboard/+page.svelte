@@ -49,7 +49,7 @@ onMount(async () => {
         <Card.Header
             class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-            <Card.Title class="text-3xl font-bold">Total Users</Card.Title>
+            <Card.Title class="text-2xl font-bold">Total Users</Card.Title>
             <UsersRound class="text-muted-foreground h-6 w-6" />
         </Card.Header>
         <Card.Content>
@@ -66,7 +66,7 @@ onMount(async () => {
         <Card.Header
             class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-            <Card.Title class="text-3xl font-bold">Total Requesters</Card.Title>
+            <Card.Title class="text-2xl font-bold">Total Requesters</Card.Title>
             <UserRoundPen class="text-muted-foreground h-6 w-6" />
         </Card.Header>
         <Card.Content>
@@ -83,7 +83,7 @@ onMount(async () => {
         <Card.Header
             class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-            <Card.Title class="text-3xl font-bold">Total Software</Card.Title>
+            <Card.Title class="text-2xl font-bold">Total Software</Card.Title>
             <FolderCode class="text-muted-foreground h-6 w-6" />
         </Card.Header>
         <Card.Content>
@@ -100,7 +100,7 @@ onMount(async () => {
         <Card.Header
             class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-            <Card.Title class="text-3xl font-bold">Total Requests</Card.Title>
+            <Card.Title class="text-2xl font-bold">Total Requests</Card.Title>
             <Tags class="text-muted-foreground h-6 w-6" />
         </Card.Header>
         <Card.Content>
@@ -117,7 +117,7 @@ onMount(async () => {
         <Card.Header
             class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-            <Card.Title class="text-3xl font-bold">Total Reviews</Card.Title>
+            <Card.Title class="text-2xl font-bold">Total Reviews</Card.Title>
             <SquareChartGantt class="text-muted-foreground h-6 w-6" />
         </Card.Header>
         <Card.Content>

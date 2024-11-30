@@ -34,7 +34,7 @@ let { userReviews = undefined } = $props();
                     <Table.Head class="hidden md:table-cell text-lg"
                         >Software</Table.Head
                     >
-                    <Table.Head class="text-lg">Request ID</Table.Head>
+                    <Table.Head class="text-lg">Request #</Table.Head>
                     <Table.Head class="text-lg text-right"
                         >Date Created</Table.Head
                     >

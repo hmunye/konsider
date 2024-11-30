@@ -79,49 +79,49 @@ const { form: formData, enhance } = form;
 
 <form method="POST" use:enhance>
     <div class="flex flex-col gap-8 [&>input]:mb-4 mt-8 rounded-lg p-8 py-8">
-        <h1 class="text-4xl font-bold mb-4">Change Password</h1>
+        <h1 class="text-2xl font-bold mb-4">Change Password</h1>
 
         <Form.Field {form} name="current_password">
             <Form.Control let:attrs>
-                <Form.Label class="text-2xl">Current Password</Form.Label>
+                <Form.Label class="text-xl">Current Password</Form.Label>
                 <Input
                     {...attrs}
                     bind:value={$formData.current_password}
                     type="password"
                     placeholder="••••••••"
-                    class="text-xl placeholder:text-xl placeholder:font-light"
+                    class="text-lg placeholder:text-lg placeholder:font-light"
                 />
             </Form.Control>
             <Form.FieldErrors class="text-lg" />
         </Form.Field>
         <Form.Field {form} name="new_password">
             <Form.Control let:attrs>
-                <Form.Label class="text-2xl">New Password</Form.Label>
+                <Form.Label class="text-xl">New Password</Form.Label>
                 <Input
                     {...attrs}
                     bind:value={$formData.new_password}
                     type="password"
                     placeholder="••••••••"
-                    class="text-xl placeholder:text-xl placeholder:font-light"
+                    class="text-lg placeholder:text-lg placeholder:font-light"
                 />
             </Form.Control>
             <Form.FieldErrors class="text-lg" />
         </Form.Field>
         <Form.Field {form} name="confirm_password">
             <Form.Control let:attrs>
-                <Form.Label class="text-2xl">Confirm New Password</Form.Label>
+                <Form.Label class="text-xl">Confirm New Password</Form.Label>
                 <Input
                     {...attrs}
                     bind:value={$formData.confirm_password}
                     type="password"
                     placeholder="••••••••"
-                    class="text-xl placeholder:text-xl placeholder:font-light"
+                    class="text-lg placeholder:text-lg placeholder:font-light"
                 />
             </Form.Control>
             <Form.FieldErrors class="text-lg" />
         </Form.Field>
         <Form.Button
-            class="bg-success text-success-foreground text-xl hover:bg-success hover:brightness-125 transition duration-300"
+            class="bg-success text-success-foreground text-lg hover:bg-success hover:brightness-125 transition duration-300"
             disabled={submitting}
             aria-disabled={submitting}
         >

@@ -20,8 +20,8 @@ pub struct SoftwareReview {
     pub is_connected_to_cloud_services_or_client: ReviewOptions,
     pub is_security_or_optimization_software: ReviewOptions,
     pub is_supported_by_current_os: ReviewOptions,
-    pub exported: Option<bool>,
-    pub review_notes: Option<String>,
+    pub exported: bool,
+    pub review_notes: String,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
     pub version: Option<i32>,
@@ -31,7 +31,7 @@ pub struct SoftwareReview {
 pub struct SoftwareReviewPayload {
     pub id: Option<Uuid>,
     pub software_request: SoftwareRequestDTO,
-    pub reviewer_id: Option<Uuid>,
+    pub reviewer_id: Uuid,
     pub is_supported: ReviewOptions,
     pub is_current_version: ReviewOptions,
     pub is_reputation_good: ReviewOptions,
@@ -82,8 +82,8 @@ pub struct SoftwareReviewDTO {
     pub is_connected_to_cloud_services_or_client: ReviewOptions,
     pub is_security_or_optimization_software: ReviewOptions,
     pub is_supported_by_current_os: ReviewOptions,
-    pub exported: Option<bool>,
-    pub review_notes: Option<String>,
+    pub exported: bool,
+    pub review_notes: String,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
@@ -117,13 +117,11 @@ impl From<(&SoftwareReview, SoftwareRequestDTO, UserDTO)> for SoftwareReviewDTO 
 
 impl SoftwareReview {
     pub fn parse(&self) -> Result<()> {
-        if let Some(review_notes) = &self.review_notes {
-            if !Self::validate_review_notes(review_notes) {
-                return Err(Error::ValidationError(format!(
-                    "software review payload: '{}' is invalid review notes",
-                    review_notes
-                )));
-            }
+        if !Self::validate_review_notes(&self.review_notes) {
+            return Err(Error::ValidationError(format!(
+                "software review payload: '{}' is invalid review notes",
+                &self.review_notes
+            )));
         }
 
         Ok(())

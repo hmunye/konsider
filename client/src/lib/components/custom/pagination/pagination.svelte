@@ -17,7 +17,7 @@ function buildUrl(
 }
 </script>
 
-{#if data?.metadata}
+{#if data?.metadata && Object.keys(data.metadata).length !== 0}
     <div class="text-muted-foreground text-md">
         Showing Page <strong
             >{data.metadata.current_page} of {data.metadata.last_page}</strong

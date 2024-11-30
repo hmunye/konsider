@@ -281,7 +281,7 @@ function handleRevokeUserToken() {
     <AlertDialog.Root bind:open={deleteAlertOpen}>
         <AlertDialog.Content>
             <AlertDialog.Header>
-                <AlertDialog.Title class="text-2xl"
+                <AlertDialog.Title class="text-xl"
                     >Are you sure?</AlertDialog.Title
                 >
                 <AlertDialog.Description class="text-lg">
@@ -304,7 +304,7 @@ function handleRevokeUserToken() {
     <AlertDialog.Root bind:open={revokeAlertOpen}>
         <AlertDialog.Content>
             <AlertDialog.Header>
-                <AlertDialog.Title class="text-2xl"
+                <AlertDialog.Title class="text-xl"
                     >Are you sure?</AlertDialog.Title
                 >
                 <AlertDialog.Description class="text-lg">

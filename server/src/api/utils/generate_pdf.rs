@@ -262,7 +262,7 @@ pub async fn generate_pdf(software_review: &SoftwareReviewDTO) -> Result<Respons
     current_layer.set_font(&font, 11.0);
     current_layer.set_outline_thickness(0.0);
 
-    let review_notes = software_review.review_notes.clone().unwrap_or_default();
+    let review_notes = software_review.review_notes.clone();
     let lines = split_into_lines(&review_notes, 80);
 
     for line in lines {

@@ -120,7 +120,7 @@ CREATE TABLE software_review (
     is_security_or_optimization_software review_options NOT NULL, -- Is this security or optimization software?
     is_supported_by_current_os review_options NOT NULL, -- Is the software supported by the current OS?
     exported BOOLEAN DEFAULT FALSE, -- Has the review been exported?
-    review_notes VARCHAR(255) DEFAULT 'NOT PROVIDED', -- Additional notes for the software review
+    review_notes VARCHAR(255) DEFAULT '', -- Additional notes for the software review
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you know this record has never been updated
     version INT DEFAULT 1,

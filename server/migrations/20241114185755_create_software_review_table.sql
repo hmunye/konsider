@@ -13,8 +13,8 @@ CREATE TABLE software_review (
     is_connected_to_cloud_services_or_client review_options NOT NULL, -- Is the software connected to cloud services or clients?
     is_security_or_optimization_software review_options NOT NULL, -- Is this security or optimization software?
     is_supported_by_current_os review_options NOT NULL, -- Is the software supported by the current OS?
-    exported BOOLEAN DEFAULT FALSE, -- Has the review been exported?
-    review_notes VARCHAR(255) DEFAULT 'NOT PROVIDED', -- Additional notes for the software review
+    exported BOOLEAN NOT NULL DEFAULT FALSE, -- Has the review been exported?
+    review_notes VARCHAR(255) NOT NULL CHECK (length(review_notes) > 0), -- Additional notes for the software review
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(), -- If it is the same value as created_at, you know this record has never been updated
     CONSTRAINT unique_software_review UNIQUE (software_request_id, reviewer_id) -- Ensure each review is unique per software request and reviewer pair

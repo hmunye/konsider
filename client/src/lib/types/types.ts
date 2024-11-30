@@ -1,5 +1,7 @@
 export const roleEnum = ["ADMIN", "REVIEWER"] as const;
 
+export const reviewOptionsEnum = ["TRUE", "FALSE", "NOT_SURE"] as const;
+
 export type Message =
   | { success: string }
   | { error: string }

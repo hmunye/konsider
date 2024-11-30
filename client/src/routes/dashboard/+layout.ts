@@ -22,7 +22,10 @@ export const load: LayoutLoad = async ({ fetch, url }) => {
     );
   }
 
-  if (response.success?.user.role !== "ADMIN") {
+  if (
+    response.success?.user.role !== "ADMIN" &&
+    url.pathname.includes("users")
+  ) {
     const fromUrl = url.pathname + url.search;
 
     throw redirect(

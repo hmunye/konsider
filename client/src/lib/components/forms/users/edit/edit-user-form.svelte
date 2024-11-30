@@ -89,7 +89,7 @@ const { form: formData, enhance } = form;
 let selectedRole = $derived(
   $formData.role
     ? {
-        label: $formData.role,
+        label: $formData.role.charAt(0) + $formData.role.slice(1).toLowerCase(),
         value: $formData.role,
       }
     : undefined,
@@ -98,39 +98,39 @@ let selectedRole = $derived(
 
 <form method="POST" use:enhance>
     <div class="flex flex-col gap-8 [&>input]:mb-4 mt-8 rounded-lg p-8 py-8">
-        <h1 class="text-4xl font-bold mb-4">Edit User</h1>
+        <h1 class="text-2xl font-bold mb-4">Edit User</h1>
 
         <Form.Field {form} name="name">
             <Form.Control let:attrs>
-                <Form.Label class="text-2xl">Name</Form.Label>
+                <Form.Label class="text-xl">Name</Form.Label>
                 <Input
                     {...attrs}
                     bind:value={$formData.name}
                     type="text"
                     autocomplete="name"
                     placeholder="John"
-                    class="text-xl placeholder:text-xl placeholder:font-light"
+                    class="text-lg placeholder:text-lg placeholder:font-light"
                 />
             </Form.Control>
             <Form.FieldErrors class="text-lg" />
         </Form.Field>
         <Form.Field {form} name="email">
             <Form.Control let:attrs>
-                <Form.Label class="text-2xl">Email</Form.Label>
+                <Form.Label class="text-xl">Email</Form.Label>
                 <Input
                     {...attrs}
                     bind:value={$formData.email}
                     type="text"
                     autocomplete="email"
                     placeholder="you@example.com"
-                    class="text-xl placeholder:text-xl placeholder:font-light"
+                    class="text-lg placeholder:text-lg placeholder:font-light"
                 />
             </Form.Control>
             <Form.FieldErrors class="text-lg" />
         </Form.Field>
         <Form.Field {form} name="role">
             <Form.Control let:attrs>
-                <Form.Label class="text-2xl">Role</Form.Label>
+                <Form.Label class="text-xl">Role</Form.Label>
                 <Select.Root
                     selected={selectedRole}
                     onSelectedChange={(v) => {
@@ -140,18 +140,18 @@ let selectedRole = $derived(
                     <Select.Trigger {...attrs}>
                         <Select.Value
                             placeholder="Select User Role"
-                            class="text-xl placeholder:text-xl placeholder:font-light"
+                            class="text-lg placeholder:text-lg placeholder:font-light"
                         />
                     </Select.Trigger>
                     <Select.Content>
                         <Select.Item
                             value="ADMIN"
-                            label="ADMIN"
+                            label="Admin"
                             class="text-md"
                         />
                         <Select.Item
                             value="REVIEWER"
-                            label="REVIEWER"
+                            label="Reviewer"
                             class="text-md"
                         />
                     </Select.Content>
@@ -161,7 +161,7 @@ let selectedRole = $derived(
             <Form.FieldErrors />
         </Form.Field>
         <Form.Button
-            class="bg-success text-success-foreground text-xl hover:bg-success hover:brightness-125 transition duration-300"
+            class="bg-success text-success-foreground text-lg hover:bg-success hover:brightness-125 transition duration-300"
             disabled={submitting}
             aria-disabled={submitting}
         >

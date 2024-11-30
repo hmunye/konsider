@@ -142,7 +142,7 @@ pub async fn update_software_review_details(
     }
 
     if let Some(review_notes) = payload.review_notes {
-        software_review.review_notes = Some(review_notes);
+        software_review.review_notes = review_notes;
         fields_updated = true;
     }
 

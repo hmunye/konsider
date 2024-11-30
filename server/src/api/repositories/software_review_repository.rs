@@ -240,8 +240,8 @@ pub async fn fetch_all_software_reviews(
                 .is_connected_to_cloud_services_or_client,
             is_security_or_optimization_software: record.is_security_or_optimization_software,
             is_supported_by_current_os: record.is_supported_by_current_os,
-            exported: Some(record.exported),
-            review_notes: Some(record.review_notes),
+            exported: record.exported,
+            review_notes: record.review_notes,
             created_at: Some(record.created_at),
         })
         .collect();
@@ -411,7 +411,7 @@ pub async fn insert_software_review(
         payload.is_connected_to_cloud_services_or_client.clone() as ReviewOptions,
         payload.is_security_or_optimization_software.clone() as ReviewOptions,
         payload.is_supported_by_current_os.clone() as ReviewOptions,
-        payload.review_notes
+        payload.review_notes.clone()
     )
     .fetch_optional(&mut *tx)
     .await
