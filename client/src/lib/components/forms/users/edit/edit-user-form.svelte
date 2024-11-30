@@ -120,7 +120,7 @@ let selectedRole = $derived(
                 <Input
                     {...attrs}
                     bind:value={$formData.email}
-                    type="text"
+                    type="email"
                     autocomplete="email"
                     placeholder="you@example.com"
                     class="text-lg placeholder:text-lg placeholder:font-light"

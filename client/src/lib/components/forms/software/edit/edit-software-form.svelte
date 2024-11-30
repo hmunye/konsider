@@ -2,25 +2,25 @@
 import { PUBLIC_BASE_API_URL } from "$env/static/public";
 import * as Form from "$lib/components/ui/form";
 import { Input } from "$lib/components/ui/input";
-import * as Select from "$lib/components/ui/select";
 import { fetchRequest } from "$lib/fetch";
 import { toast } from "svelte-sonner";
 import { defaults, superForm } from "sveltekit-superforms";
 import { zod, zodClient } from "sveltekit-superforms/adapters";
-import { editRequesterSchema } from "./schema";
+import { editSoftwareSchema } from "./schema";
 
-let { selectedRequester } = $props();
+let { selectedSoftware } = $props();
 
 let submitting: boolean = $state(false);
 
 const initialData = {
-  name: selectedRequester.name,
-  email: selectedRequester.email,
-  department: selectedRequester.department,
+  software_name: selectedSoftware.software_name,
+  software_version: selectedSoftware.software_version,
+  developer_name: selectedSoftware.developer_name,
+  description: selectedSoftware.description,
 };
 
-const form = superForm(defaults(initialData, zod(editRequesterSchema)), {
-  validators: zodClient(editRequesterSchema),
+const form = superForm(defaults(initialData, zod(editSoftwareSchema)), {
+  validators: zodClient(editSoftwareSchema),
   SPA: true,
   dataType: "json",
   resetForm: false,
@@ -33,14 +33,17 @@ const form = superForm(defaults(initialData, zod(editRequesterSchema)), {
 
     const requestBody: Record<string, string> = {};
 
-    if ($formData.name !== initialData.name) {
-      requestBody.name = $formData.name;
+    if ($formData.software_name !== initialData.software_name) {
+      requestBody.software_name = $formData.software_name;
     }
-    if ($formData.email !== initialData.email) {
-      requestBody.email = $formData.email;
+    if ($formData.software_version !== initialData.software_version) {
+      requestBody.software_version = $formData.software_version;
     }
-    if ($formData.department !== initialData.department) {
-      requestBody.department = $formData.department;
+    if ($formData.developer_name !== initialData.developer_name) {
+      requestBody.developer_name = $formData.developer_name;
+    }
+    if ($formData.description !== initialData.description) {
+      requestBody.description = $formData.description;
     }
 
     if (Object.keys(requestBody).length === 0) {
@@ -49,11 +52,11 @@ const form = superForm(defaults(initialData, zod(editRequesterSchema)), {
       return;
     }
 
-    const editRequesterResponse = new Promise<unknown>((resolve, reject) => {
+    const editSoftwareResponse = new Promise<unknown>((resolve, reject) => {
       // Simulate a timeout before making the request to show loading toast
       setTimeout(() => {
         fetchRequest<unknown>({
-          url: `${PUBLIC_BASE_API_URL}/api/v1/requesters/${selectedRequester.id}`,
+          url: `${PUBLIC_BASE_API_URL}/api/v1/software/${selectedSoftware.id}`,
           method: "PATCH",
           requestBody,
         })
@@ -70,11 +73,11 @@ const form = superForm(defaults(initialData, zod(editRequesterSchema)), {
       }, 2000);
     });
 
-    toast.promise(editRequesterResponse, {
+    toast.promise(editSoftwareResponse, {
       loading: "Loading...",
       success: () => {
         submitting = false;
-        return "Requester details have been successfully updated";
+        return "Software details have been successfully updated";
       },
       error: (error) => {
         submitting = false;
@@ -89,44 +92,56 @@ const { form: formData, enhance } = form;
 
 <form method="POST" use:enhance>
     <div class="flex flex-col gap-8 [&>input]:mb-4 mt-8 rounded-lg p-8 py-8">
-        <h1 class="text-2xl font-bold mb-4">Edit Requester</h1>
+        <h1 class="text-2xl font-bold mb-4">Edit Software Details</h1>
 
-        <Form.Field {form} name="name">
+        <Form.Field {form} name="software_name">
             <Form.Control let:attrs>
-                <Form.Label class="text-xl">Name</Form.Label>
+                <Form.Label class="text-xl">Software Name</Form.Label>
                 <Input
                     {...attrs}
-                    bind:value={$formData.name}
+                    bind:value={$formData.software_name}
                     type="text"
                     autocomplete="name"
-                    placeholder="John"
+                    placeholder="Zoom"
                     class="text-lg placeholder:text-lg placeholder:font-light"
                 />
             </Form.Control>
             <Form.FieldErrors class="text-lg" />
         </Form.Field>
-        <Form.Field {form} name="email">
+        <Form.Field {form} name="software_version">
             <Form.Control let:attrs>
-                <Form.Label class="text-xl">Email</Form.Label>
+                <Form.Label class="text-xl">Software Version</Form.Label>
                 <Input
                     {...attrs}
-                    bind:value={$formData.email}
-                    type="email"
-                    autocomplete="email"
-                    placeholder="you@example.com"
-                    class="text-lg placeholder:text-lg placeholder:font-light"
-                />
-            </Form.Control>
-            <Form.FieldErrors class="text-lg" />
-        </Form.Field>
-        <Form.Field {form} name="department">
-            <Form.Control let:attrs>
-                <Form.Label class="text-xl">Department</Form.Label>
-                <Input
-                    {...attrs}
-                    bind:value={$formData.department}
+                    bind:value={$formData.software_version}
                     type="text"
-                    placeholder="BITS"
+                    placeholder="1.0.0"
+                    class="text-lg placeholder:text-lg placeholder:font-light"
+                />
+            </Form.Control>
+            <Form.FieldErrors class="text-lg" />
+        </Form.Field>
+        <Form.Field {form} name="developer_name">
+            <Form.Control let:attrs>
+                <Form.Label class="text-xl">Developer Name</Form.Label>
+                <Input
+                    {...attrs}
+                    bind:value={$formData.developer_name}
+                    type="text"
+                    placeholder="Zoom Communications"
+                    class="text-lg placeholder:text-lg placeholder:font-light"
+                />
+            </Form.Control>
+            <Form.FieldErrors class="text-lg" />
+        </Form.Field>
+        <Form.Field {form} name="description">
+            <Form.Control let:attrs>
+                <Form.Label class="text-xl">Description</Form.Label>
+                <Input
+                    {...attrs}
+                    bind:value={$formData.description}
+                    type="text"
+                    placeholder=""
                     class="text-lg placeholder:text-lg placeholder:font-light"
                 />
             </Form.Control>

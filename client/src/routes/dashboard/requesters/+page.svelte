@@ -182,7 +182,7 @@ function handleDeleteRequester() {
                             colspan={6}
                             class="text-muted-foreground text-center text-lg"
                         >
-                            No users found
+                            No requesters found
                         </Table.Cell>
                     </Table.Row>
                 {/if}
