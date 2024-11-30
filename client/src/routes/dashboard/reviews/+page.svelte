@@ -19,6 +19,7 @@ import { onMount } from "svelte";
 import { toast } from "svelte-sonner";
 import type { PageData } from "./$types";
 import CreateSoftwareReviewForm from "$lib/components/forms/reviews/create/create-software-review-form.svelte";
+import EditSoftwareReviewForm from "$lib/components/forms/reviews/edit/edit_software_review_form.svelte";
 
 let { data }: { data: PageData } = $props();
 
