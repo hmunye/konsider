@@ -44,7 +44,6 @@ pub async fn api_login(
 
     let mut cookie = Cookie::new(token);
 
-    cookie.set_domain("localhost");
     cookie.set_path("/");
     cookie.set_http_only();
 
@@ -79,7 +78,7 @@ pub async fn api_logout(
 
     state.token_cache.remove_token(token.jti, token.sub).await;
 
-    let cookie = Cookie::clear("localhost", "/");
+    let cookie = Cookie::clear("/");
 
     let headers = AppendHeaders([(SET_COOKIE, cookie.build())]);
 

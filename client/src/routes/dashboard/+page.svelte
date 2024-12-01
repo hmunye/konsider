@@ -41,27 +41,33 @@ onMount(async () => {
 });
 </script>
 
-<div class="animate-in grid gap-4 md:grid-cols-2 md:gap-8 xl:grid-cols-5">
-    <Card.Root
-        data-x-chunk-name="dashboard-01-chunk-0"
-        data-x-chunk-description="A card showing the total number of registered users."
-    >
-        <Card.Header
-            class="flex flex-row items-center justify-between space-y-0 pb-2"
+<div
+    class={`animate-in grid gap-4 md:grid-cols-2 md:gap-8 ${$userStore?.role === "ADMIN" ? `xl:grid-cols-5` : `xl:grid-cols-4`}`}
+>
+    {#if $userStore?.role === "ADMIN"}
+        <Card.Root
+            data-x-chunk-name="dashboard-01-chunk-0"
+            data-x-chunk-description="A card showing the total number of registered users."
         >
-            <Card.Title class="text-2xl font-bold">Total Users</Card.Title>
-            <UsersRound class="text-muted-foreground h-6 w-6" />
-        </Card.Header>
-        <Card.Content>
-            <div class="text-2xl font-bold">
-                {data.users?.metadata.total_records ?? 0}
-                <span class="text-muted-foreground text-lg"> Registered</span>
-            </div>
-        </Card.Content>
-    </Card.Root>
+            <Card.Header
+                class="flex flex-row items-center justify-between space-y-0 pb-2"
+            >
+                <Card.Title class="text-2xl font-bold">Total Users</Card.Title>
+                <UsersRound class="text-muted-foreground h-6 w-6" />
+            </Card.Header>
+            <Card.Content>
+                <div class="text-2xl font-bold">
+                    {data.users?.metadata.total_records ?? 0}
+                    <span class="text-muted-foreground text-lg">
+                        Registered</span
+                    >
+                </div>
+            </Card.Content>
+        </Card.Root>
+    {/if}
     <Card.Root
         data-x-chunk-name="dashboard-01-chunk-0"
-        data-x-chunk-description="A card showing the total number of registered users."
+        data-x-chunk-description="A card showing the total number of requesters."
     >
         <Card.Header
             class="flex flex-row items-center justify-between space-y-0 pb-2"

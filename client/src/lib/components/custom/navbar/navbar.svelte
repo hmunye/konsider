@@ -39,14 +39,19 @@ let sheetOpen: boolean = $state(false);
 
 let currentPath = $derived($page.url.pathname);
 
-const paths = [
+let paths = $state([
   { path: "/dashboard", label: "Dashboard" },
-  { path: "/dashboard/users", label: "Users" },
   { path: "/dashboard/requesters", label: "Requesters" },
   { path: "/dashboard/software", label: "Software" },
   { path: "/dashboard/requests", label: "Requests" },
   { path: "/dashboard/reviews", label: "Reviews" },
-];
+]);
+
+if ($userStore?.role === "ADMIN") addPath();
+
+function addPath() {
+  paths.splice(1, 0, { path: "/dashboard/users", label: "Users" });
+}
 </script>
 
 {#if data === undefined}

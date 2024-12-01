@@ -32,4 +32,4 @@ export POSTGRES_USER=$(get_toml_value "user")
 export POSTGRES_PASSWORD=$(get_toml_value "password")
 export POSTGRES_DB=$(get_toml_value "database")
 
-docker-compose up -d --build
+docker compose up -d --build

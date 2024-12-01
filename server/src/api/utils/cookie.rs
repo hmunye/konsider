@@ -3,7 +3,7 @@ const COOKIE_KEY: &str = "id";
 #[derive(Debug, Default)]
 pub struct Cookie {
     value: String,
-    domain: String,
+    domain: Option<String>,
     path: String,
     expires: Option<String>,
     max_age: Option<u64>,
@@ -25,7 +25,7 @@ impl Cookie {
     }
 
     pub fn set_domain(&mut self, domain: &str) {
-        self.domain = domain.to_string();
+        self.domain = Some(domain.to_string());
     }
 
     pub fn set_path(&mut self, path: &str) {
@@ -55,7 +55,9 @@ impl Cookie {
     pub fn build(&self) -> String {
         let mut cookie_header = format!("{}={}", COOKIE_KEY, self.value);
 
-        cookie_header.push_str(&format!("; Domain={}", self.domain));
+        if let Some(ref domain) = self.domain {
+            cookie_header.push_str(&format!("; Domain={}", domain));
+        }
 
         cookie_header.push_str(&format!("; Path={}", self.path));
 
@@ -80,10 +82,10 @@ impl Cookie {
         cookie_header
     }
 
-    pub fn clear(domain: &str, path: &str) -> Self {
+    pub fn clear(path: &str) -> Self {
         Self {
             value: "".to_string(),
-            domain: domain.to_string(),
+            domain: None,
             path: path.to_string(),
             expires: Some("Thu, 01 Jan 1970 00:00:00 GMT".to_string()),
             max_age: None,

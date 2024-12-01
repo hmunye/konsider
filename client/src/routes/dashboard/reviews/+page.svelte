@@ -21,6 +21,7 @@ import type { PageData } from "./$types";
 import CreateSoftwareReviewForm from "$lib/components/forms/reviews/create/create-software-review-form.svelte";
 import EditSoftwareReviewForm from "$lib/components/forms/reviews/edit/edit_software_review_form.svelte";
 import { ScrollArea } from "$lib/components/ui/scroll-area";
+import { userStore } from "$lib/stores/userStore";
 
 let { data }: { data: PageData } = $props();
 
@@ -272,14 +273,18 @@ function handleExportSoftwareReview() {
                                                 class="h-[400px] w-[250px] p-4"
                                             >
                                                 <p class="mb-4">
-                                                    <a
-                                                        href={`/dashboard/users?filter=name:${review.software_review.reviewer.name}`}
-                                                        class="text-md font-semibold hover:underline"
-                                                    >
-                                                        Go To Reviewer
-                                                    </a>
+                                                    {#if $userStore?.role === "ADMIN"}
+                                                        <a
+                                                            href={`/dashboard/users?filter=name:${review.software_review.reviewer.name}`}
+                                                            class="text-md font-semibold hover:underline"
+                                                        >
+                                                            Go To Reviewer
+                                                        </a>
 
-                                                    <span class="mx-2">|</span>
+                                                        <span class="mx-2"
+                                                            >|</span
+                                                        >
+                                                    {/if}
                                                     <a
                                                         href={`/dashboard/requests?filter=td_request_id:${review.software_review.software_request.td_request_id}`}
                                                         class="text-md font-semibold hover:underline"
@@ -287,6 +292,20 @@ function handleExportSoftwareReview() {
                                                         Go To Software Request
                                                     </a>
                                                 </p>
+
+                                                {#if $userStore?.role !== "ADMIN"}
+                                                    <p class="text-md mb-4">
+                                                        <span
+                                                            class="font-semibold"
+                                                            >Reviewer Email:</span
+                                                        >
+                                                        <span>
+                                                            {review
+                                                                .software_review
+                                                                .reviewer.email}
+                                                        </span>
+                                                    </p>
+                                                {/if}
                                                 <p class="text-md">
                                                     <span class="font-semibold"
                                                         >Is Supported:</span

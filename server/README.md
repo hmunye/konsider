@@ -1,4 +1,4 @@
-# Konsider REST API
+# Konsider REST API (Standalone)
 
 ## Project Structure
 
@@ -108,6 +108,8 @@ Edit this file to suit your production configuration. Here's an example setup:
 [server]
 port = 8443
 host = "0.0.0.0"
+# IP Address of the Server
+origin = "192.168.0.29"
 jwt_secret = ""
 
 [log]

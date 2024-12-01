@@ -5,19 +5,11 @@ import type {
   SoftwareRequestResponse,
   SoftwareResponse,
   SoftwareReviewResponse,
-  UserResponse,
 } from "$lib/types/types.js";
 import type { PageLoad } from "./$types.js";
 
 export const load: PageLoad = async ({ fetch }) => {
   const fetchPromises = [
-    fetchRequest<UserResponse>(
-      {
-        url: `${PUBLIC_BASE_API_URL}/api/v1/users?per_page=1`,
-        method: "GET",
-      },
-      fetch,
-    ),
     fetchRequest<RequesterResponse>(
       {
         url: `${PUBLIC_BASE_API_URL}/api/v1/requesters?per_page=1`,
@@ -49,13 +41,11 @@ export const load: PageLoad = async ({ fetch }) => {
   ];
 
   const responses: [
-    ApiResponse<UserResponse>,
     ApiResponse<RequesterResponse>,
     ApiResponse<SoftwareResponse>,
     ApiResponse<SoftwareRequestResponse>,
     ApiResponse<SoftwareReviewResponse>,
   ] = (await Promise.all(fetchPromises)) as [
-    ApiResponse<UserResponse>,
     ApiResponse<RequesterResponse>,
     ApiResponse<SoftwareResponse>,
     ApiResponse<SoftwareRequestResponse>,
@@ -71,10 +61,9 @@ export const load: PageLoad = async ({ fetch }) => {
   }
 
   return {
-    users: responses[0].success,
-    requesters: responses[1].success,
-    software: responses[2].success,
-    software_requests: responses[3].success,
-    software_reviews: responses[4].success,
+    requesters: responses[0].success,
+    software: responses[1].success,
+    software_requests: responses[2].success,
+    software_reviews: responses[3].success,
   };
 };

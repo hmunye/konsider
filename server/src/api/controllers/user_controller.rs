@@ -48,7 +48,7 @@ pub async fn api_change_password(
     let _ = revoke_user_token(token.sub, &state.db_pool).await?;
     state.token_cache.remove_token(token.jti, token.sub).await;
 
-    let cookie = Cookie::clear("localhost", "/");
+    let cookie = Cookie::clear("/");
 
     let headers = AppendHeaders([(SET_COOKIE, cookie.build())]);
 

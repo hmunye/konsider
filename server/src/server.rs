@@ -57,6 +57,7 @@ impl Server {
             config.server.jwt_secret,
             token_cache,
             environment.clone(),
+            config.server.origin,
         )
         .await?;
 
@@ -180,6 +181,7 @@ pub async fn setup_server(
     jwt_secret: SecretString,
     token_cache: TokenCache,
     environment: String,
+    origin: String,
 ) -> Result<Router> {
     let state = ServerState {
         db_pool,
@@ -190,7 +192,7 @@ pub async fn setup_server(
 
     let origin = [
         "http://localhost:3080".parse().unwrap(),
-        "https://localhost".parse().unwrap(),
+        format!("https://{}", origin).parse().unwrap(),
     ];
 
     let cors_layer = CorsLayer::new()

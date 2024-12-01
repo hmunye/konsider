@@ -2,7 +2,8 @@ name: k6r
 
 services:
   postgres:
-    image: postgres:alpine
+    build:
+      context: .
     container_name: prod-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -10,11 +11,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./certs:/etc/ssl/certs
     networks:
       - backend
-    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     restart: unless-stopped
 
   server:
