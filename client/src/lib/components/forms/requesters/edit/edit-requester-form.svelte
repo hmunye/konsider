@@ -2,7 +2,6 @@
 import { PUBLIC_BASE_API_URL } from "$env/static/public";
 import * as Form from "$lib/components/ui/form";
 import { Input } from "$lib/components/ui/input";
-import * as Select from "$lib/components/ui/select";
 import { fetchRequest } from "$lib/fetch";
 import { toast } from "svelte-sonner";
 import { defaults, superForm } from "sveltekit-superforms";
@@ -28,6 +27,7 @@ const form = superForm(defaults(initialData, zod(editRequesterSchema)), {
     submitting = true;
 
     if (!form.valid) {
+      submitting = false;
       return;
     }
 

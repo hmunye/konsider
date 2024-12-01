@@ -26,6 +26,7 @@ const form = superForm(defaults(initialData, zod(changeUserPasswordSchema)), {
     submitting = true;
 
     if (!form.valid) {
+      submitting = false;
       return;
     }
 

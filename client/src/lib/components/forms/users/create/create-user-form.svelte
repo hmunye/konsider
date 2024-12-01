@@ -27,6 +27,7 @@ const form = superForm(defaults(initialData, zod(createUserSchema)), {
     submitting = true;
 
     if (!form.valid) {
+      submitting = false;
       return;
     }
 

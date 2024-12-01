@@ -39,6 +39,7 @@ const form = superForm(defaults(initialData, zod(editSofwareReviewSchema)), {
     submitting = true;
 
     if (!form.valid) {
+      submitting = false;
       return;
     }
 

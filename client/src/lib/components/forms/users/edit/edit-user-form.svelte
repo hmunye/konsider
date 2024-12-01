@@ -28,6 +28,7 @@ const form = superForm(defaults(initialData, zod(editUserSchema)), {
     submitting = true;
 
     if (!form.valid) {
+      submitting = false;
       return;
     }
 
