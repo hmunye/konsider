@@ -74,6 +74,8 @@ pub async fn generate_pdf(software_review: &SoftwareReviewDTO) -> Result<Respons
         )
         .map_err(|err| Error::ServerError(std::sync::Arc::new(err.into())))?;
 
+    let est_offset = chrono::FixedOffset::west_opt(5 * 3600).unwrap(); // UTC-5
+
     // ----------------------------------------------------------------------------
     current_layer.begin_text_section();
 
@@ -113,7 +115,7 @@ pub async fn generate_pdf(software_review: &SoftwareReviewDTO) -> Result<Respons
             software_review
                 .created_at
                 .unwrap_or_default()
-                .naive_local()
+                .with_timezone(&est_offset)
                 .format("%m/%d/%Y")
         ),
         &font,

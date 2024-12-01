@@ -20,6 +20,7 @@ import { toast } from "svelte-sonner";
 import type { PageData } from "./$types";
 import CreateSoftwareReviewForm from "$lib/components/forms/reviews/create/create-software-review-form.svelte";
 import EditSoftwareReviewForm from "$lib/components/forms/reviews/edit/edit_software_review_form.svelte";
+import { ScrollArea } from "$lib/components/ui/scroll-area";
 
 let { data }: { data: PageData } = $props();
 
@@ -266,224 +267,286 @@ function handleExportSoftwareReview() {
                                         Hover For Details
                                     </HoverCard.Trigger>
                                     <HoverCard.Content>
-                                        <div class="text-md space-y-4">
-                                            <p>
-                                                <a
-                                                    href={`/dashboard/users?filter=name:${review.software_review.reviewer.name}`}
-                                                    class="text-md font-semibold hover:underline"
-                                                >
-                                                    Go To Reviewer
-                                                </a>
+                                        <div class="text-md">
+                                            <ScrollArea
+                                                class="h-[400px] w-[250px] p-4"
+                                            >
+                                                <p class="mb-4">
+                                                    <a
+                                                        href={`/dashboard/users?filter=name:${review.software_review.reviewer.name}`}
+                                                        class="text-md font-semibold hover:underline"
+                                                    >
+                                                        Go To Reviewer
+                                                    </a>
 
-                                                <span class="mx-2">|</span>
-                                                <a
-                                                    href={`/dashboard/requests?filter=td_request_id:${review.software_review.software_request.td_request_id}`}
-                                                    class="text-md font-semibold hover:underline"
-                                                >
-                                                    Go To Software Request
-                                                </a>
-                                            </p>
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Is Supported:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_supported
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
+                                                    <span class="mx-2">|</span>
+                                                    <a
+                                                        href={`/dashboard/requests?filter=td_request_id:${review.software_review.software_request.td_request_id}`}
+                                                        class="text-md font-semibold hover:underline"
+                                                    >
+                                                        Go To Software Request
+                                                    </a>
+                                                </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Is Supported:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_supported
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
 
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Is Current Version:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_current_version
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Is Current Version:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_current_version
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
 
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Is Reputation Good:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_reputation_good
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Is Reputation Good:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_reputation_good
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
 
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Is Installation from
-                                                    Developer:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_installation_from_developer
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Is Installation from
+                                                        Developer:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_installation_from_developer
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
 
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Is Local Admin Required:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_local_admin_required
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Connected to Brockport
-                                                    Cloud:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_connected_to_brockport_cloud
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Is Local Admin
+                                                        Required:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_local_admin_required
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Connected to Brockport
+                                                        Cloud:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_connected_to_brockport_cloud
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
 
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Connected to Cloud Services
-                                                    or Client:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_connected_to_cloud_services_or_client
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Is Security or Optimization
-                                                    Software:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_security_or_optimization_software
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Connected to Cloud
+                                                        Services or Client:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_connected_to_cloud_services_or_client
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Is Security or
+                                                        Optimization Software:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_security_or_optimization_software
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
 
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Is Supported by Current OS:</span
-                                                >
-                                                <span>
-                                                    {review.software_review.is_supported_by_current_os
-                                                        .split("_")
-                                                        .map(
-                                                            (word: string) =>
-                                                                word
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                word
-                                                                    .slice(1)
-                                                                    .toLowerCase(),
-                                                        )
-                                                        .join(" ")}
-                                                </span>
-                                            </p>
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Created At:</span
-                                                >
-                                                <span
-                                                    >{formatDate(
-                                                        review.software_review
-                                                            .created_at,
-                                                    )}</span
-                                                >
-                                            </p>
-                                            <p class="text-md">
-                                                <span class="font-semibold"
-                                                    >Review Notes:</span
-                                                >
-                                                <span
-                                                    >{review.software_review
-                                                        .review_notes}</span
-                                                >
-                                            </p>
+                                                <p class="text-md mb-4">
+                                                    <span class="font-semibold"
+                                                        >Is Supported by Current
+                                                        OS:</span
+                                                    >
+                                                    <span>
+                                                        {review.software_review.is_supported_by_current_os
+                                                            .split("_")
+                                                            .map(
+                                                                (
+                                                                    word: string,
+                                                                ) =>
+                                                                    word
+                                                                        .charAt(
+                                                                            0,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    word
+                                                                        .slice(
+                                                                            1,
+                                                                        )
+                                                                        .toLowerCase(),
+                                                            )
+                                                            .join(" ")}
+                                                    </span>
+                                                </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Created At:</span
+                                                    >
+                                                    <span
+                                                        >{formatDate(
+                                                            review
+                                                                .software_review
+                                                                .created_at,
+                                                        )}</span
+                                                    >
+                                                </p>
+                                                <p class="text-md">
+                                                    <span class="font-semibold"
+                                                        >Review Notes:</span
+                                                    >
+                                                    <span
+                                                        class="whitespace-normal break-words break-all"
+                                                        >{review.software_review
+                                                            .review_notes}</span
+                                                    >
+                                                </p>
+                                            </ScrollArea>
                                         </div>
                                     </HoverCard.Content>
                                 </HoverCard.Root>
