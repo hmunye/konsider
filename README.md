@@ -91,6 +91,24 @@ Run this command to restrict permissions of private key:
 chmod og-rwx ./certs/server.key
 ```
 
+Create a Self-Signed Certificate to serve the API over HTTPS:
+
+```shell
+mkdir ./server/certs && openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+-keyout ./server/certs/server.key -out ./server/certs/server.crt
+```
+> req -x509: Creates a self-signed certificate
+
+> -nodes: Tells OpenSSL not to encrypt the private key
+
+> -days 365: The certificate will be valid for 365 days
+
+> -newkey rsa:2048: Generates a new RSA key that is 2048 bits long
+
+> -keyout server.key: The private key will be saved to server.key
+
+> -out server.crt: The certificate will be saved to server.crt
+
 Modify the `nginx.conf` file in the `docker` directory by replacing each instance of `server_name`
 with the IP address of the server hosting the application
 
