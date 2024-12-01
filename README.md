@@ -17,6 +17,10 @@ Before starting, ensure the following tools are installed:
 git clone https://github.com/hmunye/konsider.git
 ```
 
+```bash
+cd konsider
+```
+
 ### 3. **Running the Application**
 
 Start by creating a `production.toml` file in `server` directory and `.env.production` file in `client` directory
