@@ -93,12 +93,6 @@ I prefer an approach that doesn’t burden the client with token management. Ins
 - Revocation Gap: The 10-15-minute polling interval introduces a brief window before revoked tokens are fully inactive, allowing limited use if compromised
 - Database/Memory Management: As more tokens are stored in the cache and database, memory and storage usage grows. Periodic pruning of inactive tokens might be required
 
-##### Token Pruning Strategy:
-To manage cache memory and database efficiency, unused tokens are periodically pruned based on their activity:
-
-1. Pruning Condition: Tokens with an `updated_at` timestamp older than the expiration period (e.g, 24 hours) are considered inactive and are eligible for deletion
-2. Scheduled Pruning Job: During each database polling cycle, inactive tokens are deleted to optimize storage and memory
-
 ### HTTPS:
 Both frontend and backend will be served over HTTPS, securing data transmissions between the client, frontend, and API
 
@@ -124,6 +118,12 @@ Implementing a refresh token system could be an alternative approach to provide 
 
 ### Idempotency Keys:
 Introducing idempotency keys ensures that repeated requests (e.g., retries due to network issues) produce the same result, preventing unintended side effects like duplicate transactions or operations
+
+### Token Pruning Strategy:
+To manage cache memory and database efficiency, unused tokens can be periodically pruned based on their activity:
+
+1. Pruning Condition: Tokens with an `updated_at` timestamp older than the expiration period (e.g, 24 hours) are considered inactive and are eligible for deletion
+2. Scheduled Pruning Job: During each database polling cycle, inactive tokens are deleted to optimize storage and memory
 
 ## Notes
 
