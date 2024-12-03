@@ -43,6 +43,7 @@ COPY --from=builder /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
 
 COPY --from=builder /app/migrations /app/migrations
 COPY --from=builder /app/certs /app/certs
+COPY --from=builder /app/assets /app/assets
 COPY --from=builder /app/config/production.toml /app/config/production.toml
 COPY ./docker_entrypoint.sh /docker_entrypoint.sh
 
