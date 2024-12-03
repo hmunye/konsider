@@ -119,7 +119,7 @@ retention_days = 3
 user = "k6r_user"
 password = ""
 database = "k6r"
-host = "postgres"
+db_host = "postgres"
 db_port = 5432
 require_ssl = true
 ```
