@@ -41,6 +41,7 @@ Edit these files to suit your configuration. Here's an example setup:
 [server]
 port = 8443
 host = "0.0.0.0"
+environment = "production"
 origin = "<server-ip>"
 jwt_secret = ""
 
